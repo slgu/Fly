@@ -1,5 +1,19 @@
 func abc2(a, b) {
+    a = 3;
+    b = 4;
+    return a;
+    if (a) {
 
+    };
+    while (a) {
+
+    };
+    for (a : b) {
+
+    };
+    for (a=3;a<4;a=a+1) {
+
+    };
 }
 
 func abc(a, b) {

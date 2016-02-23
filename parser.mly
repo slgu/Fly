@@ -68,8 +68,8 @@ formal_list:
 /*need semi otherwise expr expr -> shift/reduce conflict*/
 stmt_list:
     /* nothing */  { [] }
-    | stmt {[$1]}
-    | stmt_list SEMI stmt { $3 :: $1 }
+    | stmt SEMI {[$1]}
+    | stmt_list stmt SEMI{ $2 :: $1 }
 
 stmt:
     expr {Expr($1)}
@@ -80,7 +80,7 @@ stmt:
        { For($3, $5, $7, $10) }
     | WHILE LPAREN expr RPAREN LBRACE stmt_list RBRACE { While($3, $6) }
     /*for each*/
-    | FOR LPAREN ID COLON expr LBRACE stmt_list RBRACE {Foreach($3, $5, $7)}
+    | FOR LPAREN ID COLON expr RPAREN LBRACE stmt_list RBRACE {Foreach($3, $5, $8)}
 
 expr:
     /*basic variable and const*/
