@@ -9,6 +9,8 @@ type typ =
     | Array of typ (*array*)
     | Set of typ (*set*)
     | Map of typ * typ (*map*)
+    | Func of typ list * typ (*function type*)
+    | Undef (*which means the type is undefined for this node*)
      (*TODO maybe need support for record*)
 
 type bind = typ * string
@@ -16,94 +18,38 @@ type bind = typ * string
 type expr =
     Literal of int
   | BoolLit of bool
-  | Id of string
+  | Id of string (* id token *)
+  | String of string (*represent const string*)
   | Binop of expr * op * expr
   | Unop of uop * expr
   | Assign of string * expr
   | Call of string * expr list
+  | ObjCall of string * string * expr list (*invoke a method of an object*)
   | Noexpr
 
 type stmt =
     Block of stmt list
   | Expr of expr
   | Return of expr
-  | If of expr * stmt * stmt
-  | For of expr * expr * expr * stmt
-  | While of expr * stmt
+  | If of expr * stmt list * stmt list
+  | For of expr * expr * expr * stmt list
+  | Foreach of string * expr * stmt list (*for each*)
+  | While of expr * stmt list
+  (*if for while just with list of stmt*)
+  (*need to append lambda stmt, lots of built-in keyword stmt,
+  like map func list*)
 
 type func_decl = {
-        typ : typ;
-        fname : string;
-        formals : bind list;
-        locals : bind list;
+        typ : typ; (*return type*)
+        fname : string; (*function name*)
+        formals : bind list; (*function paramters*)
+        locals : bind list; (*local variables*)
         body : stmt list;
+        guards : expr list; (*all guards*)
     }
 
-type program = bind list * func_decl list
+type program = stmt list * func_decl list
 
-(* Pretty-printing functions *)
 
-let string_of_op = function
-    Add -> "+"
-  | Sub -> "-"
-  | Mult -> "*"
-  | Div -> "/"
-  | Equal -> "=="
-  | Neq -> "!="
-  | Less -> "<"
-  | Leq -> "<="
-  | Greater -> ">"
-  | Geq -> ">="
-  | And -> "&&"
-  | Or -> "||"
-  | Arrow -> "->"
-  (* add arrow support *)
-
-let string_of_uop = function
-    Neg -> "-"
-  | Not -> "!"
-
-let rec string_of_expr = function
-    Literal(l) -> string_of_int l
-  | BoolLit(true) -> "true"
-  | BoolLit(false) -> "false"
-  | Id(s) -> s
-  | Binop(e1, o, e2) ->
-      string_of_expr e1 ^ " " ^ string_of_op o ^ " " ^ string_of_expr e2
-  | Unop(o, e) -> string_of_uop o ^ string_of_expr e
-  | Assign(v, e) -> v ^ " = " ^ string_of_expr e
-  | Call(f, el) ->
-      f ^ "(" ^ String.concat ", " (List.map string_of_expr el) ^ ")"
-  | Noexpr -> ""
-
-let rec string_of_stmt = function
-    Block(stmts) ->
-      "{\n" ^ String.concat "" (List.map string_of_stmt stmts) ^ "}\n"
-  | Expr(expr) -> string_of_expr expr ^ ";\n";
-  | Return(expr) -> "return " ^ string_of_expr expr ^ ";\n";
-  | If(e, s, Block([])) -> "if (" ^ string_of_expr e ^ ")\n" ^ string_of_stmt s
-  | If(e, s1, s2) ->  "if (" ^ string_of_expr e ^ ")\n" ^
-      string_of_stmt s1 ^ "else\n" ^ string_of_stmt s2
-  | For(e1, e2, e3, s) ->
-      "for (" ^ string_of_expr e1  ^ " ; " ^ string_of_expr e2 ^ " ; " ^
-      string_of_expr e3  ^ ") " ^ string_of_stmt s
-  | While(e, s) -> "while (" ^ string_of_expr e ^ ") " ^ string_of_stmt s
-
-let string_of_typ = function
-    Int -> "int"
-  | Bool -> "bool"
-  | Void -> "void"
-
-let string_of_vdecl (t, id) = string_of_typ t ^ " " ^ id ^ ";\n"
-
-let string_of_fdecl fdecl =
-  string_of_typ fdecl.typ ^ " " ^
-  fdecl.fname ^ "(" ^ String.concat ", " (List.map snd fdecl.formals) ^
-  ")\n{\n" ^
-  String.concat "" (List.map string_of_vdecl fdecl.locals) ^
-  String.concat "" (List.map string_of_stmt fdecl.body) ^
-  "}\n"
-
-let string_of_program (vars, funcs) =
-  String.concat "" (List.map string_of_vdecl vars) ^ "\n" ^
-  String.concat "\n" (List.map string_of_fdecl funcs)
+(*below are some debuging function to show some sub-tree of ast
+    TODO modified when writing our codes*)

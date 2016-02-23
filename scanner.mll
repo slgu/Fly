@@ -16,7 +16,10 @@ rule token = parse
 | '*'      { TIMES }
 | '/'      { DIVIDE }
 | '='      { ASSIGN }
+| ':'      { COLON }
+| '.'      { DOT } (*for oop call*)
 | '|'      { VERTICAL} (* for guard *)
+| '$'      { DOLLAR } (* for set initialization *)
 | "=="     { EQ }
 | "!="     { NEQ }
 | '<'      { LT }
@@ -37,7 +40,9 @@ rule token = parse
 | "void"   { VOID }
 | "true"   { TRUE }
 | "false"  { FALSE }
+| "class"  { CLASS } (*for class initialization *)
 | "func" {FUNC} (*declaration for function*)
+(* network specified keywords *)
 | ['0'-'9']+ as lxm { LITERAL(int_of_string lxm) }
 | ['\"'] [^'\"']* ['\"'] as lxm {STRING(lxm)}
 | ['a'-'z' 'A'-'Z']['a'-'z' 'A'-'Z' '0'-'9' '_']* as lxm { ID(lxm) }
