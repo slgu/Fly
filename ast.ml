@@ -19,6 +19,7 @@ type expr =
     Literal of int
   | BoolLit of bool
   | Id of string (* id token *)
+  | Set of expr list
   | String of string (*represent const string*)
   | Binop of expr * op * expr
   | Unop of uop * expr

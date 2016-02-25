@@ -66,10 +66,14 @@ formal_list:
 
 
 /*need semi otherwise expr expr -> shift/reduce conflict*/
-stmt_list:
-    /* nothing */  { [] }
-    | stmt SEMI {[$1]}
-    | stmt_list stmt SEMI{ $2 :: $1 }
+stmt_list: (*split otherwise r/r conflict *)
+    /*nothing*/ {[]} /*cause 60 conflict here*/
+    | stmt_true_list {$1}
+
+
+stmt_true_list:
+    stmt SEMI {[$1]}
+    | stmt SEMI stmt_true_list {$1 :: $3}
 
 stmt:
     expr {Expr($1)}
@@ -112,7 +116,6 @@ expr:
     | ID DOT ID LPAREN actuals_opt RPAREN {ObjCall($1, $3, $5)}
     /*expression is contained with () */
     | LPAREN expr RPAREN { $2 }
-
 
 actuals_opt:
     /*nothing*/ {[]}
