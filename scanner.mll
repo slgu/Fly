@@ -20,6 +20,7 @@ rule token = parse
 | '.'      { DOT } (*for oop call*)
 | '|'      { VERTICAL} (* for guard *)
 | '$'      { DOLLAR } (* for set initialization *)
+| "set"    { SET } (* for set definition*)
 | "=="     { EQ }
 | "!="     { NEQ }
 | '<'      { LT }
@@ -42,6 +43,7 @@ rule token = parse
 | "false"  { FALSE }
 | "class"  { CLASS } (*for class initialization *)
 | "func" {FUNC} (*declaration for function*)
+| "map" {MAP} (*declaration for map*)
 (* network specified keywords *)
 | ['0'-'9']+ as lxm { LITERAL(int_of_string lxm) }
 | ['\"'] [^'\"']* ['\"'] as lxm {STRING(lxm)}

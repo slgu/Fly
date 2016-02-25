@@ -14,6 +14,9 @@ func abc2(a, b) {
     for (a=3;a<4;a=a+1) {
 
     };
+    c = set(1,2,3,4);
+    d = map("sa":1,"asd":a);
+    test((x,y -> x + y), d); 
 }
 
 func abc(a, b) {

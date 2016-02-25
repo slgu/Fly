@@ -20,12 +20,14 @@ type expr =
   | BoolLit of bool
   | Id of string (* id token *)
   | Set of expr list
+  | Map of (expr * expr) list
   | String of string (*represent const string*)
   | Binop of expr * op * expr
   | Unop of uop * expr
   | Assign of string * expr
   | Call of string * expr list
   | ObjCall of string * string * expr list (*invoke a method of an object*)
+  | Func of string list * expr (*lambda expr*)
   | Noexpr
 
 type stmt =

@@ -6,6 +6,7 @@ open Ast
 %token SEMI LPAREN RPAREN LBRACE RBRACE COMMA
 %token PLUS MINUS TIMES DIVIDE ASSIGN NOT
 %token EQ NEQ LT LEQ GT GEQ TRUE FALSE AND OR
+%token SET MAP
 %token RETURN IF ELSE FOR WHILE INT BOOL VOID
 %token ARROW VERTICAL LMBRACE RMBRACE FUNC
 %token COLON DOT DOLLAR CLASS
@@ -66,7 +67,7 @@ formal_list:
 
 
 /*need semi otherwise expr expr -> shift/reduce conflict*/
-stmt_list: (*split otherwise r/r conflict *)
+stmt_list: /*split otherwise r/r conflict */
     /*nothing*/ {[]} /*cause 60 conflict here*/
     | stmt_true_list {$1}
 
@@ -86,6 +87,36 @@ stmt:
     /*for each*/
     | FOR LPAREN ID COLON expr RPAREN LBRACE stmt_list RBRACE {Foreach($3, $5, $8)}
 
+expr_list:
+    /* nothing */ {[]}
+    | expr_true_list {$1}
+
+expr_true_list:
+    expr {[$1]}
+    | expr_true_list COMMA expr {$3::$1}
+
+set:
+    SET LPAREN expr_list RPAREN {Set($3)}
+
+expr_pair_list:
+    /*nothing*/ {[]}
+    | expr_pair_true_list {$1}
+
+expr_pair_true_list:
+    | expr COLON expr {[($1, $3)]}
+    | expr_pair_true_list COMMA expr COLON expr {($3,$5)::$1}
+
+map:
+    MAP LPAREN expr_pair_list RPAREN {Map($3)}
+
+id_list:
+    ID {[$1]}
+    | ID COMMA id_list {$1::$3}
+
+lambda_expr:
+    /*key word undef here*/
+    LPAREN id_list ARROW expr RPAREN { Func ($2, $4)}
+
 expr:
     /*basic variable and const*/
     LITERAL { Literal($1) }
@@ -93,6 +124,9 @@ expr:
     | FALSE { BoolLit(false) }
     | STRING { String($1) }
     | ID { Id($1)}
+    | set {$1} /* set init */
+    | map {$1} /* map init */
+    | lambda_expr {$1} /* lambda init */
     /*basic operation for expr*/
     | expr PLUS   expr { Binop($1, Add,   $3) }
     | expr MINUS  expr { Binop($1, Sub,   $3) }
