@@ -17,6 +17,10 @@ func abc2(a, b) {
     c = set(1,2,3,4);
     d = map("sa":1,"asd":a);
     test((x,y -> x + y), d); 
+
+    msg_q = chan();
+    msg_q <- a;
+    a <- msg_q;
 }
 
 func abc(a, b) {

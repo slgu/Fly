@@ -7,8 +7,9 @@ open Ast
 %token PLUS MINUS TIMES DIVIDE ASSIGN NOT
 %token EQ NEQ LT LEQ GT GEQ TRUE FALSE AND OR
 %token SET MAP
+%token CHAN
 %token RETURN IF ELSE FOR WHILE INT BOOL VOID
-%token ARROW VERTICAL LMBRACE RMBRACE FUNC
+%token LARROW RARROW VERTICAL LMBRACE RMBRACE FUNC
 %token COLON DOT DOLLAR CLASS
 %token <int> LITERAL
 %token <string> ID
@@ -109,13 +110,20 @@ expr_pair_true_list:
 map:
     MAP LPAREN expr_pair_list RPAREN {Map($3)}
 
+chan_decls:
+    CHAN LPAREN RPAREN {Chan()}
+
+chan_op:
+    LARROW ID {Chanunop($2)}
+    | ID LARROW ID {Chanbinop($1, $3)}
+
 id_list:
     ID {[$1]}
     | ID COMMA id_list {$1::$3}
 
 lambda_expr:
     /*key word undef here*/
-    LPAREN id_list ARROW expr RPAREN { Func ($2, $4)}
+    LPAREN id_list RARROW expr RPAREN { Func ($2, $4)}
 
 expr:
     /*basic variable and const*/
@@ -150,6 +158,9 @@ expr:
     | ID DOT ID LPAREN actuals_opt RPAREN {ObjCall($1, $3, $5)}
     /*expression is contained with () */
     | LPAREN expr RPAREN { $2 }
+    /*network syntax*/
+    | chan_decls {$1}
+    | chan_op {$1}
 
 actuals_opt:
     /*nothing*/ {[]}
