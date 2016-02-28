@@ -26,6 +26,7 @@ func abc2(a, b) {
     fly test((x,y -> x + y), d);
 
     register mysig sendback(server);
+    s = dispatch func1(a,b) "192.168.0.10" "8888";
 }
 
 func abc(a, b) {
