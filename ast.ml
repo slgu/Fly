@@ -35,6 +35,7 @@ type expr =
   | Flyo of string * string * expr list
   | Register of string * string * expr list
   | Dispatch of string * expr list * string * string
+  | Exec of string
   | Noexpr
 
 type stmt =

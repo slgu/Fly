@@ -7,7 +7,7 @@ open Ast
 %token PLUS MINUS TIMES DIVIDE ASSIGN NOT
 %token EQ NEQ LT LEQ GT GEQ TRUE FALSE AND OR
 %token SET MAP
-%token CHAN FLY REGISTER DISPATCH
+%token CHAN FLY REGISTER DISPATCH EXEC
 %token RETURN IF ELSE FOR WHILE INT BOOL VOID
 %token LARROW RARROW VERTICAL LMBRACE RMBRACE FUNC
 %token COLON DOT DOLLAR CLASS
@@ -130,6 +130,9 @@ register:
 dispatch:
     DISPATCH ID LPAREN actuals_opt RPAREN STRING STRING {Dispatch($2, $4, $6, $7)}
 
+exec:
+    EXEC LPAREN ID RPAREN {Exec($3)}
+
 id_list:
     ID {[$1]}
     | ID COMMA id_list {$1::$3}
@@ -177,6 +180,7 @@ expr:
     | fly {$1}
     | register {$1}
     | dispatch {$1}
+    | exec {$1}
 
 actuals_opt:
     /*nothing*/ {[]}
