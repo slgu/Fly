@@ -7,7 +7,7 @@ open Ast
 %token PLUS MINUS TIMES DIVIDE ASSIGN NOT
 %token EQ NEQ LT LEQ GT GEQ TRUE FALSE AND OR
 %token SET MAP
-%token CHAN
+%token CHAN FLY
 %token RETURN IF ELSE FOR WHILE INT BOOL VOID
 %token LARROW RARROW VERTICAL LMBRACE RMBRACE FUNC
 %token COLON DOT DOLLAR CLASS
@@ -117,6 +117,12 @@ chan_op:
     LARROW ID {Chanunop($2)}
     | ID LARROW ID {Chanbinop($1, $3)}
 
+fly:
+    /*function_call*/
+    FLY ID LPAREN actuals_opt RPAREN {Fly($2, $4)}
+    /*oop_function_call*/
+    | FLY ID DOT ID LPAREN actuals_opt RPAREN {Flyo($2, $4, $6)}
+
 id_list:
     ID {[$1]}
     | ID COMMA id_list {$1::$3}
@@ -161,6 +167,7 @@ expr:
     /*network syntax*/
     | chan_decls {$1}
     | chan_op {$1}
+    | fly {$1}
 
 actuals_opt:
     /*nothing*/ {[]}

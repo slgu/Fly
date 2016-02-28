@@ -21,6 +21,9 @@ func abc2(a, b) {
     msg_q = chan();
     msg_q <- a;
     a <- msg_q;
+
+    fly abc(a,b);
+    fly test((x,y -> x + y), d);
 }
 
 func abc(a, b) {

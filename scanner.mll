@@ -47,6 +47,7 @@ rule token = parse
 | "map" {MAP} (*declaration for map*)
 (* network specified keywords *)
 | "chan" {CHAN}
+| "fly" {FLY}
 | ['0'-'9']+ as lxm { LITERAL(int_of_string lxm) }
 | ['\"'] [^'\"']* ['\"'] as lxm {STRING(lxm)}
 | ['a'-'z' 'A'-'Z']['a'-'z' 'A'-'Z' '0'-'9' '_']* as lxm { ID(lxm) }
