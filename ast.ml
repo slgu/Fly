@@ -33,6 +33,7 @@ type expr =
   | Chanbinop of string * string
   | Fly of string * expr list
   | Flyo of string * string * expr list
+  | Register of string * string * expr list
   | Noexpr
 
 type stmt =

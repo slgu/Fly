@@ -7,7 +7,7 @@ open Ast
 %token PLUS MINUS TIMES DIVIDE ASSIGN NOT
 %token EQ NEQ LT LEQ GT GEQ TRUE FALSE AND OR
 %token SET MAP
-%token CHAN FLY
+%token CHAN FLY REGISTER
 %token RETURN IF ELSE FOR WHILE INT BOOL VOID
 %token LARROW RARROW VERTICAL LMBRACE RMBRACE FUNC
 %token COLON DOT DOLLAR CLASS
@@ -123,6 +123,10 @@ fly:
     /*oop_function_call*/
     | FLY ID DOT ID LPAREN actuals_opt RPAREN {Flyo($2, $4, $6)}
 
+register:
+    /*function_call*/
+    REGISTER ID ID LPAREN actuals_opt RPAREN {Register($2, $3, $5)}
+
 id_list:
     ID {[$1]}
     | ID COMMA id_list {$1::$3}
@@ -168,6 +172,7 @@ expr:
     | chan_decls {$1}
     | chan_op {$1}
     | fly {$1}
+    | register {$1}
 
 actuals_opt:
     /*nothing*/ {[]}
