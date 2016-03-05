@@ -50,7 +50,7 @@ fdecl:
     formals = $4;
     locals = [];
     guards = $6;
-    body = List.rev $8 } }
+    body = $8 } }
 
 cdecls:
     /* nothing*/ {[]}
@@ -111,7 +111,7 @@ expr_true_list:
     | expr_true_list COMMA expr {$3::$1}
 
 set:
-    SET LPAREN expr_list RPAREN {Set($3)}
+    SET LPAREN expr_list RPAREN {Set(List.rev $3)}
 
 expr_pair_list:
     /*nothing*/ {[]}
@@ -122,7 +122,7 @@ expr_pair_true_list:
     | expr_pair_true_list COMMA expr COLON expr {($3,$5)::$1}
 
 map:
-    MAP LPAREN expr_pair_list RPAREN {Map($3)}
+    MAP LPAREN expr_pair_list RPAREN {Map(List.rev $3)}
 
 chan_decls:
     CHAN LPAREN RPAREN {Chan()}
@@ -156,7 +156,7 @@ lambda_expr:
     LPAREN id_list RARROW expr RPAREN { Func ($2, $4)}
 
 array:
-    LMBRACE expr_list RMBRACE {Array ($2)}
+    LMBRACE expr_list RMBRACE {Array (List.rev $2)}
 
 
 list_comprehen:

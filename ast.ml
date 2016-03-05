@@ -66,7 +66,3 @@ type class_decl = {
         func_decls : func_decl list; (* member functions *)
     }
 type program = Program of stmt list * class_decl list * func_decl list
-
-
-(*below are some debuging function to show some sub-tree of ast
-    TODO modified when writing our codes*)

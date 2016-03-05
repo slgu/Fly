@@ -4,4 +4,4 @@
 let _ =
   let lexbuf = Lexing.from_channel stdin in
   let ast = Parser.program Scanner.token lexbuf in
-  print_endline "done basic"; 0;
+  Debug.debug_ast ast
