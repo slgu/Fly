@@ -1,7 +1,10 @@
+func abc(a,b) {
+
+}
+
 func abc2(a, b) {
     a = 3;
     b = 4;
-    return a;
     if (a) {
 
     };
@@ -16,9 +19,11 @@ func abc2(a, b) {
     };
     c = set(1,2,3,4);
     d = map("sa":1,"asd":a);
-    test((x,y -> x + y), d); 
+    test((x,y -> x + y + a), d);
+    test(abc, d);
+    e = [1,2,3,4];
 }
 
-func abc(a, b) {
+func main() {
 
 }

@@ -44,8 +44,9 @@ rule token = parse
 | "class"  { CLASS } (*for class initialization *)
 | "func" {FUNC} (*declaration for function*)
 | "map" {MAP} (*declaration for map*)
-(* network specified keywords *)
+(* network specified keywords  TODO *)
 | ['0'-'9']+ as lxm { LITERAL(int_of_string lxm) }
+(* float scan TODO *)
 | ['\"'] [^'\"']* ['\"'] as lxm {STRING(lxm)}
 | ['a'-'z' 'A'-'Z']['a'-'z' 'A'-'Z' '0'-'9' '_']* as lxm { ID(lxm) }
 | eof { EOF }

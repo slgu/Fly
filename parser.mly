@@ -117,8 +117,12 @@ lambda_expr:
     /*key word undef here*/
     LPAREN id_list ARROW expr RPAREN { Func ($2, $4)}
 
+array:
+    LMBRACE expr_list RMBRACE {Array ($2)}
+
 expr:
     /*basic variable and const*/
+    /* TODO add float */
     LITERAL { Literal($1) }
     | TRUE { BoolLit(true) }
     | FALSE { BoolLit(false) }
@@ -126,6 +130,7 @@ expr:
     | ID { Id($1)}
     | set {$1} /* set init */
     | map {$1} /* map init */
+    | array {$1} /* array init */
     | lambda_expr {$1} /* lambda init */
     /*basic operation for expr*/
     | expr PLUS   expr { Binop($1, Add,   $3) }
@@ -158,3 +163,11 @@ actuals_opt:
 actuals_list:
     expr                    { [$1] }
     | actuals_list COMMA expr { $3 :: $1 }
+
+/* TODO list comprehension add to expr*/
+
+
+/* TODO pattern match add to expr*/
+
+/* TODO chan() expr */
+/*  ID <- expr */

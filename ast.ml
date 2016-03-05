@@ -21,6 +21,7 @@ type expr =
   | Id of string (* id token *)
   | Set of expr list
   | Map of (expr * expr) list
+  | Array of expr list
   | String of string (*represent const string*)
   | Binop of expr * op * expr
   | Unop of uop * expr
