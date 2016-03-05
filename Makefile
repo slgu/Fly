@@ -7,6 +7,7 @@ all:
 	ocamlc -c parser.ml
 	ocamlc -c fly.ml
 	ocamlc -o fly scanner.cmo parser.cmo fly.cmo
+	rm scanner.ml parser.mli parser.ml parser.output *.cm*
 clean:
 	rm fly scanner.ml parser.mli parser.ml parser.output *.cm*
 exec:

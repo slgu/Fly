@@ -11,7 +11,6 @@ type typ =
     | Map of typ * typ (*map*)
     | Func of typ list * typ (*function type*)
     | Undef (*which means the type is undefined for this node*)
-     (*TODO maybe need support for record*)
 
 type bind = typ * string
 
@@ -37,6 +36,7 @@ type expr =
   | Register of string * string * expr list
   | Dispatch of string * expr list * string * string
   | Exec of string
+  | ListComprehen of expr * string * expr (*can iterate a tuple?*)
   | Noexpr
 
 type stmt =

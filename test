@@ -22,16 +22,14 @@ func abc2(a, b) {
     test((x,y -> x + y + a), d);
     test(abc, d);
     e = [1,2,3,4];
-
     msg_q = chan();
     msg_q <- a;
     a <- msg_q;
-
     fly abc(a,b);
     fly test((x,y -> x + y), d);
-
     register mysig sendback(server);
     s = dispatch func1(a,b) "192.168.0.10" "8888";
+    s = [x + 1 | x <- s];
 }
 
 func main() {

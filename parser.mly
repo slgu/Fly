@@ -52,6 +52,8 @@ fdecl:
     guards = $6;
     body = List.rev $8 } }
 
+/* class definition */
+
 guards:
     /*nothing*/ {[]}
     | VERTICAL actuals_opt {$2}
@@ -144,6 +146,10 @@ lambda_expr:
 array:
     LMBRACE expr_list RMBRACE {Array ($2)}
 
+
+list_comprehen:
+    LMBRACE expr VERTICAL ID LARROW expr RMBRACE { ListComprehen($2, $4, $6)}
+
 expr:
     /*basic variable and const*/
     /* TODO add float */
@@ -156,6 +162,7 @@ expr:
     | map {$1} /* map init */
     | array {$1} /* array init */
     | lambda_expr {$1} /* lambda init */
+    | list_comprehen {$1} /* list comprehension */
     /*basic operation for expr*/
     | expr PLUS   expr { Binop($1, Add,   $3) }
     | expr MINUS  expr { Binop($1, Sub,   $3) }
@@ -195,10 +202,7 @@ actuals_list:
     expr                    { [$1] }
     | actuals_list COMMA expr { $3 :: $1 }
 
-/* TODO list comprehension add to expr*/
+
 
 
 /* TODO pattern match add to expr*/
-
-/* TODO chan() expr */
-/*  ID <- expr */
