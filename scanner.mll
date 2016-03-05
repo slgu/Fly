@@ -30,7 +30,8 @@ rule token = parse
 | "&&"     { AND }
 | "||"     { OR }
 | "!"      { NOT }
-| "->"     { ARROW } (* for lambda expression *)
+| "->"     { RARROW } (* for lambda expression *)
+| "<-"     { LARROW } (* for chan *)
 | "if"     { IF }
 | "else"   { ELSE }
 | "for"    { FOR }
@@ -44,7 +45,11 @@ rule token = parse
 | "class"  { CLASS } (*for class initialization *)
 | "func" {FUNC} (*declaration for function*)
 | "map" {MAP} (*declaration for map*)
-(* network specified keywords  TODO *)
+| "chan" {CHAN}
+| "fly" {FLY}
+| "register" {REGISTER}
+| "dispatch" {DISPATCH}
+| "exec" {EXEC}
 | ['0'-'9']+ as lxm { LITERAL(int_of_string lxm) }
 (* float scan TODO *)
 | ['\"'] [^'\"']* ['\"'] as lxm {STRING(lxm)}

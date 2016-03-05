@@ -1,5 +1,5 @@
 type op = Add | Sub | Mult | Div | Equal | Neq | Less | Leq | Greater | Geq |
-          And | Or | Arrow
+          And | Or | RArrow | LArrow
 
 type uop = Neg | Not
 
@@ -29,6 +29,14 @@ type expr =
   | Call of string * expr list
   | ObjCall of string * string * expr list (*invoke a method of an object*)
   | Func of string list * expr (*lambda expr*)
+  | Chan of unit (*chan*)
+  | Chanunop of string
+  | Chanbinop of string * string
+  | Fly of string * expr list
+  | Flyo of string * string * expr list
+  | Register of string * string * expr list
+  | Dispatch of string * expr list * string * string
+  | Exec of string
   | Noexpr
 
 type stmt =
