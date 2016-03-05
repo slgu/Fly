@@ -36,11 +36,11 @@ open Ast
 
 program:
     /*test without global stmts*/
-    fdecls EOF { $1 }
+    stmt_list cdecls fdecls EOF {Program($1, $2, $3)}
 
 fdecls:
-    /*nothing*/ {([], [])}
-    | fdecls fdecl {(fst $1, $2::snd $1)}
+    /*nothing*/ {[]}
+    | fdecls fdecl {$2 :: $1}
 
 /*because we use type inferrence so we don't have vdecl*/
 fdecl:
@@ -52,7 +52,19 @@ fdecl:
     guards = $6;
     body = List.rev $8 } }
 
+cdecls:
+    /* nothing*/ {[]}
+    | cdecls cdecl {$2 :: $1}
+
 /* class definition */
+cdecl:
+    CLASS ID LBRACE assign_exprs fdecls RBRACE {
+        {
+            cname = $2;
+            func_decls = $5;
+            assign_exprs = $4
+        }
+    }
 
 guards:
     /*nothing*/ {[]}
@@ -150,6 +162,14 @@ array:
 list_comprehen:
     LMBRACE expr VERTICAL ID LARROW expr RMBRACE { ListComprehen($2, $4, $6)}
 
+assign_exprs:
+    assign_expr SEMI {[$1]}
+    | assign_exprs assign_expr SEMI {$2 :: $1}
+
+assign_expr:
+    /*assign expr*/
+    ID ASSIGN expr   { Assign($1, $3) }
+
 expr:
     /*basic variable and const*/
     /* TODO add float */
@@ -178,8 +198,7 @@ expr:
     | expr OR     expr { Binop($1, Or,    $3) }
     | MINUS expr %prec UMINUS { Unop(Neg, $2) }
     | NOT expr         { Unop(Not, $2) }
-    /*assign expr*/
-    | ID ASSIGN expr   { Assign($1, $3) }
+    | assign_expr {$1} /* assign expr */
     /*function call*/
     | ID LPAREN actuals_opt RPAREN { Call($1, $3) }
     /*oop function call*/

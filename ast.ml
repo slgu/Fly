@@ -51,6 +51,7 @@ type stmt =
   (*need to append lambda stmt, lots of built-in keyword stmt,
   like map func list*)
 
+
 type func_decl = {
         typ : typ; (*return type*)
         fname : string; (*function name*)
@@ -59,8 +60,12 @@ type func_decl = {
         body : stmt list;
         guards : expr list; (*all guards*)
     }
-
-type program = stmt list * func_decl list
+type class_decl = {
+        cname : string; (* class name *)
+        assign_exprs : expr list; (* member variables *)
+        func_decls : func_decl list; (* member functions *)
+    }
+type program = Program of stmt list * class_decl list * func_decl list
 
 
 (*below are some debuging function to show some sub-tree of ast

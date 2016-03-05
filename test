@@ -1,3 +1,12 @@
+class abc {
+    a = 3;
+    b = 4;
+    func member_test(c, d) {
+        a = c;
+        b = d;
+    }
+}
+
 func abc(a,b) {
 
 }
