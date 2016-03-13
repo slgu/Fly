@@ -43,11 +43,11 @@ let debug_stmt = function
     | Expr a -> debug_expr a
     | _ -> print_endline "nothing"
 
-let debug_fdecl = function
+let debug_fdecl (fdecl : func_decl) = match fdecl with
     | {body = stmts;_} -> List.iter debug_stmt stmts
 
 let debug_ast = function
-    | Program (stmts, cdecls, fdecls) -> List.iter debug_fdecl fdecls
+    | Program (cdecls, fdecls) -> List.iter debug_fdecl fdecls
 
 (* debug debug.ml
 let _ =

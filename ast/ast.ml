@@ -10,9 +10,18 @@ type typ =
     | Set of typ (*set*)
     | Map of typ * typ (*map*)
     | Func of typ list * typ (*function type*)
+    | Class of string (* a class variable *)
     | Undef (*which means the type is undefined for this node*)
+    (*for built-in defned type*)
+    | Chan | Signal
 
-type bind = typ * string
+(*data for type inferrence *)
+type infertyp =
+    Var of string (* type variable*)
+    | Arrow of typ * typ (* function type -> *)
+    | Sure of typ
+
+type bind = infertyp * string
 
 type expr =
     Literal of int
@@ -39,6 +48,8 @@ type expr =
   | ListComprehen of expr * string * expr (*can iterate a tuple?*)
   | Noexpr
 
+
+
 type stmt =
     Block of stmt list
   | Expr of expr
@@ -53,16 +64,25 @@ type stmt =
 
 
 type func_decl = {
-        typ : typ; (*return type*)
         fname : string; (*function name*)
-        formals : bind list; (*function paramters*)
-        locals : bind list; (*local variables*)
+        formals : string list; (*function paramters*)
         body : stmt list;
-        guards : expr list; (*all guards*)
     }
+
+(*after typing what the func_decl looks like*)
+(*这里限定:不允许函数的相互调用*)
+type typed_func_decl = {
+        fname: string; (*function name*)
+        formals : bind list; (* binded function parameters*)
+        body: stmt list;
+        locals: bind list;
+        typ: infertyp; (*binded result type*)
+    }
+
 type class_decl = {
         cname : string; (* class name *)
         assign_exprs : expr list; (* member variables *)
         func_decls : func_decl list; (* member functions *)
     }
-type program = Program of stmt list * class_decl list * func_decl list
+
+type program = Program of class_decl list * func_decl list

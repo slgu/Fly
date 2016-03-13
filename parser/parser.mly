@@ -36,7 +36,7 @@ open Ast
 
 program:
     /*test without global stmts*/
-    stmt_list cdecls fdecls EOF {Program($1, $2, $3)}
+    stmt_list cdecls fdecls EOF {Program($2, $3)}
 
 fdecls:
     /*nothing*/ {[]}
@@ -44,13 +44,11 @@ fdecls:
 
 /*because we use type inferrence so we don't have vdecl*/
 fdecl:
-    FUNC ID LPAREN formals_opt RPAREN guards LBRACE stmt_list RBRACE
-    { { typ = Undef;
+    FUNC ID LPAREN formals_opt RPAREN LBRACE stmt_list RBRACE
+    { {
     fname = $2;
     formals = $4;
-    locals = [];
-    guards = $6;
-    body = $8 } }
+    body = $7 } }
 
 cdecls:
     /* nothing*/ {[]}
@@ -66,10 +64,6 @@ cdecl:
         }
     }
 
-guards:
-    /*nothing*/ {[]}
-    | VERTICAL actuals_opt {$2}
-
 formals_opt:
  /* nothing */ { [] }
 | formal_list   { List.rev $1 }
@@ -77,8 +71,8 @@ formals_opt:
 /*no type tagged default Undef, we need type inferrence*/
 
 formal_list:
- ID                   { [(Undef, $1)] }
-| formal_list COMMA ID { (Undef, $3) :: $1 }
+ ID                   { [$1] }
+| formal_list COMMA ID { $3 :: $1 }
 
 
 /*need semi otherwise expr expr -> shift/reduce conflict*/
