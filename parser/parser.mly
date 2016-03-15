@@ -177,6 +177,7 @@ expr:
     | array {$1} /* array init */
     | lambda_expr {$1} /* lambda init */
     | list_comprehen {$1} /* list comprehension */
+    | assign_expr {$1} /* assign expr */
     /*basic operation for expr*/
     | expr PLUS   expr { Binop($1, Add,   $3) }
     | expr MINUS  expr { Binop($1, Sub,   $3) }
@@ -192,7 +193,6 @@ expr:
     | expr OR     expr { Binop($1, Or,    $3) }
     | MINUS expr %prec UMINUS { Unop(Neg, $2) }
     | NOT expr         { Unop(Not, $2) }
-    | assign_expr {$1} /* assign expr */
     /*function call*/
     | ID LPAREN actuals_opt RPAREN { Call($1, $3) }
     /*oop function call*/

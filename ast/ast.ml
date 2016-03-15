@@ -15,13 +15,7 @@ type typ =
     (*for built-in defned type*)
     | Chan | Signal
 
-(*data for type inferrence *)
-type infertyp =
-    Var of string (* type variable*)
-    | Arrow of typ * typ (* function type -> *)
-    | Sure of typ
-
-type bind = infertyp * string
+type bind = typ * string
 
 type expr =
     Literal of int
@@ -33,7 +27,6 @@ type expr =
   | String of string (*represent const string*)
   | Binop of expr * op * expr
   | Unop of uop * expr
-  | Assign of string * expr
   | Call of string * expr list
   | ObjCall of string * string * expr list (*invoke a method of an object*)
   | Func of string list * expr (*lambda expr*)
@@ -44,10 +37,10 @@ type expr =
   | Flyo of string * string * expr list
   | Register of string * string * expr list
   | Dispatch of string * expr list * string * string
+  | Assign of string * expr
   | Exec of string
   | ListComprehen of expr * string * expr (*can iterate a tuple?*)
   | Noexpr
-
 
 
 type stmt =
@@ -69,15 +62,6 @@ type func_decl = {
         body : stmt list;
     }
 
-(*after typing what the func_decl looks like*)
-(*这里限定:不允许函数的相互调用*)
-type typed_func_decl = {
-        fname: string; (*function name*)
-        formals : bind list; (* binded function parameters*)
-        body: stmt list;
-        locals: bind list;
-        typ: infertyp; (*binded result type*)
-    }
 
 type class_decl = {
         cname : string; (* class name *)
