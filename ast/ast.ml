@@ -1,5 +1,5 @@
 type op = Add | Sub | Mult | Div | Equal | Neq | Less | Leq | Greater | Geq |
-          And | Or | RArrow | LArrow
+          And | Or | RArrow | LArrow | SAdd
 
 type uop = Neg | Not
 
@@ -9,11 +9,12 @@ type typ =
     | Array of typ (*array*)
     | Set of typ (*set*)
     | Map of typ * typ (*map*)
-    | Func of typ list * typ (*function type*)
+    | Func (*just function type, the result type is evaluated when using*)
     | Class of string (* a class variable *)
+    | Chan of typ (* a chan that contains which type *)
+    | Signal
     | Undef (*which means the type is undefined for this node*)
     (*for built-in defned type*)
-    | Chan | Signal
 
 type bind = typ * string
 
@@ -30,17 +31,18 @@ type expr =
   | Call of string * expr list
   | ObjCall of string * string * expr list (*invoke a method of an object*)
   | Func of string list * expr (*lambda expr*)
-  | Chan of unit (*chan*)
+  | Assign of string * expr
+  | ListComprehen of expr * string * expr (*can iterate a tuple?*)
+  | Noexpr
+  (*below are network specified exprs*)
+  | Exec of string
+  | Dispatch of string * expr list * string * string
+  | Register of string * string * expr list
+  | Chan of expr(*chan of a type*)
   | Chanunop of string
   | Chanbinop of string * string
   | Fly of string * expr list
   | Flyo of string * string * expr list
-  | Register of string * string * expr list
-  | Dispatch of string * expr list * string * string
-  | Assign of string * expr
-  | Exec of string
-  | ListComprehen of expr * string * expr (*can iterate a tuple?*)
-  | Noexpr
 
 
 type stmt =

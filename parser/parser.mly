@@ -5,7 +5,7 @@ open Ast
 
 %token SEMI LPAREN RPAREN LBRACE RBRACE COMMA
 %token PLUS MINUS TIMES DIVIDE ASSIGN NOT
-%token EQ NEQ LT LEQ GT GEQ TRUE FALSE AND OR
+%token EQ NEQ LT LEQ GT GEQ TRUE FALSE AND OR SADD
 %token SET MAP
 %token CHAN FLY REGISTER DISPATCH EXEC
 %token RETURN IF ELSE FOR WHILE INT BOOL VOID
@@ -19,7 +19,7 @@ open Ast
 %left OR
 %left AND
 %left EQ NEQ
-%left LT GT LEQ GEQ
+%left LT GT LEQ GEQ SADD
 %left PLUS MINUS
 %left TIMES DIVIDE
 %right NOT NEG
@@ -118,12 +118,7 @@ expr_pair_true_list:
 map:
     MAP LPAREN expr_pair_list RPAREN {Map(List.rev $3)}
 
-chan_decls:
-    CHAN LPAREN RPAREN {Chan()}
 
-chan_op:
-    LARROW ID {Chanunop($2)}
-    | ID LARROW ID {Chanbinop($1, $3)}
 
 fly:
     /*function_call*/
@@ -186,6 +181,7 @@ expr:
     | expr EQ     expr { Binop($1, Equal, $3) }
     | expr NEQ    expr { Binop($1, Neq,   $3) }
     | expr LT     expr { Binop($1, Less,  $3) }
+    | expr SADD expr {Binop($1, SAdd, $3)}
     | expr LEQ    expr { Binop($1, Leq,   $3) }
     | expr GT     expr { Binop($1, Greater, $3) }
     | expr GEQ    expr { Binop($1, Geq,   $3) }
@@ -206,6 +202,13 @@ expr:
     | register {$1}
     | dispatch {$1}
     | exec {$1}
+
+chan_decls:
+    CHAN LPAREN expr RPAREN {Chan($3)}
+
+chan_op:
+    LARROW ID {Chanunop($2)}
+    | ID LARROW ID {Chanbinop($1, $3)}
 
 actuals_opt:
     /*nothing*/ {[]}

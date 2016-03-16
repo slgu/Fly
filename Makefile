@@ -20,6 +20,6 @@ debug:
 	ocamlc -o debug ast.cmo debug.cmo
 	rm *.cm*
 clean:
-	rm fly scanner.ml parser.mli parser.ml parser.output *.cm*
+	rm fly $(parser_dir)/scanner.ml $(parser_dir)/parser.mli $(parser_dir)/parser.ml $(parser_dir)/parser.output */*.cm* *.cm*
 exec:
 	rm scanner.ml parser.mli parser.ml parser.output *.cm*

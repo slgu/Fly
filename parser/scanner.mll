@@ -41,6 +41,7 @@ rule token = parse
 | "bool"   { BOOL }
 | "void"   { VOID }
 | "true"   { TRUE }
+| '^' {SADD}
 | "false"  { FALSE }
 | "class"  { CLASS } (*for class initialization *)
 | "func" {FUNC} (*declaration for function*)
