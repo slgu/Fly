@@ -14,6 +14,7 @@ open Ast
 %token <int> LITERAL
 %token <string> ID
 %token <string> STRING
+%token <float> FLOAT
 %token EOF
 
 %left OR
@@ -166,6 +167,7 @@ expr:
     | TRUE { BoolLit(true) }
     | FALSE { BoolLit(false) }
     | STRING { String($1) }
+    | FLOAT {Float($1)}
     | ID { Id($1)}
     | set {$1} /* set init */
     | map {$1} /* map init */

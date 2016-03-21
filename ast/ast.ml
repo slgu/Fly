@@ -21,6 +21,7 @@ type bind = typ * string
 type expr =
     Literal of int
   | BoolLit of bool
+  | Float of float
   | Id of string (* id token *)
   | Set of expr list
   | Map of (expr * expr) list

@@ -151,6 +151,7 @@ let rec infer_func fdecl level_env =
         | Literal (_) -> Int
         | BoolLit (_) -> Bool
         | Id (a) -> search_id (!level_env) a
+        | Float (_) -> Float
         | Set (expr_list) ->
             let expr_types =
                 List.map (fun item -> infer_expr item) expr_list
@@ -217,8 +218,8 @@ let rec infer_func fdecl level_env =
                     | String, String -> String
                     | _, _ -> failwith ("wrong type binop with each other")
                     end
-                | _ -> failwith ("undefined binop for binop -> <-")
                     (*chan operation*)
+                | _ -> failwith ("undefined binop for binop -> <-")
             end
         | Assign (varname, epr) ->
             let expr_type = infer_expr epr
@@ -237,8 +238,25 @@ let rec infer_func fdecl level_env =
                 | Neg -> if expr_type != Int && expr_type != Float then failwith ("neg with not int or float")
                         else expr_type
                 end
-            (* TODO
         | Call (fname, expr_list) ->
+            let fdecl = find_func (fname)
+            in
+                let expr_types = List.map infer_expr expr_list
+                in
+                (*create new env to infer funcion*)
+                let new_func_level_env = init_level_env()
+                in begin
+                    match fdecl with
+                    | {formals = param_list;_} -> (*set env*)
+                        let param_len = List.length param_list and true_len = List.length expr_types
+                        in if param_len = true_len then (* actual a function call *)
+                            let new_func_level_env = List.fold_left2 (fun env param_name typ -> (update_env env param_name typ)) new_func_level_env param_list expr_types
+                            in
+                            infer_func fdecl (ref new_func_level_env)
+                            else (* a clojure which just a function bind less than true parameters*)
+                    (*TODO*) Int
+                    end
+            (* TODO
         | ObjCall (cname, fname, expr_list) ->
         | Func (lname, rname, expr) ->
         | ListComprehen (f_expr, varname, s_expr) -> *)

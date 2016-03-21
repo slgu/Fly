@@ -53,6 +53,7 @@ rule token = parse
 | "exec" {EXEC}
 | ['0'-'9']+ as lxm { LITERAL(int_of_string lxm) }
 (* float scan TODO *)
+| ['0'-'9']+ '.' ['0'-'9']+ as lxm {FLOAT(float_of_string lxm)}
 | ['\"'] [^'\"']* ['\"'] as lxm {STRING(lxm)}
 | ['a'-'z' 'A'-'Z']['a'-'z' 'A'-'Z' '0'-'9' '_']* as lxm { ID(lxm) }
 | eof { EOF }

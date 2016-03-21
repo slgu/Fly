@@ -1,4 +1,4 @@
-class abc {
+class abct {
     a = 3;
     b = 4;
     func member_test(c, d) {
@@ -12,35 +12,12 @@ func abc(a,b) {
 }
 
 func abc2(a, b) {
-    a = 3;
-    b = 4;
-    if (a) {
-
-    };
-    while (a) {
-
-    };
-    for (a : b) {
-
-    };
-    for (a=3;a<4;a=a+1) {
-
-    };
-    c = set(1,2,3,4);
-    d = map("sa":1,"asd":a);
-    test((x,y -> x + y + a), d);
-    test(abc, d);
-    e = [1,2,3,4];
-    msg_q = chan();
-    msg_q <- a;
-    a <- msg_q;
-    fly abc(a,b);
-    fly test((x,y -> x + y), d);
-    register mysig sendback(server);
-    s = dispatch func1(a,b) "192.168.0.10" "8888";
-    s = [x + 1 | x <- s];
+    return a + b;
 }
 
 func main() {
-
+    a = 3.2;
+    b = 4.1;
+    a = 3.2;
+    d = abc2(a, b);
 }
