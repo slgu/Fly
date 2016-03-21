@@ -2,6 +2,18 @@ open Ast
 let (func_binds : (string, func_decl) Hashtbl.t) = Hashtbl.create 16
 let (class_binds : (string, class_decl) Hashtbl.t) = Hashtbl.create 16
 
+let find_func name =
+    try
+        Hashtbl.find func_binds name
+    with
+    | Not_found -> failwith ("not this function" ^ name)
+
+let find_class name =
+    try
+        Hashtbl.find class_binds name
+    with
+    | Not_found -> failwith ("not this class" ^ name)
+
 let check_non_exist_func name =
     try
         ignore(Hashtbl.find func_binds name);
@@ -71,7 +83,7 @@ let get_new_env() =
     in env
 
 (* a multi-layer env operation *)
-let init_level_env() =
+let init_level_env () =
     [get_new_env()]
 
 (* append a new level env to level_env*)
@@ -79,7 +91,7 @@ let append_new_level level_env =
     get_new_env() :: level_env
 
 let update_env level_env k v = match level_env with
-    | (this_level :: arr) -> Hashtbl.add this_level k v
+    | (this_level :: arr) -> Hashtbl.add this_level k v;this_level :: arr
     | _ -> failwith ("no env internal error")
 
 let rec search_id level_env k = match level_env with
@@ -89,6 +101,18 @@ let rec search_id level_env k = match level_env with
             Hashtbl.find this_level k
         with
         | Not_found -> search_id arr k
+
+let back_level level_env = match level_env with
+    | [] -> failwith ("no level to be back")
+    | (this_level :: arr) -> arr
+
+(*debug a level env, just print out to the screeen*)
+let debug_level_env level_env =
+    let rec inner_debug level_env cnt = match level_env with
+        | [] -> ()
+        | (this_level :: arr) -> print_endline ("this level: " ^ (string_of_int cnt));
+    in
+    inner_debug level_env 0
 
 let check_type_same type_list cmp_type=
     List.iter (fun item -> if cmp_type = item then () else failwith ("type is not same")) type_list
@@ -100,7 +124,6 @@ let check_non_empty = function
 let check_type_in_arr this_type check_type_list =
     List.exists (fun item -> this_type = item) check_type_list
 
-
 let built_in_str_type =
     [("int", Int);("bool", Bool);("string", String);
      ("float", Float)]
@@ -108,10 +131,26 @@ let built_in_str_type =
 (* infer the function result given input params*)
 (*let rec infer fdecl env *)
 let rec infer_func fdecl level_env =
+    (*level_env is an ref variable modified by infer_expr and infer_stmt*)
+    let ref_create_env ()=
+        level_env := append_new_level (!level_env)
+    in
+    let ref_update_env k v =
+        level_env := update_env (!level_env) k v
+    in
+    let ref_search_id k =
+        try
+            Some (search_id (!level_env) k)
+        with
+        | _ -> None
+    in
+    let ref_back_env ()=
+        level_env := back_level (!level_env)
+    in
     let rec infer_expr epr = match epr with
         | Literal (_) -> Int
         | BoolLit (_) -> Bool
-        | Id (a) -> search_id level_env a
+        | Id (a) -> search_id (!level_env) a
         | Set (expr_list) ->
             let expr_types =
                 List.map (fun item -> infer_expr item) expr_list
@@ -183,13 +222,49 @@ let rec infer_func fdecl level_env =
             end
         | Assign (varname, epr) ->
             let expr_type = infer_expr epr
-            in Int
+            in let var = ref_search_id varname
+            in  begin
+                match var with
+                | None -> ref_update_env varname expr_type; expr_type
+                | Some x -> if expr_type = x then expr_type
+                    else failwith ("redefine " ^ varname ^ " with different type")
+                end
+        | Unop (unop, epr) ->
+            let expr_type = infer_expr epr
+            in  begin
+                match unop with
+                | Not -> if expr_type != Bool then failwith ("not with not bool") else Bool
+                | Neg -> if expr_type != Int && expr_type != Float then failwith ("neg with not int or float")
+                        else expr_type
+                end
             (* TODO
-        | Unop (epr) ->
         | Call (fname, expr_list) ->
         | ObjCall (cname, fname, expr_list) ->
         | Func (lname, rname, expr) ->
         | ListComprehen (f_expr, varname, s_expr) -> *)
         | _ -> Int
     in
-    None
+    let rec infer_stmt smt = match smt with
+        | Block stmt_list -> ref_create_env();
+            let stmt_list_types = List.map infer_stmt stmt_list
+            in let return_type = List.hd (List.rev (stmt_list_types))
+            in ref_back_env(); (*back this env*)
+            return_type
+        | Expr epr ->
+            infer_expr epr
+        | Return epr ->
+            infer_expr epr
+        | _ -> Int
+    in
+    match fdecl with
+    | {body = stmt_list;_} ->
+        let stmt_list_types = List.map infer_stmt stmt_list
+        in List.hd (List.rev (stmt_list_types))
+
+(* perform static type checking and inferrence*)
+let infer_check (ast : program) =
+    bind_name ast; (*first bind name*)
+    let main_func = find_func "main"
+    in let level_env = ref (init_level_env())
+    in infer_func main_func level_env
+    (* search main function and do a static type infer*)
