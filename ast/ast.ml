@@ -9,7 +9,7 @@ type typ =
     | Array of typ (*array*)
     | Set of typ (*set*)
     | Map of typ * typ (*map*)
-    | Func (*just function type, the result type is evaluated when using*)
+    | Func (*used for lambda expression*)
     | Class of string (* a class variable *)
     | Chan of typ (* a chan that contains which type *)
     | Signal
@@ -71,5 +71,6 @@ type class_decl = {
         assign_exprs : expr list; (* member variables *)
         func_decls : func_decl list; (* member functions *)
     }
+
 
 type program = Program of class_decl list * func_decl list

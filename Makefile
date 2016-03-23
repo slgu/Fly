@@ -7,6 +7,7 @@ all:
 	ocamllex $(parser_dir)/scanner.mll
 	ocamlyacc -v $(parser_dir)/parser.mly
 	ocamlc -c $(ast_dir)/ast.ml
+	ocamlc -I $(ast_dir) -c $(ast_dir)/sast.ml
 	ocamlc -I $(ast_dir) -c $(parser_dir)/parser.mli
 	ocamlc -I $(parser_dir) -c $(parser_dir)/scanner.ml
 	ocamlc -I $(ast_dir) -I $(parser_dir) -c $(parser_dir)/parser.ml
