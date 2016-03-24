@@ -9,14 +9,37 @@ type typ =
     | Array of typ (*array*)
     | Set of typ (*set*)
     | Map of typ * typ (*map*)
-    | Func (*used for lambda expression*)
     | Class of string (* a class variable *)
     | Chan of typ (* a chan that contains which type *)
     | Signal
     | Undef (*which means the type is undefined for this node*)
+    | Func of string * typ list (* function name along with
+        some type clojure*)
+    | Lfunc of string * typ list (*lambda function along with some type clojure*)
     (*for built-in defned type*)
 
-type bind = typ * string
+(* type to string function used for hash
+    _ to concat type
+    @ to concat different type
+*)
+let rec type_to_string = function
+    | Int -> "int"
+    | Bool -> "Bool"
+    | Void -> "void"
+    | String -> "string"
+    | Float -> "float"
+    | Array x -> "array_" ^ (type_to_string x)
+    | Set x -> "set_" ^ (type_to_string x)
+    | Map (x, y) -> "map_" ^ (type_to_string x) ^ "_" ^ (type_to_string y)
+    | Class x -> x
+    | Chan x -> "chan_" ^ (type_to_string x)
+    | Signal -> "signal"
+    | Undef -> "undef"
+    | Func (x, type_list) -> "func_" ^ x ^ (List.fold_left
+            (fun str item -> str ^ "_" ^ item) "" (List.map type_to_string type_list))
+    | Lfunc (x, type_list) -> "lfunc_" ^ x ^ (List.fold_left
+            (fun str item -> str ^ "_" ^ item) "" (List.map type_to_string type_list))
+
 
 type expr =
     Literal of int

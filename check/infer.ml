@@ -1,6 +1,19 @@
+(*infer type and do a static syntax checking*)
 open Ast
+open Sast
 let (func_binds : (string, func_decl) Hashtbl.t) = Hashtbl.create 16
 let (class_binds : (string, class_decl) Hashtbl.t) = Hashtbl.create 16
+
+(*typed function bindings*)
+let (t_func_binds: (string, t_func_decl) Hashtbl.t) = Hashtbl.create 16
+(*typed lambda bindings*)
+let (t_lambda_binds: (string, t_lambda_decl) Hashtbl.t) = Hashtbl.create 16
+
+let find_t_func name =
+    try
+        Some (Hashtbl.find t_func_binds name)
+    with
+    | Not_found -> None
 
 let find_func name =
     try
@@ -128,8 +141,10 @@ let built_in_str_type =
     [("int", Int);("bool", Bool);("string", String);
      ("float", Float)]
 
+
 (* infer the function result given input params*)
 (*let rec infer fdecl env *)
+(* return a t_func_decl*)
 let rec infer_func fdecl level_env =
     (*level_env is an ref variable modified by infer_expr and infer_stmt*)
     let ref_create_env ()=
@@ -147,21 +162,22 @@ let rec infer_func fdecl level_env =
     let ref_back_env ()=
         level_env := back_level (!level_env)
     in
+    (*return a texpr*)
     let rec infer_expr epr = match epr with
-        | Literal (_) -> Int
-        | BoolLit (_) -> Bool
-        | Id (a) -> search_id (!level_env) a
-        | Float (_) -> Float
+        | Literal x -> TLiteral x
+        | BoolLit x -> TBoolLit x
+        | Id (a) -> TId (a, search_id (!level_env) a)
+        | Float x -> TFloat x
         | Set (expr_list) ->
             let expr_types =
                 List.map (fun item -> infer_expr item) expr_list
             in
             begin
                 match expr_types with
-                    | [] -> Set (Undef)
+                    | [] -> TSet (expr_list,Undef)
                     | (x :: y) ->
                         check_type_same expr_types x;
-                        Set (x)
+                        TSet (expr_list, x)
             end
         | Map (expr_pair_list) ->
             let expr_pair_types  =
@@ -172,12 +188,12 @@ let rec infer_func fdecl level_env =
             in
             begin
                 match expr_k_types, expr_v_types with
-                    | [], _ -> Map (Undef, Undef)
-                    | _, [] -> Map (Undef, Undef)
+                    | [], _ -> TMap (expr_pair_list, (Undef, Undef))
+                    | _, [] -> TMap (expr_pair_list, (Undef, Undef))
                     | (x1 :: y1), (x2 :: y2) ->
                         check_type_same expr_k_types x1;
                         check_type_same expr_v_types x2;
-                        Map (x1, x2)
+                        TMap (expr_pair_list, (x1, x2))
             end
         | Array (expr_list) ->
             let expr_types =
@@ -185,10 +201,10 @@ let rec infer_func fdecl level_env =
             in
             begin
                 match expr_types with
-                    | [] -> Array (Undef)
+                    | [] -> TArray (expr_list, Undef)
                     | (x :: y) ->
                         check_type_same expr_types x;
-                        Array (x)
+                        TArray (expr_list, x)
                 end
         | String (str) -> String
         | Binop (f_expr, bop, s_expr) ->
@@ -278,6 +294,31 @@ let rec infer_func fdecl level_env =
     | {body = stmt_list;_} ->
         let stmt_list_types = List.map infer_stmt stmt_list
         in List.hd (List.rev (stmt_list_types))
+
+(* when we see a fname and para with type
+    we call this function to put a record to a global type info
+    and return the t_func_decl
+*)
+and infer_func_by_name fname type_list =
+    let hash_key =
+        fname ^ (List.fold_left
+            (fun str item -> str "@" item) "" type_list)
+    in let hash_value = find_t_func hash_key
+    in match hash_value
+        | None ->
+            let fdecl = find_func fname
+            in
+                begin
+                match fdecl with
+                | {formals=param_list;_} ->
+                    (*create env and add param type*)
+                    let new_func_level_env = List.fold_left2
+                    (fun env param_name typ -> (update_env env param_name typ))
+                    get_new_env() param_list type_list
+                    in infer_func fdecl ref(new_func_level_env)
+                end
+
+        | Some x -> x
 
 (* perform static type checking and inferrence*)
 let infer_check (ast : program) =
