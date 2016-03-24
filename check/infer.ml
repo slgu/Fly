@@ -169,126 +169,163 @@ let rec infer_func fdecl level_env =
         | Id (a) -> TId (a, search_id (!level_env) a)
         | Float x -> TFloat x
         | Set (expr_list) ->
-            let expr_types =
+            let texpr_list =
                 List.map (fun item -> infer_expr item) expr_list
+            in
+            let expr_types = List.map get_expr_type_info texpr_list
             in
             begin
                 match expr_types with
-                    | [] -> TSet (expr_list,Undef)
+                    | [] -> TSet (texpr_list,Undef)
                     | (x :: y) ->
                         check_type_same expr_types x;
-                        TSet (expr_list, x)
+                        TSet (texpr_list, x)
             end
         | Map (expr_pair_list) ->
-            let expr_pair_types  =
+            let texpr_pair_list =
                 List.map (fun (litem, ritem) -> (infer_expr litem,
                     infer_expr ritem)) expr_pair_list
-            in let expr_k_types = List.map fst expr_pair_types
-            and expr_v_types = List.map snd expr_pair_types
+            in let expr_k_types = List.map
+                        (fun item -> get_expr_type_info (fst item)) texpr_pair_list
+                and expr_v_types = List.map
+                        (fun item -> get_expr_type_info (snd item)) texpr_pair_list
             in
             begin
                 match expr_k_types, expr_v_types with
-                    | [], _ -> TMap (expr_pair_list, (Undef, Undef))
-                    | _, [] -> TMap (expr_pair_list, (Undef, Undef))
+                    | [], _ -> TMap (texpr_pair_list, Map (Undef, Undef))
+                    | _, [] -> TMap (texpr_pair_list, Map (Undef, Undef))
                     | (x1 :: y1), (x2 :: y2) ->
                         check_type_same expr_k_types x1;
                         check_type_same expr_v_types x2;
-                        TMap (expr_pair_list, (x1, x2))
+                        TMap (texpr_pair_list, Map(x1, x2))
             end
         | Array (expr_list) ->
-            let expr_types =
+            let texpr_list =
                 List.map (fun item -> infer_expr item) expr_list
+            in
+            let expr_types = List.map get_expr_type_info texpr_list
             in
             begin
                 match expr_types with
-                    | [] -> TArray (expr_list, Undef)
+                    | [] -> TArray (texpr_list, Undef)
                     | (x :: y) ->
                         check_type_same expr_types x;
-                        TArray (expr_list, x)
+                        TArray (texpr_list, x)
                 end
-        | String (str) -> String
+        | String (str) -> TString (str)
         | Binop (f_expr, bop, s_expr) ->
-            let f_expr_type = infer_expr f_expr
-                and s_expr_type = infer_expr s_expr
+            let
+                t_f_expr = infer_expr f_expr
+                and t_s_expr = infer_expr s_expr
+            in
+            let f_expr_type = get_expr_type_info t_f_expr
+                and s_expr_type = get_expr_type_info t_s_expr
             in
             begin
                 match bop with
-                | Add | Sub | Mult | Div | Equal | Neq | Less | Leq | Greater | Geq
-                ->  begin
+                | Add | Sub | Mult | Div ->  begin
                     match f_expr_type, s_expr_type with
-                    | Int, Int -> Int
-                    | Float, Float -> Float
-                    | Float, Int -> Float
-                    | Int, Float -> Float
+                    | Int, Int -> TBinop ((t_f_expr, bop, t_s_expr), Int)
+                    | Float, Float -> TBinop ((t_f_expr, bop, t_s_expr), Float)
+                    | Float, Int -> TBinop ((t_f_expr, bop, t_s_expr), Float)
+                    | Int, Float -> TBinop ((t_f_expr, bop, t_s_expr), Float)
                     | _, _ -> failwith ("wrong type binop with each other")
                     end
+                | Equal | Neq | Less | Leq | Greater | Geq -> begin
+                    match f_expr_type, s_expr_type with
+                    | Int, Int
+                    | Float, Float
+                    | Float, Int
+                    | Int, Float
+                        -> TBinop ((t_f_expr, bop, t_s_expr), Bool)
+                    | _, _ -> failwith ("wrong type binop with each other")
+                end
                 | And | Or ->
                     begin
                     match f_expr_type, s_expr_type with
-                    | Bool, Bool -> Bool
+                    | Bool, Bool -> TBinop ((t_f_expr, bop, t_s_expr), Bool)
                     | _, _ -> failwith ("wrong type binop with each other")
                     end
                 | SAdd ->
                     begin
                     match f_expr_type, s_expr_type with
-                    | String, String -> String
+                    | String, String -> TBinop ((t_f_expr, bop, t_s_expr), String)
                     | _, _ -> failwith ("wrong type binop with each other")
                     end
-                    (*chan operation*)
-                | _ -> failwith ("undefined binop for binop -> <-")
+                    (*TODO chan operation*)
+                | _ -> failwith ("chan not implemented,
+                        undefined binop for binop -> <-")
             end
         | Assign (varname, epr) ->
-            let expr_type = infer_expr epr
+            let tepr = infer_expr epr
+            in let expr_type = get_expr_type_info tepr
             in let var = ref_search_id varname
             in  begin
                 match var with
-                | None -> ref_update_env varname expr_type; expr_type
-                | Some x -> if expr_type = x then expr_type
+                | None -> ref_update_env varname expr_type;
+                    TAssign ((varname, tepr), expr_type)
+                | Some x -> if expr_type = x then
+                    TAssign ((varname, tepr), expr_type)
                     else failwith ("redefine " ^ varname ^ " with different type")
                 end
         | Unop (unop, epr) ->
-            let expr_type = infer_expr epr
+            let tepr = infer_expr epr
+            in let expr_type = get_expr_type_info tepr
             in  begin
                 match unop with
-                | Not -> if expr_type != Bool then failwith ("not with not bool") else Bool
+                | Not -> if expr_type != Bool then failwith ("not with not bool") else
+                    TUnop ((unop, tepr),Bool)
                 | Neg -> if expr_type != Int && expr_type != Float then failwith ("neg with not int or float")
-                        else expr_type
+                        else  TUnop ((unop, tepr), expr_type)
                 end
+            (*clojure*)
         | Call (fname, expr_list) ->
             let fdecl = find_func (fname)
             in
-                let expr_types = List.map infer_expr expr_list
+                let texpr_list = List.map infer_expr expr_list
+                in let expr_types = List.map get_expr_type_info texpr_list
                 in
                 (*create new env to infer funcion*)
-                let new_func_level_env = init_level_env()
-                in begin
+                begin
                     match fdecl with
                     | {formals = param_list;_} -> (*set env*)
-                        let param_len = List.length param_list and true_len = List.length expr_types
-                        in if param_len = true_len then (* actual a function call *)
-                            let new_func_level_env = List.fold_left2 (fun env param_name typ -> (update_env env param_name typ)) new_func_level_env param_list expr_types
-                            in
-                            infer_func fdecl (ref new_func_level_env)
-                            else (* a clojure which just a function bind less than true parameters*)
-                    (*TODO*) Int
-                    end
-            (* TODO
+                    let param_len = List.length param_list and true_len = List.length expr_types
+                    in if param_len = true_len then (* actual a function call *)
+                        let rtype = get_func_result (infer_func_by_name fname expr_types)
+                        in TCall ((fname, texpr_list), rtype)
+                        else
+                        TCall ((fname, texpr_list), Func (fname, expr_types))
+                        (* a clojure which just a function bind less than true parameters*)
+                end
+        (* TODO
         | ObjCall (cname, fname, expr_list) ->
         | Func (lname, rname, expr) ->
         | ListComprehen (f_expr, varname, s_expr) -> *)
-        | _ -> Int
+        | _ -> TLiteral 142857
     in
+    (* return a tstmt*)
     let rec infer_stmt smt = match smt with
         | Block stmt_list -> ref_create_env();
-            let stmt_list_types = List.map infer_stmt stmt_list
-            in let return_type = List.hd (List.rev (stmt_list_types))
+            let tstmt_list = List.map infer_stmt stmt_list
             in ref_back_env(); (*back this env*)
-            return_type
+                TBlock tstmt_list
         | Expr epr ->
-            infer_expr epr
+            TExpr (infer_expr epr)
         | Return epr ->
-            infer_expr epr
-        | _ -> Int
+            TReturn (infer_expr epr)
+        | If (judge_expr, f_stmt_list, s_stmt_list) ->
+            let judge_t_expr = infer_expr judge_expr
+            in
+                check_bool (get_expr_type_info judge_t_expr);
+                ref_create_env();
+                let t_f_stmt_list = List.map infer_stmt f_stmt_list
+                in ref_back_env();
+                    ref_create_env();
+                    let t_s_stmt_list = List.map infer_stmt s_stmt_list
+                    in ref_back_env();
+                        TIf (judge_t_expr, t_f_stmt_list, t_s_stmt_list)
+        (* TODO complete other cases*)
+        | _ -> TBlock []
     in
     match fdecl with
     | {body = stmt_list;_} ->
@@ -304,7 +341,7 @@ and infer_func_by_name fname type_list =
         fname ^ (List.fold_left
             (fun str item -> str "@" item) "" type_list)
     in let hash_value = find_t_func hash_key
-    in match hash_value
+    in match hash_value with
         | None ->
             let fdecl = find_func fname
             in

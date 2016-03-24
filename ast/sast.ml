@@ -5,9 +5,9 @@ type texpr =
   | TFloat of float
   | TId of string * typ(* id token *)
   | TSet of texpr list * typ
-  | TMap of (texpr * texpr) list * (typ * typ)
-  | TArray of expr list * typ
-  | TString of string * typ(*represent const string*)
+  | TMap of (texpr * texpr) list * typ
+  | TArray of texpr list * typ
+  | TString of string(*represent const string*)
   | TBinop of (texpr * op * texpr) * typ
   | TUnop of (uop * texpr) * typ
   | TCall of (string * texpr list) * typ
@@ -15,16 +15,40 @@ type texpr =
   | TFunc of (string list * texpr) * typ (*lambda expr*)
   | TAssign of (string * texpr) * typ
   | TListComprehen of (texpr * string * texpr) * typ (*can iterate a tuple?*)
-  | TNoexpr
   (*below are network specified exprs*)
   | TExec of string * typ
-  | TDispatch of (string * expr list * string * string) * typ
+  | TDispatch of (string * texpr list * string * string) * typ
   | TRegister of (string * string * texpr list) * typ
   | TChan of texpr * typ
-  | TChanunop of string
-  | TChanbinop of string * string
+  | TChanunop of string * typ
+  | TChanbinop of (string * string) * typ
   | TFly of (string * texpr list) * typ
   | TFlyo of (string * string * texpr list) * typ
+
+let get_expr_type_info tepr = match tepr with
+    | TLiteral _ -> Int
+    | TBoolLit _ -> Bool
+    | TFloat _ -> Float
+    | TString _ -> String
+    | TId (_, x)  -> x
+    | TSet (_, x) -> x
+    | TMap (_, x) -> x
+    | TArray (_, x) -> x
+    | TBinop (_, x) -> x
+    | TUnop (_, x) -> x
+    | TCall (_, x) -> x
+    | TObjCall (_, x) -> x
+    | TFunc (_, x) -> x
+    | TAssign (_, x) -> x
+    | TListComprehen (_, x) -> x
+    | TExec (_, x) -> x
+    | TDispatch (_, x) -> x
+    | TRegister (_, x) -> x
+    | TChan (_, x) -> x
+    | TChanunop (_, x) -> x
+    | TChanbinop (_, x) -> x
+    | TFly (_, x) -> x
+    | TFlyo (_, x) -> x
 
 type tstmt =
     TBlock of tstmt list
@@ -54,3 +78,10 @@ type t_func_decl = {
         tbody: tstmt list;
         tret: typ (*the return value type*)
     }
+
+let get_func_result tfdecl = match tfdecl with
+    | {tret=rtype;_} -> rtype
+
+let check_bool this_type =
+    if this_type = Bool then ()
+    else failwith ("check bool error")
