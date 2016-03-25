@@ -8,14 +8,17 @@ let string_of_op = function
     | Sub -> "sub"
     | Mult -> "mul"
     | Div -> "div"
+    | Equal -> "equal"
     | Neq -> "neq"
     | Less -> "less"
+    | Leq -> "less or equal"
     | Greater -> "greater"
-    | Geq -> "geq"
+    | Geq -> "greater or equal"
     | And -> "and"
     | Or -> "or"
     | RArrow -> "->"
     | LArrow -> "<-"
+    | SAdd -> "add string"
     | _ -> "nothing"
 
 let string_of_uop = function
