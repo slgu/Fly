@@ -40,7 +40,7 @@ let rec debug_expr = function
     | Func (a, b) -> "lambda: " ^ List.fold_left (func str item -> str ^ ", " ^ item) "" (List.map debug_expr a) ^ "; lambda expr: " ^ debug_expr b
     | Assign (a, b) -> "assign: " ^ a ^" by: " ^ debug_expr b
     | ListComprehen (a, b, c) -> "list comprehension: " ^ debug_expr a ^ b ^ debug_expr c;
-    | _ -> print_endline "nothing"
+    | _ -> "nothing"
     | Exec(a) -> "exec: " ^ a
     | Dispatch(a, exprs, b, c) -> "dispatch: " ^ a ^ ( List.fold_left (func str item -> str ^ "," ^ item) "" (List.map debug_expr exprs) )
     | Register (a, b, exprs) -> "register: " ^ a ^ " " ^ b  ^ " " ^ ( List.fold_left (func str item -> str ^ "," ^ item) "" (List.map debug_expr exprs) )
