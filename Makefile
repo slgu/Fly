@@ -2,7 +2,7 @@ parser_dir = parser
 ast_dir = ast
 check_dir = check
 gen_dir = codegen
-debug_dir = debug
+debug_dir = de
 all:
 	ocamllex $(parser_dir)/scanner.mll
 	ocamlyacc -v $(parser_dir)/parser.mly
@@ -32,10 +32,12 @@ gen:
 	rm $(parser_dir)/scanner.ml $(parser_dir)/parser.mli $(parser_dir)/parser.ml $(parser_dir)/parser.output */*.cm* *.cm*
 	cat test/test1 | ./fly
 debug:
-	ocamlc -c ast.ml
-	ocamlc -c debug.ml
-	ocamlc -o debug ast.cmo debug.cmo
-	rm *.cm*
+	ocamlc -c $(ast_dir)/ast.ml
+	ocamlc -I $(ast_dir) -c $(debug_dir)/debug.ml
+	ocamlc -o debug $(ast_dir)/ast.cmo $(debug_dir)/debug.cmo
+	rm */*.cm*
+debug_clean:
+	rm debug
 clean:
 	rm fly $(parser_dir)/scanner.ml $(parser_dir)/parser.mli $(parser_dir)/parser.ml $(parser_dir)/parser.output */*.cm* *.cm*
 exec:
