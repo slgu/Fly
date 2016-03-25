@@ -41,6 +41,18 @@ let rec debug_expr = function
     | Assign (a, b) -> "assign: " ^ a ^" by: " ^ debug_expr b
     | ListComprehen (a, b, c) -> "list comprehension: " ^ debug_expr a ^ b ^ debug_expr c;
     | _ -> print_endline "nothing"
+    | Exec(a) -> "exec: " ^ a
+    | Dispatch(a, exprs, b, c) -> "dispatch: " ^ a ^ ( List.fold_left (func str item -> str ^ "," ^ item) "" (List.map debug_expr exprs) )
+    | Register (a, b, exprs) -> "register: " ^ a ^ " " ^ b  ^ " " ^ ( List.fold_left (func str item -> str ^ "," ^ item) "" (List.map debug_expr exprs) )
+    | Chan (a) -> "chan: " ^ debug_expr a
+    | Chanunop (a) -> "chaunop: " ^ a
+    | Chanbinop (a, b) -> "chanbinop: " ^ a ^ " " ^ b
+    | Fly (a, exprs) -> "fly: " ^ a ^ " " ^ ( List.fold_left (func str item -> str ^ "," ^ item) "" (List.map debug_expr exprs)  )
+    | Flyo (a, b, exprs) -> "flyo: " ^ a ^ " " ^ b ^ " " ^ ( List.fold_left (func str item -> str ^ "," ^ item) "" (List.map debug_expr exprs) )
+  
+    
+    
+
 
 
 
