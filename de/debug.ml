@@ -41,6 +41,18 @@ let rec debug_expr = function
     | ObjCall (id1, id2, exprs) -> print_endline ("call by" ^ id1 ^ "." ^ id2);List.iter debug_expr exprs;
     | Func (a, b) -> print_endline "lambda:";List.iter print_endline a;print_endline "lambda expr:";debug_expr b
     | _ -> print_endline "nothing"
+    | Exec(a) -> "exec: " ^ a
+    | Dispatch(a, exprs, b, c) -> "dispatch: " ^ a ^ ( List.fold_left (func str item -> str ^ "," ^ item) "" (List.map debug_expr exprs) )
+    | Register (a, b, exprs) -> "register: " ^ a ^ " " ^ b  ^ " " ^ ( List.fold_left (func str item -> str ^ "," ^ item) "" (List.map debug_expr exprs) )
+    | Chan (a) -> "chan: " ^ debug_expr a
+    | Chanunop (a) -> "chaunop: " ^ a
+    | Chanbinop (a, b) -> "chanbinop: " ^ a ^ " " ^ b
+    | Fly (a, exprs) -> "fly: " ^ a ^ " " ^ ( List.fold_left (func str item -> str ^ "," ^ item) "" (List.map debug_expr exprs)  )
+    | Flyo (a, b, exprs) -> "flyo: " ^ a ^ " " ^ b ^ " " ^ ( List.fold_left (func str item -> str ^ "," ^ item) "" (List.map debug_expr exprs) )
+  
+    
+    
+
 
 let debug_stmt = function
     | Expr a -> debug_expr a
