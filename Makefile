@@ -36,6 +36,8 @@ debug:
 	ocamlc -I $(ast_dir) -c $(debug_dir)/debug.ml
 	ocamlc -o debug $(ast_dir)/ast.cmo $(debug_dir)/debug.cmo
 	rm */*.cm*
+debug_clean:
+	rm debug
 clean:
 	rm fly $(parser_dir)/scanner.ml $(parser_dir)/parser.mli $(parser_dir)/parser.ml $(parser_dir)/parser.output */*.cm* *.cm*
 exec:
