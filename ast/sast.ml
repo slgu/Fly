@@ -73,7 +73,7 @@ type t_lambda_decl = {
 
 type t_func_decl = {
         ttkey: string; (* for matching*)
-        fname: string;
+        tfname: string;
         tformals: (string * typ) list;
         tbody: tstmt list;
         tret: typ (*the return value type*)
@@ -85,3 +85,11 @@ let get_func_result tfdecl = match tfdecl with
 let check_bool this_type =
     if this_type = Bool then ()
     else failwith ("check bool error")
+
+(*from a stmts list get a return stmt and get the return type*)
+let rec get_rtype stmt_list = match stmt_list with
+    | [] -> failwith ("get_rtype error")
+    | (TReturn x::y) -> get_expr_type_info x
+    | (x :: y) -> get_rtype y
+
+(* debug code for sast*)

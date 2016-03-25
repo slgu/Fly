@@ -145,7 +145,7 @@ let built_in_str_type =
 (* infer the function result given input params*)
 (*let rec infer fdecl env *)
 (* return a t_func_decl*)
-let rec infer_func fdecl level_env =
+let rec infer_func fdecl hash_key type_list level_env =
     (*level_env is an ref variable modified by infer_expr and infer_stmt*)
     let ref_create_env ()=
         level_env := append_new_level (!level_env)
@@ -328,18 +328,24 @@ let rec infer_func fdecl level_env =
         | _ -> TBlock []
     in
     match fdecl with
-    | {body = stmt_list;_} ->
-        let stmt_list_types = List.map infer_stmt stmt_list
-        in List.hd (List.rev (stmt_list_types))
+    | {body = stmt_list;formals = param_list;fname = func_name} ->
+        (*sequencely infer each stmt with level env *)
+        let tstmt_lists = List.map infer_stmt stmt_list
+        in let t_param_list = List.map2 (fun item1 item2 -> (item1, item2)) param_list type_list
+        in let rtype = get_rtype (List.rev tstmt_lists)
+        in {ttkey = hash_key;tfname = func_name;tformals = t_param_list;tbody = tstmt_lists;tret = rtype}
+        (*generate a t func decl*)
+
 
 (* when we see a fname and para with type
     we call this function to put a record to a global type info
     and return the t_func_decl
 *)
+
 and infer_func_by_name fname type_list =
     let hash_key =
         fname ^ (List.fold_left
-            (fun str item -> str "@" item) "" type_list)
+            (fun str item -> str ^ "@" ^ item) "" (List.map type_to_string type_list))
     in let hash_value = find_t_func hash_key
     in match hash_value with
         | None ->
@@ -349,18 +355,18 @@ and infer_func_by_name fname type_list =
                 match fdecl with
                 | {formals=param_list;_} ->
                     (*create env and add param type*)
-                    let new_func_level_env = List.fold_left2
-                    (fun env param_name typ -> (update_env env param_name typ))
-                    get_new_env() param_list type_list
-                    in infer_func fdecl ref(new_func_level_env)
+                    let new_func_level_env =
+                        List.fold_left2 (fun env param_name this_type -> update_env env param_name this_type) (init_level_env()) param_list type_list
+                    in
+                    let ref_new_func_level_env = ref(new_func_level_env)
+                    in infer_func fdecl hash_key type_list ref_new_func_level_env
+                    (*store in the global hash*)
                 end
-
         | Some x -> x
 
 (* perform static type checking and inferrence*)
 let infer_check (ast : program) =
     bind_name ast; (*first bind name*)
-    let main_func = find_func "main"
-    in let level_env = ref (init_level_env())
-    in infer_func main_func level_env
+    (*just infer the main function and recur infer all involved functions *)
+    infer_func_by_name "main" []
     (* search main function and do a static type infer*)
