@@ -21,7 +21,7 @@ let handle_fm formals =
 (* take a function declaration and generate the string list *)
 let handle_fdecl fd =
     match fd with
-    | {tret=rt; fname=name; tformals=fm; _} -> 
+    | {tret=rt; tfname=name; tformals=fm; _} -> 
         [ 
             cat_string_list_with_space [(type_to_string rt);name;(handle_fm fm)] 
         ]
