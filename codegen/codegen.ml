@@ -32,7 +32,7 @@ let rec handle_texpr expr =
     | TString(str) -> ["\"" ^ str ^ "\""]
     | TId(str, _) -> [str]
     | TLiteral(value) -> [string_of_int value]
-    | TAssign((str, expr),_) -> [str ^ " = "] @ handle_texpr expr
+    | TAssign((str, expr), ty) -> [(type_to_string ty) ^ " " ^ str ^ " = "] @ handle_texpr expr
     | _ -> [] (* TODO *)
 
 (* take one tstmt and return a string list *)
@@ -63,6 +63,6 @@ let handle_sast sast =
     List.fold_left (fun ret fdecl -> ret @ (handle_fdecl fdecl)) [] sast
 
 let codegen sast = 
-    let header = ["#include<iostream>"] in
+    let header = ["#include<iostream>";"#include<string>";"using namespace std;"] in
     let buffer = header @ (handle_sast sast) in
     List.fold_left (fun ret ele -> ret ^ ele ^ "\n") "" buffer
