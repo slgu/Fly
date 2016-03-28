@@ -1,5 +1,9 @@
-1. infer_func to return t_func_decl
-2. lambda expression thinking
-3. network code generated needed
-4. Null ptr
-5. how to deal with function type (no deal)
+3. network code generated needed (to be done)
+4. Null ptr (to be done)
+5. recursive (to be done)
+6. clojure call (to be done) f(3) f can be a clojure variable
+    besides, parameter can be function name
+7. global variable added
+8. set map list comprehen
+We are implicit typing like C++ template.
+Unlike ocaml type variable

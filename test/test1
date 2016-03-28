@@ -1,15 +1,5 @@
-class abct {
-    a = 3;
-    b = 4;
-    func member_test(c, d) {
-        a = c;
-        b = d;
-    }
-}
-
-
 func abc(a,b) {
-
+    return a - b;
 }
 
 
@@ -17,10 +7,17 @@ func abc2(a, b) {
     return a + b;
 }
 
+func adapt(f, a, b) {
+    return f(a, b);
+}
 
 func main() {
     a = 3.2;
     b = 4.1;
     a = 3.2;
     d = abc2(a, b);
+    k = abc(1);
+    g = k(2);
+    h = k(1.5);
+    return 0;
 }
