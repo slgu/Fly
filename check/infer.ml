@@ -41,6 +41,14 @@ let check_non_exist_class name =
     with
     | Not_found -> ()
 
+
+(* debug the global function *)
+let debug_t_func_binds () =
+    let f x _ = print_endline x
+    in
+    (* print out all the hash key*)
+    Hashtbl.iter f t_func_binds
+
 let check_return_of_func func_decl =
     let rec check_return_of_stmts = function
         | [Return (_)] -> ()
@@ -98,6 +106,16 @@ let get_new_env() =
 (* a multi-layer env operation *)
 let init_level_env () =
     [get_new_env()]
+
+
+(*create a copy of the function env*)
+let func_level_env () =
+    let (env : (string, typ) Hashtbl.t) = Hashtbl.create 16
+    in let f k v = match v with
+        | {fname=name;_} -> Hashtbl.add env k (Func(name,[]))
+    in Hashtbl.iter f func_binds;
+    env
+
 
 (* append a new level env to level_env*)
 let append_new_level level_env =
@@ -279,24 +297,36 @@ let rec infer_func fdecl hash_key type_list level_env =
                         else  TUnop ((unop, tepr), expr_type)
                 end
             (*clojure*)
-        | Call (fname, expr_list) ->
-            let fdecl = find_func (fname)
+        | Call (name, expr_list) ->
+            (* find in bindings*)
+            let ftype = ref_search_id name
             in
-                let texpr_list = List.map infer_expr expr_list
-                in let expr_types = List.map get_expr_type_info texpr_list
-                in
-                (*create new env to infer funcion*)
                 begin
-                    match fdecl with
-                    | {formals = param_list;_} -> (*set env*)
-                    let param_len = List.length param_list and true_len = List.length expr_types
-                    in if param_len = true_len then (* actual a function call *)
-                        let rtype = get_func_result (infer_func_by_name fname expr_types)
-                        in TCall ((fname, texpr_list), rtype)
-                        else
-                        TCall ((fname, texpr_list), Func (fname, expr_types))
-                        (* a clojure which just a function bind less than true parameters*)
+                match ftype with
+                | None -> failwith("unknow refer" ^ name)
+                | Some (Func (fname, arr)) -> (*with*)
+                    let texpr_list = List.map infer_expr expr_list
+                    in let expr_types = List.map get_expr_type_info texpr_list
+                    in let fdecl = find_func fname (* find the function*)
+                    in let binding_len = List.length arr
+                    in
+                        begin
+                        match fdecl with
+                        | {formals = param_list;_} -> (*set env*)
+                        let param_len = List.length param_list and true_len = List.length expr_types
+                        in if param_len = true_len + binding_len then (* actual a function call *)
+                            let rtype = get_func_result (infer_func_by_name fname (List.append arr expr_types))
+                            in TCall ((name, texpr_list), rtype)
+                            else
+                            if param_len < true_len + binding_len then
+                                failwith ("too many args")
+                            else
+                            TCall ((name, texpr_list), Func (fname, List.append arr expr_types))
+                            (* a clojure which just a function bind less than true parameters*)
+                        end
+                | _ -> failwith ("not a clojure or function obj when functioncall")
                 end
+
         (* TODO
         | ObjCall (cname, fname, expr_list) ->
         | Func (lname, rname, expr) ->
@@ -354,19 +384,29 @@ and infer_func_by_name fname type_list =
                 begin
                 match fdecl with
                 | {formals=param_list;_} ->
+                    (*create func env*)
+                    let func_env =
+                        func_level_env()
+                    in
                     (*create env and add param type*)
                     let new_func_level_env =
                         List.fold_left2 (fun env param_name this_type -> update_env env param_name this_type) (init_level_env()) param_list type_list
                     in
-                    let ref_new_func_level_env = ref(new_func_level_env)
-                    in infer_func fdecl hash_key type_list ref_new_func_level_env
+                    let ref_new_func_level_env = ref(List.rev (func_env::new_func_level_env))
+                    in let tfdecl = infer_func fdecl hash_key type_list ref_new_func_level_env
+                    in
                     (*store in the global hash*)
+                    Hashtbl.add t_func_binds hash_key tfdecl;
+                    tfdecl
                 end
         | Some x -> x
+
+
 
 (* perform static type checking and inferrence*)
 let infer_check (ast : program) =
     bind_name ast; (*first bind name*)
     (*just infer the main function and recur infer all involved functions *)
-    infer_func_by_name "main" []
+    let res =  infer_func_by_name "main" []
+    in debug_t_func_binds()
     (* search main function and do a static type infer*)

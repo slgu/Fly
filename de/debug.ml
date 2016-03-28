@@ -49,9 +49,9 @@ let rec debug_expr = function
     | Chanbinop (a, b) -> "chanbinop: " ^ a ^ " " ^ b
     | Fly (a, exprs) -> "fly: " ^ a ^ " " ^ ( List.fold_left (func str item -> str ^ "," ^ item) "" (List.map debug_expr exprs)  )
     | Flyo (a, b, exprs) -> "flyo: " ^ a ^ " " ^ b ^ " " ^ ( List.fold_left (func str item -> str ^ "," ^ item) "" (List.map debug_expr exprs) )
-  
-    
-    
+
+
+
 
 
 let debug_stmt = function
