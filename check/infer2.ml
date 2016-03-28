@@ -14,18 +14,21 @@ type t_func_decl = {
     }
 *)
 
-let gen_example_ht =
+let infer_check (ast : program) = (* build the hash *)
     let body = [TExpr(TCall(("coolfunc",[TString("Hello World")]), Void));TReturn(TLiteral(0))] in
-    let mainfunc = {tret=Int;tbody=body;tformals=[];tfname="main";ttkey=""} in
+    let mainfunc = {tret=Int;tbody=body;tformals=[];tfname="main";ttkey="main_void"} in
     let anobody = [TExpr(TAssign(("ret", TLiteral(0)),Int));TExpr(TCall(("print",[TId("b",String)]), Void));TReturn(TId("ret",Int))] in
-    let anotherfunc = {tret=Int;tbody=anobody;tformals=[("b",String)];tfname="coolfunc";ttkey=""} in
+    let anotherfunc = {tret=Int;tbody=anobody;tformals=[("b",String)];tfname="coolfunc";ttkey="cool_func_string"} in
     let flist = [mainfunc;anotherfunc] in
-    List.iter 
-        (fun fdecl -> match fdecl with | {tfname = name ; _} -> Hashtbl.add func_binds name fdecl) flist
+    ignore(List.iter
+        (fun fdecl -> match fdecl with | {ttkey = key ; _} -> Hashtbl.add func_binds key fdecl) flist);
+    func_binds
 
+(*
 let infer_check (ast : program) = (* return function list *)
     let body = [TExpr(TCall(("coolfunc",[TString("Hello World")]), Void));TReturn(TLiteral(0))] in
     let mainfunc = {tret=Int;tbody=body;tformals=[];tfname="main";ttkey=""} in
     let anobody = [TExpr(TAssign(("ret", TLiteral(0)),Int));TExpr(TCall(("print",[TId("b",String)]), Void));TReturn(TId("ret",Int))] in
     let anotherfunc = {tret=Int;tbody=anobody;tformals=[("b",String)];tfname="coolfunc";ttkey=""} in
     [anotherfunc;mainfunc]
+*)

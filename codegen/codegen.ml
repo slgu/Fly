@@ -59,10 +59,44 @@ let handle_fdecl fd =
         [ cat_string_list_with_space [(type_to_string rt);name;(handle_fm fm)]] @ (handle_body body)
 
 (* take a fdecl list and generate the string list *)
-let handle_sast sast = 
-    List.fold_left (fun ret fdecl -> ret @ (handle_fdecl fdecl)) [] sast
+let handle_funlist funlist = 
+    List.fold_left (fun ret fdecl -> ret @ (handle_fdecl fdecl)) [] funlist
 
-let codegen sast = 
+let codegen_helper funlist = 
     let header = ["#include<iostream>";"#include<string>";"using namespace std;"] in
-    let buffer = header @ (handle_sast sast) in
+    let buffer = header @ (handle_funlist funlist) in
     List.fold_left (fun ret ele -> ret ^ ele ^ "\n") "" buffer
+
+let (fundone : (string, t_func_decl) Hashtbl.t) = Hashtbl.create 16
+
+let find_hash ht key =
+    try
+        Some (Hashtbl.find ht key)
+    with
+    | Not_found -> None
+
+let rec dfs ht fkey = 
+    (*
+    1. get t_func_decl and push to list
+    2. go over the body, when meet a funcall, recur
+    *)
+    let hash_value = find_hash fundone fkey in
+    match hash_value with 
+    | None ->
+        let ret = [] in
+        let sfd = find_hash ht fkey in
+        (
+            match sfd with 
+            | None -> raise (Failure ("Function not defined " ^ fkey))
+            | Some (fd) -> 
+                ignore(Hashtbl.add fundone fkey fd); (* TODO *)
+                [fd]
+        )
+    | _ -> []
+
+let build_list_from_ht ht =
+    List.rev (dfs ht "main_void")
+
+let codegen ht = 
+    let funlist = build_list_from_ht ht in
+    codegen_helper funlist
