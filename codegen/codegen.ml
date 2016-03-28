@@ -67,7 +67,7 @@ let codegen_helper funlist =
     let buffer = header @ (handle_funlist funlist) in
     List.fold_left (fun ret ele -> ret ^ ele ^ "\n") "" buffer
 
-let (fundone : (string, t_func_decl) Hashtbl.t) = Hashtbl.create 16
+let (fundone : (string, string) Hashtbl.t) = Hashtbl.create 16
 
 let find_hash ht key =
     try
@@ -75,22 +75,76 @@ let find_hash ht key =
     with
     | Not_found -> None
 
+(*
+type texpr =
+    TLiteral of int
+  | TBoolLit of bool
+  | TFloat of float
+  | TId of string * typ(* id token *)
+  | TSet of texpr list * typ
+  | TMap of (texpr * texpr) list * typ
+  | TArray of texpr list * typ
+  | TString of string(*represent const string*)
+  | TBinop of (texpr * op * texpr) * typ
+  | TUnop of (uop * texpr) * typ
+  | TCall of (string * texpr list) * typ
+  | TObjCall of (string * string * texpr list) * typ(*invoke a method of an object*)
+  | TFunc of (string list * texpr) * typ (*lambda expr*)
+  | TAssign of (string * texpr) * typ
+  | TListComprehen of (texpr * string * texpr) * typ (*can iterate a tuple?*)
+  (*below are network specified exprs*)
+  | TExec of string * typ
+  | TDispatch of (string * texpr list * string * string) * typ
+  | TRegister of (string * string * texpr list) * typ
+  | TChan of texpr * typ
+  | TChanunop of string * typ
+  | TChanbinop of (string * string) * typ
+  | TFly of (string * texpr list) * typ
+  | TFlyo of (string * string * texpr list) * typ
+*)
+
+(* take a texp and return function key list *)
+let rec texp_helper texp_ =
+    match texp_ with
+    | _ -> []
+
+(* take a tstmt and return function key list *)
+let rec tstmt_helper tstmt_ =
+    match tstmt_ with
+    | TBlock(tstmtlist) -> List.fold_left (fun ret tstmt_ -> ret @ (tstmt_helper tstmt_)) [] tstmtlist
+    | TExpr(texpr_) -> texp_helper texpr_
+    | TReturn(texpr_) -> texp_helper texpr_
+    | TIf(texpr_, tstmtlist_a, tstmtlist_b) -> 
+        (texp_helper texpr_) @ 
+        (List.fold_left (fun ret tstmt_ -> ret @ (tstmt_helper tstmt_)) [] (tstmtlist_a @ tstmtlist_b))
+    | TFor(ex1, ex2, ex3, tstmtlist) ->
+        (texp_helper ex1) @ (texp_helper ex2) @ (texp_helper ex3) @ 
+        (List.fold_left (fun ret tstmt_ -> ret @ (tstmt_helper tstmt_)) [] tstmtlist)
+    | TForeach(_, texpr_, tstmtlist) ->
+        (texp_helper texpr_) @ (List.fold_left (fun ret tstmt_ -> ret @ (tstmt_helper tstmt_)) [] tstmtlist)
+    | TWhile(texpr_, tstmtlist) -> 
+        (texp_helper texpr_) @ (List.fold_left (fun ret tstmt_ -> ret @ (tstmt_helper tstmt_)) [] tstmtlist)
+    | _ -> []
+
+(* take a function key and return t_func_decl list, 
+which includes the function itself and all functions it calls *)
 let rec dfs ht fkey = 
-    (*
-    1. get t_func_decl and push to list
-    2. go over the body, when meet a funcall, recur
-    *)
     let hash_value = find_hash fundone fkey in
     match hash_value with 
     | None ->
-        let ret = [] in
         let sfd = find_hash ht fkey in
         (
             match sfd with 
             | None -> raise (Failure ("Function not defined " ^ fkey))
             | Some (fd) -> 
-                ignore(Hashtbl.add fundone fkey fd); (* TODO *)
-                [fd]
+                ignore(Hashtbl.add fundone fkey "dummy");
+                (
+                match fd with 
+                | {tbody=body; _} -> 
+                    let fklist = List.fold_left (fun ret tstmt_ -> ret @ (tstmt_helper tstmt_)) [] body in
+                    [fd] @ (List.fold_left (fun ret key_ -> dfs ht key_) [] fklist)
+                | _ -> raise (Failure ("Function decl corrupt " ^ fkey))
+                )
         )
     | _ -> []
 
