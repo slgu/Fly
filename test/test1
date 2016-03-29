@@ -19,5 +19,6 @@ func main() {
     k = abc(1);
     g = k(2);
     h = k(1.5);
+    aa = adapt(abc, 1, 2.5);
     return 0;
 }
