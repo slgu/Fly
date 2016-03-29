@@ -25,10 +25,11 @@ gen:
 	ocamlc -I $(ast_dir) -c $(parser_dir)/parser.mli
 	ocamlc -I $(parser_dir) -c $(parser_dir)/scanner.ml
 	ocamlc -I $(ast_dir) -I $(parser_dir) -c $(parser_dir)/parser.ml
-	ocamlc -I $(ast_dir) -c $(check_dir)/infer2.ml
+	ocamlc -c $(check_dir)/util.ml
+	ocamlc -I $(ast_dir) -I $(check_dir) -c $(check_dir)/infer2.ml
 	ocamlc -I $(ast_dir) -c $(gen_dir)/codegen.ml
 	ocamlc -I $(parser_dir) -I $(check_dir) -I $(gen_dir) -c fly_testgen.ml
-	ocamlc -o fly $(parser_dir)/scanner.cmo $(parser_dir)/parser.cmo $(ast_dir)/ast.cmo $(ast_dir)/sast.cmo $(check_dir)/infer2.cmo $(gen_dir)/codegen.cmo fly_testgen.cmo
+	ocamlc -o fly $(parser_dir)/scanner.cmo $(parser_dir)/parser.cmo $(ast_dir)/ast.cmo $(ast_dir)/sast.cmo $(check_dir)/util.cmo $(check_dir)/infer2.cmo $(gen_dir)/codegen.cmo fly_testgen.cmo
 	cat test/test1 | ./fly
 	g++ tmp.cc
 	./a.out
