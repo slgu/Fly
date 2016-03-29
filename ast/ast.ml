@@ -33,6 +33,7 @@ let op_to_string = function
     | Or -> "||"
     | RArrow -> "->"
     | LArrow -> "<-"
+    | SAdd -> "+"
 
 (* type to string function used for hash
     _ to concat type

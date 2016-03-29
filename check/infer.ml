@@ -327,7 +327,7 @@ let rec infer_func fdecl hash_key type_list level_env =
                             TCall ((name, texpr_list), Func (fname, List.append arr expr_types))
                             (* a clojure which just a function bind less than true parameters*)
                         end
-                | _ -> failwith ("not a clojure or function obj when functioncall")
+                | _ -> failwith  ("not a clojure or function obj when functioncall")
                 end
         | Func (param_list, epr) ->
             (*lambda expression*)
@@ -340,7 +340,7 @@ let rec infer_func fdecl hash_key type_list level_env =
                            let a_bind = ref_search_id a
                             in begin
                             match a_bind with
-                            | Some _ -> [a]
+                            | Some x -> [(a,x)]
                             | None -> []
                             end
                 | Set expr_list ->
@@ -363,13 +363,30 @@ let rec infer_func fdecl hash_key type_list level_env =
                         in  begin
                         match name_bind with
                         | None -> List.concat (List.map get_inner_bindings expr_list)
-                        | Some _ -> name :: (List.concat (List.map get_inner_bindings expr_list))
+                        | Some x -> (name, x) :: (List.concat (List.map get_inner_bindings expr_list))
                         end
                 | _ -> []
             in
             let inner_params_binds = get_inner_bindings epr
             in
-
+            let inner_param_name_binds = List.map (fun (name, thistype) -> name) inner_params_binds
+            in
+            let new_lambda_name =
+                "_" ^ next_random_string()
+            in
+            let new_lambda_func =
+                {
+                    fname=new_lambda_name;
+                    formals=(List.append inner_param_name_binds param_list);
+                    body=[Return epr]
+                }
+            in
+            (*add this func to func_binds*)
+            Hashtbl.add func_binds new_lambda_name new_lambda_func;
+            let texpr_list = List.map (fun (name, thistype) -> TId (name, thistype)) inner_params_binds
+            (*replace with a clojure call*)
+            and type_list = List.map (fun (name, thistype) -> thistype) inner_params_binds
+            in TCall ((new_lambda_name, texpr_list), Func (new_lambda_name, type_list))
         (* TODO
         | ObjCall (cname, fname, expr_list) ->
         | Func (lname, rname, expr) ->
@@ -449,6 +466,6 @@ and infer_func_by_name fname type_list =
 let infer_check (ast : program) =
     bind_name ast; (*first bind name*)
     (*just infer the main function and recur infer all involved functions *)
-    let res =  infer_func_by_name "main" []
+    let _ =  infer_func_by_name "main" []
     in debug_t_func_binds()
     (* search main function and do a static type infer*)

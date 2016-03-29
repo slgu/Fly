@@ -12,13 +12,14 @@ func adapt(f, a, b) {
 }
 
 func main() {
-    a = 3.2;
+    a = 3;
     b = 4.1;
-    a = 3.2;
     d = abc2(a, b);
     k = abc(1);
     g = k(2);
     h = k(1.5);
     aa = adapt(abc, 1, 2.5);
+    ll = (x,y->x+y+a);
+    res = ll(1,2);
     return 0;
 }
