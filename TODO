@@ -1,9 +1,9 @@
 3. network code generated needed (to be done)
 4. Null ptr (to be done)
-5. recursive (to be done)
-6. clojure call (to be done) f(3) f can be a clojure variable
-    besides, parameter can be function name
+5. recursive (to be done)e
 7. global variable added
 8. set map list comprehen
+9.lambda
+
 We are implicit typing like C++ template.
 Unlike ocaml type variable

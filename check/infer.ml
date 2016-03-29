@@ -1,6 +1,7 @@
 (*infer type and do a static syntax checking*)
 open Ast
 open Sast
+open Util
 let (func_binds : (string, func_decl) Hashtbl.t) = Hashtbl.create 16
 let (class_binds : (string, class_decl) Hashtbl.t) = Hashtbl.create 16
 
@@ -44,7 +45,9 @@ let check_non_exist_class name =
 
 (* debug the global function *)
 let debug_t_func_binds () =
-    let f x _ = print_endline x
+    let f x y = print_endline x;
+        match y with
+        | {tret=rtype;_} -> print_endline ("return type:" ^ (type_to_string rtype));
     in
     (* print out all the hash key*)
     Hashtbl.iter f t_func_binds
@@ -326,6 +329,46 @@ let rec infer_func fdecl hash_key type_list level_env =
                         end
                 | _ -> failwith ("not a clojure or function obj when functioncall")
                 end
+        | Func (param_list, epr) ->
+            (*lambda expression*)
+            (*we don't evaluate the expression '
+            but get the bindings and create new fdecl*)
+            let rec get_inner_bindings epr =
+                match epr with
+                | Id a -> if List.mem a param_list then []
+                          else
+                           let a_bind = ref_search_id a
+                            in begin
+                            match a_bind with
+                            | Some _ -> [a]
+                            | None -> []
+                            end
+                | Set expr_list ->
+                    List.concat (List.map get_inner_bindings expr_list)
+                | Map expr_pair_list ->
+                    let expr_single_list = List.fold_left (fun arr (item1, item2) -> item2::item1::arr) [] expr_pair_list
+                    in List.concat (List.map get_inner_bindings expr_single_list)
+                | Array expr_list ->
+                    List.concat (List.map get_inner_bindings expr_list)
+                | Binop (f_expr, thisop, s_expr) ->
+                    let left_binds = get_inner_bindings f_expr
+                    and right_binds = get_inner_bindings s_expr
+                    in List.append left_binds right_binds
+                | Unop (thisnop, thisexpr) ->
+                    get_inner_bindings thisexpr
+                | Call (name, expr_list) ->
+                    if List.mem name param_list then []
+                    else
+                        let name_bind = ref_search_id name
+                        in  begin
+                        match name_bind with
+                        | None -> List.concat (List.map get_inner_bindings expr_list)
+                        | Some _ -> name :: (List.concat (List.map get_inner_bindings expr_list))
+                        end
+                | _ -> []
+            in
+            let inner_params_binds = get_inner_bindings epr
+            in
 
         (* TODO
         | ObjCall (cname, fname, expr_list) ->
@@ -400,7 +443,6 @@ and infer_func_by_name fname type_list =
                     tfdecl
                 end
         | Some x -> x
-
 
 
 (* perform static type checking and inferrence*)
