@@ -7,6 +7,15 @@ let rec cat_string_list_with_space sl =
     | [] -> ""
     | hd::tl -> hd ^ " " ^ (cat_string_list_with_space tl)
 
+(* take a string list and concatenate them with interleaving comma into a single string *)
+let rec cat_string_list_with_comma sl =
+    match sl with
+    | [] -> ""
+    | hd::tl -> 
+        let tmp = hd ^ "," ^ (cat_string_list_with_space tl) in
+        let len = (String.length tmp) in
+        if len > 0 then (String.sub tmp 0 (len-1)) else tmp
+
 (* take a formal and generate the string *)
 let handle_fm formals =
     let fstr = 
@@ -27,12 +36,16 @@ let rec handle_texpr expr =
         else
             [
                 cat_string_list_with_space 
-                ([fn;"("]@(List.fold_left (fun ret ex -> ret@(handle_texpr ex)) [] texpr_list)@[")"])
+                ([fn;"("]@
+                [cat_string_list_with_comma (List.fold_left (fun ret ex -> ret@(handle_texpr ex)) [] texpr_list)]@
+                [")"])
             ]
     | TString(str) -> ["\"" ^ str ^ "\""]
     | TId(str, _) -> [str]
     | TLiteral(value) -> [string_of_int value]
     | TAssign((str, expr), ty) -> [(type_to_string ty) ^ " " ^ str ^ " = "] @ handle_texpr expr
+    | TBinop((texpr1, op, texpr2), _) -> 
+        ["("] @ (handle_texpr texpr1) @ [op_to_string op] @ (handle_texpr texpr2) @ [")"]
     | _ -> [] (* TODO *)
 
 (* take one tstmt and return a string list *)
@@ -75,23 +88,6 @@ let find_hash ht key =
     with
     | Not_found -> None
 
-(*
-type texpr =
-  | TCall of (string * texpr list) * typ
-  | TObjCall of (string * string * texpr list) * typ(*invoke a method of an object*)
-  | TFunc of (string list * texpr) * typ (*lambda expr*)
-  | TAssign of (string * texpr) * typ
-  | TListComprehen of (texpr * string * texpr) * typ (*can iterate a tuple?*)
-  (*below are network specified exprs*)
-  | TExec of string * typ
-  | TDispatch of (string * texpr list * string * string) * typ
-  | TRegister of (string * string * texpr list) * typ
-  | TChan of texpr * typ
-  | TChanunop of string * typ
-  | TChanbinop of (string * string) * typ
-  | TFly of (string * texpr list) * typ
-  | TFlyo of (string * string * texpr list) * typ
-*)
 (* take a texp and return function key list *)
 let rec texp_helper texp_ =
     match texp_ with
@@ -108,6 +104,30 @@ let rec texp_helper texp_ =
             (List.fold_left (fun str item -> str ^ "@" ^ item) "" (List.map type_to_string expr_types_list)) in
             [hash_key] @ (List.fold_left (fun ret exp_ -> ret @ (texp_helper exp_)) [] texprlist)
         )
+    (* TObjCall of (string * string * texpr list) * typ TODO*)
+    | TObjCall (_) -> []
+    (* TFunc of (string list * texpr) * typ *) (* lambda TODO*)
+    | TFunc (_) -> []
+    (* TAssign of (string * texpr) * typ *)
+    | TAssign ((_, e_), _) -> texp_helper e_
+    (* TListComprehen of (texpr * string * texpr) * typ (*can iterate a tuple?*) TODO*)
+    | TListComprehen (_) -> []
+    (* TExec of string * typ TODO*)
+    | TExec (_) -> []
+    (* TDispatch of (string * texpr list * string * string) * typ TODO *)
+    | TDispatch (_) -> []
+    (* TRegister of (string * string * texpr list) * typ TODO *)
+    | TRegister (_) -> []
+    (* TChan of texpr * typ TODO *)
+    | TChan (_) -> []
+    (* TChanunop of string * typ TODO *)
+    | TChanunop (_) -> []
+    (* TChanbinop of (string * string) * typ TODO *)
+    | TChanbinop (_) -> []
+    (* TFly of (string * texpr list) * typ TODO *)
+    | TFly (_) -> []
+    (* | TFlyo of (string * string * texpr list) * typ TODO *)
+    | TFlyo (_) -> []
     | _ -> []
 
 (* take a tstmt and return function key list *)
