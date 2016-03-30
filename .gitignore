@@ -7,3 +7,5 @@ scanner.cmi
 scanner.cmo
 scanner.ml
 fly
+tmp.cc
+a.out

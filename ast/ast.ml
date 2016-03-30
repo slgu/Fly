@@ -18,6 +18,23 @@ type typ =
     | Lfunc of string * typ list (*lambda function along with some type clojure*)
     (*for built-in defned type*)
 
+let op_to_string = function
+    | Add -> "+"
+    | Sub -> "-"
+    | Mult -> "*"
+    | Div -> "/"
+    | Equal -> "=="
+    | Neq -> "!="
+    | Less -> "<"
+    | Leq -> "<="
+    | Greater -> ">"
+    | Geq -> ">="
+    | And -> "&&"
+    | Or -> "||"
+    | RArrow -> "->"
+    | LArrow -> "<-"
+    | SAdd -> "+"
+
 (* type to string function used for hash
     _ to concat type
     @ to concat different type
