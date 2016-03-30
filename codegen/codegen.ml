@@ -27,31 +27,54 @@ let handle_fm formals =
 (* take one expr and return a string list *)
 let rec handle_texpr expr =
     match expr with
+    | TLiteral(value) -> [string_of_int value]
+    | TBoolLit(value) -> if value then ["true"] else ["false"]
+    | TFloat(value) -> [string_of_float value]
+    | TId(str, _) -> [str]
+    | TSet(_) -> [] (* TODO *)
+    | TMap(_) -> [] (* TODO *)
+    | TArray(_) -> [] (* TODO *)
+    | TString(str) -> ["\"" ^ str ^ "\""]
+    | TBinop((texpr1, op, texpr2), _) -> 
+        ["("] @ (handle_texpr texpr1) @ [op_to_string op] @ (handle_texpr texpr2) @ [")"]
+    | TUnop(_) -> [] (* TODO *)
     | TCall ((fn, texpr_list), _) -> 
-        if fn = "print" then (* built-in function *)
+        (
+        match fn with
+        | "print" ->
             [
                 cat_string_list_with_space 
                 (["cout"]@(List.fold_left (fun ret ex -> ret@["<<"]@(handle_texpr ex)) [] texpr_list)@["<<endl"])
             ]
-        else
+        (* above are built-in functions *)
+        | _ -> 
             [
                 cat_string_list_with_space 
                 ([fn;"("]@
                 [cat_string_list_with_comma (List.fold_left (fun ret ex -> ret@(handle_texpr ex)) [] texpr_list)]@
                 [")"])
             ]
-    | TString(str) -> ["\"" ^ str ^ "\""]
-    | TId(str, _) -> [str]
-    | TLiteral(value) -> [string_of_int value]
+        )
+    | TObjCall(_) -> [] (* TODO *)
+    | TFunc(_) -> [] (* TODO *)
     | TAssign((str, expr), ty) -> [(type_to_string ty) ^ " " ^ str ^ " = "] @ handle_texpr expr
-    | TBinop((texpr1, op, texpr2), _) -> 
-        ["("] @ (handle_texpr texpr1) @ [op_to_string op] @ (handle_texpr texpr2) @ [")"]
-    | _ -> [] (* TODO *)
+    | TListComprehen(_) -> [] (* TODO *)
+    | TExec(_) -> [] (* TODO *)
+    | TDispatch(_) -> [] (* TODO *)
+    | TRegister(_) -> [] (* TODO *)
+    | TChan(_) -> [] (* TODO *)
+    | TChanbinop(_) -> [] (* TODO *)
+    | TChanunop(_) -> [] (* TODO *)
+    | TFly(_) -> [] (* TODO *)
+    | TFlyo(_) -> [] (* TODO *)
 
 (* take one tstmt and return a string list *)
-let handle_tstmt tstmt_ =
+let rec handle_tstmt tstmt_ =
     match tstmt_ with
-    | TBlock(_) -> [] (* TODO *)
+    | TBlock(tstmtlist) -> 
+        ["{"] @ 
+        (List.fold_left (fun ret tstmt_ -> ret @ (handle_tstmt tstmt_)) [] tstmtlist)
+        @ ["}"]
     | TExpr(expr) -> [cat_string_list_with_space ((handle_texpr expr) @ [";"])]
     | TReturn(expr) -> [cat_string_list_with_space (["return"] @ (handle_texpr expr) @ [";"])]
     | TIf(_) -> [] (* TODO *)
@@ -97,7 +120,7 @@ let rec texp_helper texp_ =
         (
         match fn with
         | "print" -> []
-        (* built-in function *)
+        (* above are built-in functions *)
         | _ ->
             let expr_types_list = List.map get_expr_type_info texprlist in
             let hash_key = fn ^ 
