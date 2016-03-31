@@ -33,15 +33,19 @@ let infer_check (ast : program) = (* build the hash *)
                 Int
             )
         );
-        TExpr (
-            TCall(
-                ("print",[TId("b",String)]), Void
-            )
-        );
-        TExpr (
-            TCall(
-                ("print",[TId("ret",String)]), Void
-            )
+        TBlock (
+            [
+                TExpr (
+                    TCall(
+                        ("print",[TId("b",String)]), Void
+                    )
+                );
+                TExpr (
+                    TCall(
+                        ("print",[TId("ret",String)]), Void
+                    )
+                )
+            ]
         );
         TReturn(
             TId("ret",Int)
