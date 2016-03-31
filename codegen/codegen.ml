@@ -34,7 +34,7 @@ let rec handle_texpr expr =
     | TSet(_) -> [] (* TODO *)
     | TMap(_) -> [] (* TODO *)
     | TArray(_) -> [] (* TODO *)
-    | TString(str) -> ["\"" ^ str ^ "\""]
+    | TString(str) -> [str]
     | TBinop((texpr1, op, texpr2), _) ->
         ["("] @ (handle_texpr texpr1) @ [op_to_string op] @ (handle_texpr texpr2) @ [")"]
     | TUnop(_) -> [] (* TODO *)
