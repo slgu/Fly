@@ -4,7 +4,6 @@ open Sast
 open Util
 let (func_binds : (string, func_decl) Hashtbl.t) = Hashtbl.create 16
 let (class_binds : (string, class_decl) Hashtbl.t) = Hashtbl.create 16
-
 (*typed function bindings*)
 let (t_func_binds: (string, t_func_decl) Hashtbl.t) = Hashtbl.create 16
 (*typed lambda bindings*)
@@ -99,6 +98,8 @@ let bind_name (ast : program) = match ast with
                     Hashtbl.add class_binds name cdecl;
                     ) cdecl_list;
         end
+
+
 
 
 (* create a new env*)
@@ -482,5 +483,6 @@ let infer_check (ast : program) =
     bind_name ast; (*first bind name*)
     (*just infer the main function and recur infer all involved functions *)
     let _ =  infer_func_by_name "main" []
-    in debug_t_func_binds()
+    in debug_t_func_binds();
+    t_func_binds
     (* search main function and do a static type infer*)
