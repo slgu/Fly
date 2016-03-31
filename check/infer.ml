@@ -162,7 +162,21 @@ let built_in_str_type =
     [("int", Int);("bool", Bool);("string", String);
      ("float", Float)]
 
+(*check no null*)
+(* we don't permit type null to be get evaluated*)
+(*T/F*)
+let is_null = function
+    | Undef -> false
+    | _ -> true
 
+
+(*function from a string to type*)
+let string_to_type s = match s with
+    | "Int" -> Int
+    | "Bool" -> Bool
+    | "String" -> String
+    | "Float" -> Float
+    | _ -> failwith("this type not support")
 (* infer the function result given input params*)
 (*let rec infer fdecl env *)
 (* return a t_func_decl*)
@@ -187,6 +201,7 @@ let rec infer_func fdecl hash_key type_list level_env =
     let rec infer_expr epr = match epr with
         | Literal x -> TLiteral x
         | BoolLit x -> TBoolLit x
+        | Null x -> TNull (string_to_type x)
         | Id (a) -> TId (a, search_id (!level_env) a)
         | Float x -> TFloat x
         | Set (expr_list) ->

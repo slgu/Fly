@@ -3,6 +3,7 @@ type texpr =
     TLiteral of int
   | TBoolLit of bool
   | TFloat of float
+  | TNull of typ
   | TId of string * typ(* id token *)
   | TSet of texpr list * typ
   | TMap of (texpr * texpr) list * typ
@@ -29,6 +30,7 @@ let get_expr_type_info tepr = match tepr with
     | TLiteral _ -> Int
     | TBoolLit _ -> Bool
     | TFloat _ -> Float
+    | TNull x -> x (*nullpointer now*)
     | TString _ -> String
     | TId (_, x)  -> x
     | TSet (_, x) -> x
