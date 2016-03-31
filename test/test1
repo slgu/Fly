@@ -1,5 +1,7 @@
 func coolfunc(b, v) {
     ret = (2 + 3) * v;
+    print(ret);
+    print(v);
     return ret;
 }
 

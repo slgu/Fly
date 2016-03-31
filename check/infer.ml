@@ -99,8 +99,16 @@ let bind_name (ast : program) = match ast with
                     ) cdecl_list;
         end
 
-
-
+(*just add to function bind for semantic check not codegen*)
+let add_build_in_func () =
+    let print_func = {fname="print";formals=["a"];body=[]}
+    in let build_in_funcs = [print_func]
+    in List.iter (
+        fun item -> begin
+            match item with
+            | {fname=name;_} -> Hashtbl.add func_binds name item
+        end
+        ) build_in_funcs
 
 (* create a new env*)
 let get_new_env() =
@@ -480,7 +488,8 @@ and infer_func_by_name fname type_list =
 
 (* perform static type checking and inferrence*)
 let infer_check (ast : program) =
-    bind_name ast; (*first bind name*)
+    add_build_in_func(); (*first add some build in func name*)
+    bind_name ast; (*second bind name*)
     (*just infer the main function and recur infer all involved functions *)
     let _ =  infer_func_by_name "main" []
     in debug_t_func_binds();

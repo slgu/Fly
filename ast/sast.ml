@@ -90,7 +90,7 @@ let check_bool this_type =
 
 (*from a stmts list get a return stmt and get the return type*)
 let rec get_rtype stmt_list = match stmt_list with
-    | [] -> failwith ("get_rtype error")
+    | [] -> Void (*no return stmts just return void*)
     | (TReturn x::y) -> get_expr_type_info x
     | (x :: y) -> get_rtype y
 
