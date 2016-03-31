@@ -18,6 +18,7 @@ open Ast
 %token <float> FLOAT
 %token EOF
 
+%right ASSIGN
 %left OR
 %left AND
 %left EQ NEQ
@@ -25,7 +26,6 @@ open Ast
 %left PLUS MINUS
 %left TIMES DIVIDE
 %right NOT NEG
-%right ASSIGN
 %nonassoc UMINUS
 %nonassoc NOELSE
 %nonassoc ELSE       /* highest precedence */
