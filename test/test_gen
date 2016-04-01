@@ -9,10 +9,21 @@ func coolfunc(b, v) {
     } else {
         print("no greater than 20");
     };
-    
+
+    for (i = 1; i < 10; i = i+1) {
+        print(i);
+    };
+
+    j = 2;
+    while (j < 5) {
+        print(j);
+        j = j+1;
+    };
+   
     print(ret);
     print(v);
     print(b);
+
     return ret;
 }
 

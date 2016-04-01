@@ -79,13 +79,16 @@ let rec handle_tstmt tstmt_ =
     | TExpr(expr) -> [cat_string_list_with_space ((handle_texpr expr) @ [";"])]
     | TReturn(expr) -> [cat_string_list_with_space (["return"] @ (handle_texpr expr) @ [";"])]
     | TIf(texp_, tstmtl1, tstmtl2) -> 
-        ["if ("] @ [cat_string_list_with_space (handle_texpr texp_)] @ [")"] @
+        [cat_string_list_with_space (["if ("] @ (handle_texpr texp_) @ [")"])] @
         ["{"] @ ((List.fold_left (fun ret tstmt_ -> ret @ (handle_tstmt tstmt_)) [] tstmtl1)) @ ["}"] @
         ["else"] @
         ["{"] @ ((List.fold_left (fun ret tstmt_ -> ret @ (handle_tstmt tstmt_)) [] tstmtl2)) @ ["};"] 
-    | TFor(_) -> [] (* TODO *)
+    | TFor(exp1, exp2, exp3, tstmtlist) ->
+        [cat_string_list_with_space (["for ("] @ (handle_texpr exp1) @ [";"] @ (handle_texpr exp2) @ [";"] @ (handle_texpr exp3) @ [")"])]
     | TForeach(_) -> [] (* TODO *)
-    | TWhile(_) -> [] (* TODO *)
+    | TWhile(expr_, tstmtlist) ->
+        [cat_string_list_with_space (["while ("] @ (handle_texpr expr_))] @ 
+        (List.fold_left (fun ret tstmt_ -> ret @ (handle_tstmt tstmt_)) [] tstmtlist)
 
 (* take tstmt list and return string list *)
 let handle_body body =
