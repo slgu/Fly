@@ -79,13 +79,16 @@ let rec handle_tstmt tstmt_ =
     | TExpr(expr) -> [cat_string_list_with_space ((handle_texpr expr) @ [";"])]
     | TReturn(expr) -> [cat_string_list_with_space (["return"] @ (handle_texpr expr) @ [";"])]
     | TIf(texp_, tstmtl1, tstmtl2) -> 
-        ["if ("] @ [cat_string_list_with_space (handle_texpr texp_)] @ [")"] @
+        [cat_string_list_with_space (["if ("] @ (handle_texpr texp_) @ [")"])] @
         ["{"] @ ((List.fold_left (fun ret tstmt_ -> ret @ (handle_tstmt tstmt_)) [] tstmtl1)) @ ["}"] @
         ["else"] @
         ["{"] @ ((List.fold_left (fun ret tstmt_ -> ret @ (handle_tstmt tstmt_)) [] tstmtl2)) @ ["};"] 
-    | TFor(_) -> [] (* TODO *)
+    | TFor(exp1, exp2, exp3, tstmtlist) ->
+        [cat_string_list_with_space (["for ("] @ (handle_texpr exp1) @ [";"] @ (handle_texpr exp2) @ [";"] @ (handle_texpr exp3) @ [")"])]
     | TForeach(_) -> [] (* TODO *)
-    | TWhile(_) -> [] (* TODO *)
+    | TWhile(expr_, tstmtlist) ->
+        [cat_string_list_with_space (["while ("] @ (handle_texpr expr_))] @ 
+        (List.fold_left (fun ret tstmt_ -> ret @ (handle_tstmt tstmt_)) [] tstmtlist)
 
 (* take tstmt list and return string list *)
 let handle_body body =
@@ -132,6 +135,7 @@ let rec texp_helper texp_ =
             (List.fold_left (fun str item -> str ^ "@" ^ item) "" (List.map type_to_string expr_types_list)) in
             [hash_key] @ (List.fold_left (fun ret exp_ -> ret @ (texp_helper exp_)) [] texprlist)
         )
+    | TFly ((fn, texpl), t) -> texp_helper (TCall((fn, texpl), t))
     (* TObjCall of (string * string * texpr list) * typ TODO*)
     | TObjCall (_) -> []
     (* TFunc of (string list * texpr) * typ *) (* lambda TODO*)
@@ -152,8 +156,6 @@ let rec texp_helper texp_ =
     | TChanunop (_) -> []
     (* TChanbinop of (string * string) * typ TODO *)
     | TChanbinop (_) -> []
-    (* TFly of (string * texpr list) * typ TODO *)
-    | TFly (_) -> []
     (* | TFlyo of (string * string * texpr list) * typ TODO *)
     | TFlyo (_) -> []
     | _ -> []
@@ -191,7 +193,7 @@ let rec dfs ht fkey =
                 match fd with
                 | {tbody=body; _} ->
                     let fklist = List.fold_left (fun ret tstmt_ -> ret @ (tstmt_helper tstmt_)) [] body in
-                    [fd] @ (List.fold_left (fun ret key_ -> dfs ht key_) [] fklist)
+                    [fd] @ (List.fold_left (fun ret key_ -> ret @ (dfs ht key_)) [] fklist)
                 )
         )
     | _ -> []
