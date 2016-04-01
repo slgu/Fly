@@ -92,6 +92,7 @@ stmt:
     | RETURN expr {Return($2)}
     /*for test without else*/
     | IF LPAREN expr RPAREN LBRACE stmt_list RBRACE {If ($3, $6, [])}
+    | IF LPAREN expr RPAREN LBRACE stmt_list RBRACE ELSE LBRACE stmt_list RBRACE {If ($3, $6, $10)}
     | FOR LPAREN expr SEMI expr SEMI expr RPAREN LBRACE stmt_list RBRACE
        { For($3, $5, $7, $10) }
     | WHILE LPAREN expr RPAREN LBRACE stmt_list RBRACE { While($3, $6) }
