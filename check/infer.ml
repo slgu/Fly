@@ -527,7 +527,9 @@ let infer_check (ast : program) =
     (*just infer the main function and recur infer all involved functions *)
     let main_fdecl =  infer_func_by_name "main" []
     in
+    (*
     print_endline (debug_t_fdecl main_fdecl);
     debug_t_func_binds();
+    *)
     t_func_binds
     (* search main function and do a static type infer*)

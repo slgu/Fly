@@ -11,6 +11,20 @@ all:
 	ocamlc -I $(ast_dir) -c $(parser_dir)/parser.mli
 	ocamlc -I $(parser_dir) -c $(parser_dir)/scanner.ml
 	ocamlc -I $(ast_dir) -I $(parser_dir) -c $(parser_dir)/parser.ml
+	ocamlc -c $(check_dir)/util.ml
+	ocamlc -I $(ast_dir) -c $(debug_dir)/debug.ml
+	ocamlc -I $(debug_dir) -I $(ast_dir) -I $(check_dir) -c $(check_dir)/infer.ml
+	ocamlc -I $(ast_dir) -c $(gen_dir)/codegen.ml
+	ocamlc -I $(parser_dir) -I $(check_dir) -I $(gen_dir) -c fly_testgen.ml
+	ocamlc -o fly $(parser_dir)/scanner.cmo $(parser_dir)/parser.cmo $(ast_dir)/ast.cmo $(ast_dir)/sast.cmo $(debug_dir)/debug.cmo $(check_dir)/util.cmo $(check_dir)/infer.cmo $(gen_dir)/codegen.cmo fly_testgen.cmo
+sast:
+	ocamllex $(parser_dir)/scanner.mll
+	ocamlyacc -v $(parser_dir)/parser.mly
+	ocamlc -c $(ast_dir)/ast.ml
+	ocamlc -I $(ast_dir) -c $(ast_dir)/sast.ml
+	ocamlc -I $(ast_dir) -c $(parser_dir)/parser.mli
+	ocamlc -I $(parser_dir) -c $(parser_dir)/scanner.ml
+	ocamlc -I $(ast_dir) -I $(parser_dir) -c $(parser_dir)/parser.ml
 	ocamlc -I $(ast_dir) -c $(debug_dir)/debug.ml
 	ocamlc -c $(check_dir)/util.ml
 	ocamlc -I $(debug_dir) -I $(ast_dir) -I $(check_dir) -c $(check_dir)/infer.ml
