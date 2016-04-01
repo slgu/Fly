@@ -84,7 +84,10 @@ let rec handle_tstmt tstmt_ =
         ["else"] @
         ["{"] @ ((List.fold_left (fun ret tstmt_ -> ret @ (handle_tstmt tstmt_)) [] tstmtl2)) @ ["};"] 
     | TFor(exp1, exp2, exp3, tstmtlist) ->
-        [cat_string_list_with_space (["for ("] @ (handle_texpr exp1) @ [";"] @ (handle_texpr exp2) @ [";"] @ (handle_texpr exp3) @ [")"])]
+        [cat_string_list_with_space (["for ("] @ (handle_texpr exp1) @ [";"] @ (handle_texpr exp2) @ [";"] @ (handle_texpr exp3) @ [")"])] @ 
+        ["{"] @
+        (List.fold_left (fun ret tstmt_ -> ret @ (handle_tstmt tstmt_)) [] tstmtlist) @
+        ["}"]
     | TForeach(_) -> [] (* TODO *)
     | TWhile(expr_, tstmtlist) ->
         [cat_string_list_with_space (["while ("] @ (handle_texpr expr_))] @ 
