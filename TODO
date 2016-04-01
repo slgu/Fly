@@ -1,16 +1,13 @@
 3. network code generated needed (to be done) MOST IMPORTANT TO design!!!
-4. Null ptr (to be done) (easy implementation)
 5. recursive (to be done) Second important to design !!!
 7. global variable added (to be done) (maybe easy)
 8. set map list comprehen (to be done) (Third important)
-9. class design
+9. class design (Second important)
 
 cp1.We are implicit typing like C++ template.
-Unlike ocaml type variable
-
+    Unlike ocaml type variable
 cp2.when set None variable, we need class modification
     like A::null.
     (Rule: type needs to be decided when first access to it*)
-
 cp3.
     (Small optimization)

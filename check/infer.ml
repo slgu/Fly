@@ -2,6 +2,7 @@
 open Ast
 open Sast
 open Util
+open Debug
 let (func_binds : (string, func_decl) Hashtbl.t) = Hashtbl.create 16
 let (class_binds : (string, class_decl) Hashtbl.t) = Hashtbl.create 16
 (*typed function bindings*)
@@ -491,7 +492,9 @@ let infer_check (ast : program) =
     add_build_in_func(); (*first add some build in func name*)
     bind_name ast; (*second bind name*)
     (*just infer the main function and recur infer all involved functions *)
-    let _ =  infer_func_by_name "main" []
-    in debug_t_func_binds();
+    let main_fdecl =  infer_func_by_name "main" []
+    in
+    print_endline (debug_t_fdecl main_fdecl);
+    debug_t_func_binds();
     t_func_binds
     (* search main function and do a static type infer*)
