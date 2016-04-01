@@ -1,0 +1,13 @@
+func gen() {
+    return 1;
+}
+
+func recv(x) {
+    print(x);
+}
+
+func main() {
+    s = fly gen();
+    register s recv();
+    return 0;
+}
