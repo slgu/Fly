@@ -67,6 +67,7 @@ let rec handle_texpr expr =
     | TChanunop(_) -> [] (* TODO *)
     | TFly(_) -> [] (* TODO *)
     | TFlyo(_) -> [] (* TODO *)
+    | TNull(_) -> [] (* TODO *)
 
 (* take one tstmt and return a string list *)
 let rec handle_tstmt tstmt_ =
@@ -77,7 +78,11 @@ let rec handle_tstmt tstmt_ =
         @ ["}"]
     | TExpr(expr) -> [cat_string_list_with_space ((handle_texpr expr) @ [";"])]
     | TReturn(expr) -> [cat_string_list_with_space (["return"] @ (handle_texpr expr) @ [";"])]
-    | TIf(_) -> [] (* TODO *)
+    | TIf(texp_, tstmtl1, tstmtl2) -> 
+        ["if ("] @ [cat_string_list_with_space (handle_texpr texp_)] @ [")"] @
+        ["{"] @ ((List.fold_left (fun ret tstmt_ -> ret @ (handle_tstmt tstmt_)) [] tstmtl1)) @ ["}"] @
+        ["else"] @
+        ["{"] @ ((List.fold_left (fun ret tstmt_ -> ret @ (handle_tstmt tstmt_)) [] tstmtl2)) @ ["};"] 
     | TFor(_) -> [] (* TODO *)
     | TForeach(_) -> [] (* TODO *)
     | TWhile(_) -> [] (* TODO *)

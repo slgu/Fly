@@ -1,0 +1,22 @@
+func coolfunc(b, v) {
+    ret = (2 + 3) * v;
+    if (ret > 10) {
+        print("greater than 10");
+    };
+
+    if (ret > 20) {
+        print("geater than 20");
+    } else {
+        print("no greater than 20");
+    };
+    
+    print(ret);
+    print(v);
+    print(b);
+    return ret;
+}
+
+func main() {
+    coolfunc("Hello world", 4);
+    return 0;
+}
