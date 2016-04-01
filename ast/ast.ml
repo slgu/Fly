@@ -11,7 +11,7 @@ type typ =
     | Map of typ * typ (*map*)
     | Class of string (* a class variable *)
     | Chan of typ (* a chan that contains which type *)
-    | Signal
+    | Signal of typ (*signal is like a future obj with typ*)
     | Undef (*which means this is a nulptr*)
     | Func of string * typ list (* function name along with
         some type clojure*)
@@ -50,7 +50,7 @@ let rec type_to_string = function
     | Map (x, y) -> "map_" ^ (type_to_string x) ^ "_" ^ (type_to_string y)
     | Class x -> x
     | Chan x -> "chan_" ^ (type_to_string x)
-    | Signal -> "signal"
+    | Signal x -> "signal:" ^ (type_to_string x)
     | Undef -> "undef"
     | Func (x, type_list) -> "func_" ^ x ^ (List.fold_left
             (fun str item -> str ^ "_" ^ item) "" (List.map type_to_string type_list))

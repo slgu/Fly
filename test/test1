@@ -7,6 +7,11 @@ func coolfunc(b, v) {
 }
 
 func main() {
-    coolfunc("hello world", 4);
+    s = (fly coolfunc("hello world", 4));
+    b = 1;
+    {
+        b = 4;
+    };
+    a = b;
     return 0;
 }
