@@ -75,12 +75,12 @@ let rec debug_texpr = function
 	| TMap (a, this_type) -> "map: " ^ (List.fold_left (fun res (item1, item2) -> res ^ ",k:" ^(debug_texpr item1)^ "_v:" ^(debug_texpr item2)) "" a) ^ "_withtype_" ^ type_to_string this_type
 	| TArray(a, this_type) -> "array: " ^ (List.fold_left (fun res item -> res ^ "," ^ debug_texpr item) "" a) ^ "_withtype_" ^ type_to_string this_type
 	| TString a -> "string:" ^ a
-    |TBinop (binop, this_type) -> (fun (a, op, b) -> "binop: " ^ (string_of_op op) ^ "_left:" ^ (debug_texpr a) ^ "_right:" ^ (debug_texpr b)) binop ^ "_withtype_" ^ type_to_string this_type
-    |TUnop (unop, this_type) -> (fun (uop, a) -> "unop: " ^ (string_of_uop uop) ^ "_expr: " ^ (debug_texpr a)) unop ^ "_withtype_" ^ type_to_string this_type
-    | TCall(a, this_type) -> (fun (id, texprs) -> "call: " ^ id ^ "_" ^ (List.fold_left (fun res item -> res ^ "," ^ (debug_texpr item)) "" texprs) ) a ^ "_withtype_" ^ type_to_string this_type
-    | TObjCall (a, this_type) -> (fun (id1, id2, texprs) -> "call by: " ^ id1 ^ "." ^ id2 ^ (List.fold_left (fun res item -> res ^ "," ^ (debug_texpr item)) "" texprs) ) a ^ "_withtype_" ^ type_to_string this_type
+    | TBinop (binop, this_type) -> (fun (a, op, b) -> "binop: " ^ (string_of_op op) ^ ", left operand: " ^ (debug_texpr a) ^ ", right operand: " ^ (debug_texpr b)) binop ^ ", _withtype_" ^ type_to_string this_type
+    | TUnop (unop, this_type) -> (fun (uop, a) -> "unop: " ^ (string_of_uop uop) ^ ", expr: " ^ (debug_texpr a)) unop ^ "_withtype_" ^ type_to_string this_type
+    | TCall(a, this_type) -> (fun (id, texprs) -> "call_" ^ id ^ ": " ^ (List.fold_left (fun res item -> res ^ (debug_texpr item) ^ ", ") "" texprs) ) a ^ "_withtype_" ^ type_to_string this_type
+    | TObjCall (a, this_type) -> (fun (id1, id2, texprs) -> "call by: " ^ id1 ^ "." ^ id2 ^ (List.fold_left (fun res item -> res ^ "," ^ (debug_texpr item)) "" texprs) ) a ^ ", withtype_" ^ type_to_string this_type
     | TFunc (args, this_type) -> (fun (a, b) -> "lambda:" ^ (List.fold_left (fun res item -> res ^ "," ^ item) "" a) ^ "lambda expr:" ^ (debug_texpr b) ) args ^ "_withtype_" ^ type_to_string this_type
-    | TAssign (args, this_type) -> (fun (a, b) -> "assign: " ^ a ^ " by:" ^ (debug_texpr b) ) args ^ "_withtype_" ^ type_to_string this_type
+    | TAssign (args, this_type) -> (fun (a, b) -> "assign " ^ a ^ " by " ^ (debug_texpr b) ) args ^ "_withtype_" ^ type_to_string this_type
     | TListComprehen(args, this_type) -> (fun (a, b, c) -> "list comprehension: " ^ (debug_texpr a) ^ b ^ (debug_texpr c) ) args ^ "_withtype_" ^ type_to_string this_type
     | TExec (a, this_type) -> "exec: " ^ a ^ "_withtype_" ^ type_to_string this_type
     | TDispatch (args, this_type) -> (fun (a, exprs, b, c) -> "dispatch: " ^ a ^ (List.fold_left (fun str item -> str ^ "," ^ (debug_texpr item)) "" exprs) ) args ^ "_withtype_" ^ type_to_string this_type
@@ -94,26 +94,28 @@ let rec debug_texpr = function
 
 (*debug for typed stmts*)
 let rec debug_tstmt = function
-       TBlock tstmts -> "typed block:" ^ ( List.fold_left (fun acc item -> acc ^ "," ^ item) "" (List.map debug_tstmt tstmts) )
-    |  TExpr a -> "typed expr:" ^ (debug_texpr a)
-    |  TReturn a -> "typed return:" ^ (debug_texpr a)
-    |  TIf (a, tstmts1, tstmts2) -> "typed if:" ^ (debug_texpr a) ^ " " ^ (List.fold_left (fun acc item -> acc ^ "," ^ (debug_tstmt item)) "" tstmts1) ^ " " ^ (List.fold_left (fun acc item -> acc ^ "," ^ (debug_tstmt item)) "" tstmts2)
-    |  TFor (a, b, c, tstmts) -> "typed for:" ^ (debug_texpr a) ^ " " ^ (debug_texpr b) ^ " " ^ (debug_texpr c) ^ " " ^ ( List.fold_left (fun acc item -> acc ^ "," ^ item) "" (List.map debug_tstmt tstmts) )
-    |  TForeach (a, texpr, tstmts) -> "typed for each:" ^ a ^ " " ^ (debug_texpr texpr) ^ " " ^ ( List.fold_left (fun acc item -> acc ^ "," ^ item) "" (List.map debug_tstmt tstmts) )
-    |  TWhile (texpr, tstmts) -> "typed while:" ^ (debug_texpr texpr) ^ " " ^ ( List.fold_left (fun acc item -> acc ^ "," ^ item) "" (List.map debug_tstmt tstmts) )
+       TBlock tstmts -> "block: " ^ ( List.fold_left (fun acc item -> acc ^ "," ^ item) "" (List.map debug_tstmt tstmts) )
+    |  TExpr a -> "expr: " ^ (debug_texpr a)
+    |  TReturn a -> "return: " ^ (debug_texpr a)
+    |  TIf (a, tstmts1, tstmts2) -> "if: " ^ (debug_texpr a) ^ " " ^ (List.fold_left (fun acc item -> acc ^ "," ^ (debug_tstmt item)) "" tstmts1) ^ " " ^ (List.fold_left (fun acc item -> acc ^ "," ^ (debug_tstmt item)) "" tstmts2)
+    |  TFor (a, b, c, tstmts) -> "for: " ^ (debug_texpr a) ^ " " ^ (debug_texpr b) ^ " " ^ (debug_texpr c) ^ " " ^ ( List.fold_left (fun acc item -> acc ^ "," ^ item) "" (List.map debug_tstmt tstmts) )
+    |  TForeach (a, texpr, tstmts) -> "for each: " ^ a ^ " " ^ (debug_texpr texpr) ^ " " ^ ( List.fold_left (fun acc item -> acc ^ "," ^ item) "" (List.map debug_tstmt tstmts) )
+    |  TWhile (texpr, tstmts) -> "while: " ^ (debug_texpr texpr) ^ " " ^ ( List.fold_left (fun acc item -> acc ^ "," ^ item) "" (List.map debug_tstmt tstmts) )
 
 (*debug for a typed function call*)
 let debug_t_fdecl (tfdecl: t_func_decl) = match tfdecl with
     | {ttkey=key; tfname=name; tformals=param_list; tbody=tstmts; tret=return} ->
-        "key:" ^ key ^ ", " ^ "function name:" ^ name ^ "\n"
-        ^ "params:\n" ^ ( List.fold_left (fun acc (str, typ) -> acc ^ "str:" ^ str ^ "_type:" ^ (type_to_string typ) ^ "\n" ) "" param_list )
-        ^"body:\n" ^ (List.fold_left (fun acc item -> acc ^ ",\n" ^ (debug_tstmt item)) "" tstmts)
-        ^ "return type:" ^ (type_to_string return)
+        "KEY: " ^ key ^ "\n" 
+        ^ "FUNCTION NAME: " ^ name ^ "\n"
+        ^ "PARAMS:\n" ^ ( List.fold_left (fun acc (str, typ) -> acc ^ "str:" ^ str ^ "_type:" ^ (type_to_string typ) ^ "\n" ) "" param_list )
+        ^"BODY:\n" ^ (List.fold_left (fun acc item -> acc ^ (debug_tstmt item) ^ ",\n") "" tstmts)
+        ^ "RETURN TYPE: " ^ (type_to_string return)
 
 let debug_t_lambda_decl (tldecl: t_lambda_decl) = match tldecl with
     | {ltkey=key; ltfname=name; ltbinds=bind_list; ltformals=param_list; ltbody=tstmts; ltret=return} ->
-        "key:" ^ key ^ ", " ^ "function name:" ^ name ^ "\n"
-        ^ "binds:\n" ^ ( List.fold_left (fun acc (str, typ) -> acc ^ "str:" ^ str ^ "_type:" ^ (type_to_string typ) ^ "\n") "" bind_list )
-        ^ "params:\n" ^ ( List.fold_left (fun acc (str, typ) -> acc ^ "str:" ^ str ^ "_type:" ^ (type_to_string typ) ^ "\n") "" param_list )
-        ^ "body:\n" ^ (List.fold_left (fun acc item -> acc ^ ",\n" ^ (debug_tstmt item)) "" tstmts)
-        ^ "return type:" ^ (type_to_string return)
+        "KEY: " ^ key ^ "\n" 
+        ^ "FUNCTION NAME: " ^ name ^ "\n"
+        ^ "BINDS:\n" ^ ( List.fold_left (fun acc (str, typ) -> acc ^ "str:" ^ str ^ "_type:" ^ (type_to_string typ) ^ "\n") "" bind_list )
+        ^ "PARAMS:\n" ^ ( List.fold_left (fun acc (str, typ) -> acc ^ "str:" ^ str ^ "_type:" ^ (type_to_string typ) ^ "\n") "" param_list )
+        ^ "BODY:\n" ^ (List.fold_left (fun acc item -> acc ^ (debug_tstmt item) ^ ",\n") "" tstmts)
+        ^ "RETURN TYPE: " ^ (type_to_string return)

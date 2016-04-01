@@ -89,6 +89,7 @@ stmt_true_list:
 
 stmt:
     expr {Expr($1)}
+    | LBRACE stmt_list RBRACE {Block($2)}
     | RETURN expr {Return($2)}
     /*for test without else*/
     | IF LPAREN expr RPAREN LBRACE stmt_list RBRACE {If ($3, $6, [])}

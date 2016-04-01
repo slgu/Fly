@@ -412,6 +412,39 @@ let rec infer_func fdecl hash_key type_list level_env =
             (*replace with a clojure call*)
             and type_list = List.map (fun (name, thistype) -> thistype) inner_params_binds
             in TCall ((new_lambda_name, texpr_list), Func (new_lambda_name, type_list))
+        | Fly (name, expr_list) ->
+            let ftype = ref_search_id name
+            in
+                begin
+                match ftype with
+                | None -> failwith("unknow refer" ^ name)
+                | Some (Func (fname, arr)) -> (*with*)
+                    let texpr_list = List.map infer_expr expr_list
+                    in let expr_types = List.map get_expr_type_info texpr_list
+                    in let fdecl = find_func fname (* find the function*)
+                    in let binding_len = List.length arr
+                    in
+                        begin
+                        match fdecl with
+                        | {formals = param_list;_} -> (*set env*)
+                        let param_len = List.length param_list and true_len = List.length expr_types
+                        in if param_len = true_len + binding_len then (* actual a function call *)
+                            let rtype = get_func_result (infer_func_by_name fname (List.append arr expr_types))
+                            in TFly ((name, texpr_list), Signal rtype)
+                            else failwith ("fly with not a true function call ")
+                            (* a clojure which just a function bind less than true parameters*)
+                        end
+                | _ -> failwith  ("not a clojure or function obj when functioncall")
+                end
+        | Register (signal_name, name, expr_list) ->
+            (*check signal name is a signal*)
+            let signal_type = ref_search_id signal_name
+            in
+            begin
+            match signal_type with
+            | Some (Signal x) -> TLiteral 142857
+            | _ -> failwith ("no signal type can not c")
+            end
         (* TODO
         | ObjCall (cname, fname, expr_list) ->
         | Func (lname, rname, expr) ->
@@ -494,7 +527,9 @@ let infer_check (ast : program) =
     (*just infer the main function and recur infer all involved functions *)
     let main_fdecl =  infer_func_by_name "main" []
     in
+    (*
     print_endline (debug_t_fdecl main_fdecl);
     debug_t_func_binds();
+    *)
     t_func_binds
     (* search main function and do a static type infer*)
