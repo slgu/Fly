@@ -105,23 +105,15 @@ let rec debug_tstmt = function
 (*debug for a typed function call*)
 let debug_t_fdecl (tfdecl: t_func_decl) = match tfdecl with
     | {ttkey=key; tfname=name; tformals=param_list; tbody=tstmts; tret=return} ->
-        "key:" ^ key ^ ", " ^ "function name:" ^ name ^ "\n" 
+        "key:" ^ key ^ ", " ^ "function name:" ^ name ^ "\n"
         ^ "params:\n" ^ ( List.fold_left (fun acc (str, typ) -> acc ^ "str:" ^ str ^ "_type:" ^ (type_to_string typ) ^ "\n" ) "" param_list )
         ^"body:\n" ^ (List.fold_left (fun acc item -> acc ^ ",\n" ^ (debug_tstmt item)) "" tstmts)
         ^ "return type:" ^ (type_to_string return)
 
 let debug_t_lambda_decl (tldecl: t_lambda_decl) = match tldecl with
     | {ltkey=key; ltfname=name; ltbinds=bind_list; ltformals=param_list; ltbody=tstmts; ltret=return} ->
-<<<<<<< HEAD
-        "key:" ^ key ^ ", " ^ "function name:" ^ name ^ "\n" 
+        "key:" ^ key ^ ", " ^ "function name:" ^ name ^ "\n"
         ^ "binds:\n" ^ ( List.fold_left (fun acc (str, typ) -> acc ^ "str:" ^ str ^ "_type:" ^ (type_to_string typ) ^ "\n") "" bind_list )
         ^ "params:\n" ^ ( List.fold_left (fun acc (str, typ) -> acc ^ "str:" ^ str ^ "_type:" ^ (type_to_string typ) ^ "\n") "" param_list )
         ^ "body:\n" ^ (List.fold_left (fun acc item -> acc ^ ",\n" ^ (debug_tstmt item)) "" tstmts)
         ^ "return type:" ^ (type_to_string return)
-
-=======
-        "key:" ^ key ^ ", " ^ "function name:" ^ name ^ ", " ^ "binds: " ^ ( List.fold_left (fun acc (str, typ) -> acc ^ ",str:" ^ str ^ "_type:" ^ (type_to_string typ)) "" bind_list )
-        ^", " ^ "params:" ^ ( List.fold_left (fun acc (str, typ) -> acc ^ ",str:" ^ str ^ "_type:" ^ (type_to_string typ)) "" param_list )
-        ^", " ^ "body:" ^ (List.fold_left (fun acc item -> acc ^ "," ^ (debug_tstmt item)) "" tstmts)
-        ^", " ^ "return type:" ^ (type_to_string return)
->>>>>>> 6a256d9c15189882d28cf48413c18a06fc51da34
