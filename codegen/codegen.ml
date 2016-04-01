@@ -135,6 +135,7 @@ let rec texp_helper texp_ =
             (List.fold_left (fun str item -> str ^ "@" ^ item) "" (List.map type_to_string expr_types_list)) in
             [hash_key] @ (List.fold_left (fun ret exp_ -> ret @ (texp_helper exp_)) [] texprlist)
         )
+    | TFly ((fn, texpl), t) -> texp_helper (TCall((fn, texpl), t))
     (* TObjCall of (string * string * texpr list) * typ TODO*)
     | TObjCall (_) -> []
     (* TFunc of (string list * texpr) * typ *) (* lambda TODO*)
@@ -155,8 +156,6 @@ let rec texp_helper texp_ =
     | TChanunop (_) -> []
     (* TChanbinop of (string * string) * typ TODO *)
     | TChanbinop (_) -> []
-    (* TFly of (string * texpr list) * typ TODO *)
-    | TFly (_) -> []
     (* | TFlyo of (string * string * texpr list) * typ TODO *)
     | TFlyo (_) -> []
     | _ -> []
@@ -194,7 +193,7 @@ let rec dfs ht fkey =
                 match fd with
                 | {tbody=body; _} ->
                     let fklist = List.fold_left (fun ret tstmt_ -> ret @ (tstmt_helper tstmt_)) [] body in
-                    [fd] @ (List.fold_left (fun ret key_ -> dfs ht key_) [] fklist)
+                    [fd] @ (List.fold_left (fun ret key_ -> ret @ (dfs ht key_)) [] fklist)
                 )
         )
     | _ -> []
