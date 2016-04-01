@@ -442,7 +442,29 @@ let rec infer_func fdecl hash_key type_list level_env =
             in
             begin
             match signal_type with
-            | Some (Signal x) -> TLiteral 142857
+            | Some (Signal x) ->
+                begin
+                let ftype = ref_search_id name
+                in
+                match ftype with
+                | None -> failwith ("unknow refer" ^ name)
+                | Some (Func (fname, arr)) ->
+                    let texpr_list = List.map infer_expr expr_list
+                    in let expr_types = List.map get_expr_type_info texpr_list
+                    in let fdecl = find_func fname (* find the function*)
+                    in let binding_len = List.length arr
+                    in
+                        begin
+                        match fdecl with
+                        | {formals = param_list;_} ->
+                        let param_len = List.length param_list and true_len = List.length expr_types
+                        in if param_len = true_len + binding_len + 1 then
+                            (*always void for register*)
+                            TRegister ((signal_name, name, texpr_list), Void)
+                            else failwith ("param num not consistent")
+                        end
+                | _ -> failwith ("not a clojure or function when register call")
+                end
             | _ -> failwith ("no signal type can not c")
             end
         (* TODO
@@ -472,6 +494,21 @@ let rec infer_func fdecl hash_key type_list level_env =
                     let t_s_stmt_list = List.map infer_stmt s_stmt_list
                     in ref_back_env();
                         TIf (judge_t_expr, t_f_stmt_list, t_s_stmt_list)
+        | For (init_expr, judge_expr, loop_expr, inner_stmt_list) ->
+            (* new env *)
+            ref_create_env();
+            let init_texpr = infer_expr init_expr
+            in let judge_texpr = infer_expr judge_expr
+            in let judge_texpr_type = get_expr_type_info judge_texpr
+            in begin
+            match judge_texpr_type with
+            | Bool ->
+                let loop_texpr = infer_expr loop_expr
+                in let tstmt_list = List.map infer_stmt inner_stmt_list
+                in ref_back_env();
+                    TFor (init_texpr, judge_texpr, loop_texpr, tstmt_list)
+            | _ -> failwith ("judge expr not bool type")
+            end
         (* TODO complete other cases*)
         | _ -> TBlock []
     in
@@ -525,7 +562,7 @@ let infer_check (ast : program) =
     add_build_in_func(); (*first add some build in func name*)
     bind_name ast; (*second bind name*)
     (*just infer the main function and recur infer all involved functions *)
-    let main_fdecl =  infer_func_by_name "main" []
+    let _ =  infer_func_by_name "main" []
     in
     (*
     print_endline (debug_t_fdecl main_fdecl);

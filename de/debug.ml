@@ -25,6 +25,7 @@ let string_of_uop = function
     | Not -> "not"
 
 let rec debug_expr = function
+    | Null a -> "null:" ^ a
     | Literal a ->"a integer:" ^ (string_of_int a)
     | BoolLit a -> if a = true then "a bool:true" else "a bool:false"
     | Float a -> "a float:" ^ (string_of_float a)
@@ -69,6 +70,7 @@ let debug_fdecl (fdecl : func_decl) = match fdecl with
 let rec debug_texpr = function
       TLiteral a -> "literal: " ^ (string_of_int a)
     | TBoolLit a -> if a = true then "bool: true" else "bool: false"
+    | TNull a -> "null with type:" ^ (type_to_string a)
     | TFloat a -> "float: " ^ (string_of_float a)
     | TId (name, this_type) -> "id:" ^ name ^ "_withtype_" ^ type_to_string this_type
 	| TSet (a, this_type) -> "set: " ^ (List.fold_left (fun res item -> res ^ "," ^ debug_texpr item) "" a) ^ "_withtype_" ^ type_to_string this_type
@@ -105,7 +107,7 @@ let rec debug_tstmt = function
 (*debug for a typed function call*)
 let debug_t_fdecl (tfdecl: t_func_decl) = match tfdecl with
     | {ttkey=key; tfname=name; tformals=param_list; tbody=tstmts; tret=return} ->
-        "KEY: " ^ key ^ "\n" 
+        "KEY: " ^ key ^ "\n"
         ^ "FUNCTION NAME: " ^ name ^ "\n"
         ^ "PARAMS:\n" ^ ( List.fold_left (fun acc (str, typ) -> acc ^ "str:" ^ str ^ "_type:" ^ (type_to_string typ) ^ "\n" ) "" param_list )
         ^"BODY:\n" ^ (List.fold_left (fun acc item -> acc ^ (debug_tstmt item) ^ ",\n") "" tstmts)
@@ -113,7 +115,7 @@ let debug_t_fdecl (tfdecl: t_func_decl) = match tfdecl with
 
 let debug_t_lambda_decl (tldecl: t_lambda_decl) = match tldecl with
     | {ltkey=key; ltfname=name; ltbinds=bind_list; ltformals=param_list; ltbody=tstmts; ltret=return} ->
-        "KEY: " ^ key ^ "\n" 
+        "KEY: " ^ key ^ "\n"
         ^ "FUNCTION NAME: " ^ name ^ "\n"
         ^ "BINDS:\n" ^ ( List.fold_left (fun acc (str, typ) -> acc ^ "str:" ^ str ^ "_type:" ^ (type_to_string typ) ^ "\n") "" bind_list )
         ^ "PARAMS:\n" ^ ( List.fold_left (fun acc (str, typ) -> acc ^ "str:" ^ str ^ "_type:" ^ (type_to_string typ) ^ "\n") "" param_list )

@@ -6,12 +6,7 @@ func coolfunc(b, v) {
     return ret;
 }
 
-func main() {
-    b = 1;
-    {
-        b = 4;
-    };
-    a = b;
-    coolfunc("123123",4);
-    return 0;
+
+func hahsvalueasdas(b, x) {
+    return x + b;
 }
