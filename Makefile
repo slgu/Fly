@@ -31,7 +31,7 @@ gen:
 	ocamlc -I $(ast_dir) -c $(gen_dir)/codegen.ml
 	ocamlc -I $(parser_dir) -I $(check_dir) -I $(gen_dir) -c fly_testgen.ml
 	ocamlc -o fly $(parser_dir)/scanner.cmo $(parser_dir)/parser.cmo $(ast_dir)/ast.cmo $(ast_dir)/sast.cmo $(debug_dir)/debug.cmo $(check_dir)/util.cmo $(check_dir)/infer.cmo $(gen_dir)/codegen.cmo fly_testgen.cmo
-	cat test/test2 | ./fly
+	cat test/test_gen | ./fly
 	g++ tmp.cc
 	./a.out
 	rm $(parser_dir)/scanner.ml $(parser_dir)/parser.mli $(parser_dir)/parser.ml $(parser_dir)/parser.output */*.cm* *.cm* a.out

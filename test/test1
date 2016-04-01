@@ -7,6 +7,6 @@ func coolfunc(b, v) {
 }
 
 func main() {
-    coolfunc("hello world", 4);
+    coolfunc("Hello world", 4);
     return 0;
 }
