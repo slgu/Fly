@@ -74,8 +74,8 @@ let rec debug_texpr = function
 	| TSet (a, this_type) -> "set: " ^ (List.fold_left (fun res item -> res ^ "," ^ debug_texpr item) "" a) ^ "_withtype_" ^ type_to_string this_type
 	| TMap (a, this_type) -> "map: " ^ (List.fold_left (fun res (item1, item2) -> res ^ ",k:" ^(debug_texpr item1)^ "_v:" ^(debug_texpr item2)) "" a) ^ "_withtype_" ^ type_to_string this_type
 	| TArray(a, this_type) -> "array: " ^ (List.fold_left (fun res item -> res ^ "," ^ debug_texpr item) "" a) ^ "_withtype_" ^ type_to_string this_type
-	| TString a -> "string:" ^ a 
-    |TBinop (binop, this_type) -> (fun (a, op, b) -> "binop: " ^ (string_of_op op) ^ "_left:" ^ (debug_texpr a) ^ "_right:" ^ (debug_texpr b)) binop ^ "_withtype_" ^ type_to_string this_type      
+	| TString a -> "string:" ^ a
+    |TBinop (binop, this_type) -> (fun (a, op, b) -> "binop: " ^ (string_of_op op) ^ "_left:" ^ (debug_texpr a) ^ "_right:" ^ (debug_texpr b)) binop ^ "_withtype_" ^ type_to_string this_type
     |TUnop (unop, this_type) -> (fun (uop, a) -> "unop: " ^ (string_of_uop uop) ^ "_expr: " ^ (debug_texpr a)) unop ^ "_withtype_" ^ type_to_string this_type
     | TCall(a, this_type) -> (fun (id, texprs) -> "call: " ^ id ^ "_" ^ (List.fold_left (fun res item -> res ^ "," ^ (debug_texpr item)) "" texprs) ) a ^ "_withtype_" ^ type_to_string this_type
     | TObjCall (a, this_type) -> (fun (id1, id2, texprs) -> "call by: " ^ id1 ^ "." ^ id2 ^ (List.fold_left (fun res item -> res ^ "," ^ (debug_texpr item)) "" texprs) ) a ^ "_withtype_" ^ type_to_string this_type
@@ -112,9 +112,16 @@ let debug_t_fdecl (tfdecl: t_func_decl) = match tfdecl with
 
 let debug_t_lambda_decl (tldecl: t_lambda_decl) = match tldecl with
     | {ltkey=key; ltfname=name; ltbinds=bind_list; ltformals=param_list; ltbody=tstmts; ltret=return} ->
+<<<<<<< HEAD
         "key:" ^ key ^ ", " ^ "function name:" ^ name ^ "\n" 
         ^ "binds:\n" ^ ( List.fold_left (fun acc (str, typ) -> acc ^ "str:" ^ str ^ "_type:" ^ (type_to_string typ) ^ "\n") "" bind_list )
         ^ "params:\n" ^ ( List.fold_left (fun acc (str, typ) -> acc ^ "str:" ^ str ^ "_type:" ^ (type_to_string typ) ^ "\n") "" param_list )
         ^ "body:\n" ^ (List.fold_left (fun acc item -> acc ^ ",\n" ^ (debug_tstmt item)) "" tstmts)
         ^ "return type:" ^ (type_to_string return)
 
+=======
+        "key:" ^ key ^ ", " ^ "function name:" ^ name ^ ", " ^ "binds: " ^ ( List.fold_left (fun acc (str, typ) -> acc ^ ",str:" ^ str ^ "_type:" ^ (type_to_string typ)) "" bind_list )
+        ^", " ^ "params:" ^ ( List.fold_left (fun acc (str, typ) -> acc ^ ",str:" ^ str ^ "_type:" ^ (type_to_string typ)) "" param_list )
+        ^", " ^ "body:" ^ (List.fold_left (fun acc item -> acc ^ "," ^ (debug_tstmt item)) "" tstmts)
+        ^", " ^ "return type:" ^ (type_to_string return)
+>>>>>>> 6a256d9c15189882d28cf48413c18a06fc51da34
