@@ -75,21 +75,27 @@ let rec debug_texpr = function
 	| TMap (a, this_type) -> "map: " ^ (List.fold_left (fun res (item1, item2) -> res ^ ",k:" ^(debug_texpr item1)^ "_v:" ^(debug_texpr item2)) "" a) ^ "_withtype_" ^ type_to_string this_type
 	| TArray(a, this_type) -> "array: " ^ (List.fold_left (fun res item -> res ^ "," ^ debug_texpr item) "" a) ^ "_withtype_" ^ type_to_string this_type
 	| TString a -> "string:" ^ a 
-	| TBinop (a, op, b, this_type) -> "binop: " ^ (string_of_op op) ^ "_left:" ^ (debug_texpr a) ^ "_right:" ^ (debug_texpr b) ^ "_withtype_" ^ type_to_string this_type
-	| TUnop (uop, a, this_type) -> "unop:" ^ (string_of_uop uop) ^ "texpr:" ^ (debug_texpr a) ^ "_withtype_" ^ type_to_string this_type
-	| TCall(id, exprs, this_type) -> "call: " ^ id ^ "_" ^ (List.fold_left (fun res item -> res ^ "," ^ (debug_texpr item)) "" exprs) ^ "_withtype_" ^ type_to_string this_type;
-	| TObjCall (id1, id2, exprs, this_type) -> "call by" ^ id1 ^ "." ^ id2 ^ (List.fold_left (fun res item -> res ^ "," ^ (debug_texpr item)) "" exprs) ^ "_withtype_" ^ type_to_string this_type;
-	| TFunc (a, b, this_type) -> "lambda:" ^ (List.fold_left (fun res item -> res ^ "," ^ item) "" a) ^ "lambda expr:" ^ (debug_texpr b) ^ "_withtype_" ^ type_to_string this_type
-    | TAssign (a, b, this_type) -> "assign: " ^ a ^ " by:" ^ (debug_texpr b) ^ "_withtype_" ^ type_to_string this_type
-	| TListComprehen(a, b, c, this_type) -> "list comprehension: " ^ (debug_texpr a) ^ b ^ (debug_texpr c) ^ "_withtype_" ^ type_to_string this_type
-	| TExec (a, this_type) -> "exec: " ^ a ^ "_withtype_" ^ type_to_string this_type
-	| TDispatch (a, exprs, b, c, this_type) -> "dispatch: " ^ a ^ (List.fold_left (fun str item -> str ^ "," ^ (debug_texpr item)) "" exprs) ^ "_withtype_" ^ type_to_string this_type
-	| TRegister (a, b, exprs, this_type) -> "register: " ^ a ^ " " ^ b  ^ " " ^ ( List.fold_left (fun str item -> str ^ "," ^ item) "" (List.map debug_texpr exprs)) ^ "_withtype_" ^ type_to_string this_type
-	| TChan (a, this_type) -> "chan: " ^ debug_texpr a ^ "_withtype_" ^ type_to_string this_type
-  	| TChanunop (a, this_type) -> "chaunop: " ^ a ^ "_withtype_" ^ type_to_string this_type
- 	| TChanbinop (a, b, this_type) -> "chanbinop: " ^ a ^ " " ^ b ^ "_withtype_" ^ type_to_string this_type
-	| TFly (a, exprs, this_type) -> "fly: " ^ a ^ " " ^ ( List.fold_left (fun str item -> str ^ "," ^ item)  "" (List.map debug_texpr exprs)  ) ^ "_withtype_" ^ type_to_string this_type
-    | TFlyo (a, b, exprs, this_type) -> "flyo: " ^ a ^ " " ^ b ^ " " ^ ( List.fold_left (fun str item -> str ^ "," ^ item) "" (List.map debug_texpr exprs) ) ^ "_withtype_" ^ type_to_string this_type
+
+(*	| TBinop (binop, this_type) -> (fun (a, op, b) -> "binop:" ^ (string_of_op op) ^ "_left:" ^ (debug_texpr a) ^ "_right:" ^ (debug_texpr b)) binop
+                                    ^ "_withtype_" ^ type_to_string this_type
+    | TUnop (unop, this_type) -> (fun (op, a) -> "unop:" ^ (string_of_uop op) ^ "_expr:" ^ (debug_texpr a)) unop 
+                                ^ "_withtype_" ^ type_to_string this_type
+   *)
+    |TBinop (binop, this_type) -> (fun (a, op, b) -> "binop: " ^ (string_of_op op) ^ "_left:" ^ (debug_texpr a) ^ "_right:" ^ (debug_texpr b)) binop ^ "_withtype_" ^ type_to_string this_type      
+    |TUnop (unop, this_type) -> (fun (uop, a) -> "unop: " ^ (string_of_uop uop) ^ "_expr: " ^ (debug_texpr a)) unop ^ "_withtype_" ^ type_to_string this_type
+    | TCall(a, this_type) -> (fun (id, texprs) -> "call: " ^ id ^ "_" ^ (List.fold_left (fun res item -> res ^ "," ^ (debug_texpr item)) "" texprs) ) a ^ "_withtype_" ^ type_to_string this_type
+    | TObjCall (a, this_type) -> (fun (id1, id2, texprs) -> "call by: " ^ id1 ^ "." ^ id2 ^ (List.fold_left (fun res item -> res ^ "," ^ (debug_texpr item)) "" texprs) ) a ^ "_withtype_" ^ type_to_string this_type
+    | TFunc (args, this_type) -> (fun (a, b) -> "lambda:" ^ (List.fold_left (fun res item -> res ^ "," ^ item) "" a) ^ "lambda expr:" ^ (debug_texpr b) ) args ^ "_withtype_" ^ type_to_string this_type
+    | TAssign (args, this_type) -> (fun (a, b) -> "assign: " ^ a ^ " by:" ^ (debug_texpr b) ) args ^ "_withtype_" ^ type_to_string this_type
+    | TListComprehen(args, this_type) -> (fun (a, b, c) -> "list comprehension: " ^ (debug_texpr a) ^ b ^ (debug_texpr c) ) args ^ "_withtype_" ^ type_to_string this_type
+    | TExec (a, this_type) -> "exec: " ^ a ^ "_withtype_" ^ type_to_string this_type
+    | TDispatch (args, this_type) -> (fun (a, exprs, b, c) -> "dispatch: " ^ a ^ (List.fold_left (fun str item -> str ^ "," ^ (debug_texpr item)) "" exprs) ) args ^ "_withtype_" ^ type_to_string this_type
+    | TRegister (args, this_type) -> (fun (a, b, exprs) -> "register: " ^ a ^ " " ^ b  ^ " " ^ ( List.fold_left (fun str item -> str ^ "," ^ item) "" (List.map debug_texpr exprs)) ) args ^ "_withtype_" ^ type_to_string this_type
+    | TChan (a, this_type) -> "chan: " ^ debug_texpr a ^ "_withtype_" ^ type_to_string this_type
+    | TChanunop (a, this_type) -> "chaunop: " ^ a ^ "_withtype_" ^ type_to_string this_type
+    | TChanbinop (args, this_type) -> (fun (a, b) -> "chanbinop: " ^ a ^ " " ^ b ) args ^ "_withtype_" ^ type_to_string this_type
+    | TFly (args, this_type) -> (fun (a, exprs) -> "fly: " ^ a ^ " " ^ ( List.fold_left (fun str item -> str ^ "," ^ item)  "" (List.map debug_texpr exprs)) ) args ^ "_withtype_" ^ type_to_string this_type
+    | TFlyo (args, this_type) -> (fun (a, b, exprs) -> "flyo: " ^ a ^ " " ^ b ^ " " ^ ( List.fold_left (fun str item -> str ^ "," ^ item) "" (List.map debug_texpr exprs)) ) args^ "_withtype_" ^ type_to_string this_type
     | _ -> "nothing"
 
 
@@ -100,8 +106,8 @@ let rec debug_tstmt = function
     |  TReturn a -> "typed return:" ^ (debug_texpr a)
     |  TIf (a, tstmts1, tstmts2) -> "typed if:" ^ (debug_texpr a) ^ " " ^ (List.fold_left (fun acc item -> acc ^ "," ^ (debug_tstmt item)) "" tstmts1) ^ " " ^ (List.fold_left (fun acc item -> acc ^ "," ^ (debug_tstmt item)) "" tstmts2)
     |  TFor (a, b, c, tstmts) -> "typed for:" ^ (debug_texpr a) ^ " " ^ (debug_texpr b) ^ " " ^ (debug_texpr c) ^ " " ^ ( List.fold_left (fun acc item -> acc ^ "," ^ item) "" (List.map debug_tstmt tstmts) )
-    |  TForeach (a, texpr, stmts) -> "typed for each:" ^ a ^ " " ^ (debug_texpr texpr) ^ " " ^ ( List.fold_left (fun acc item -> acc ^ "," ^ item) "" (List.map debug_tstmt tstmts) )
-    |  TWhile (texpr, stmts) -> "typed while:" ^ (debug_texpr texpr) ^ " " ^ ( List.fold_left (fun acc item -> acc ^ "," ^ item) "" (List.map debug_tstmt tstmts) )
+    |  TForeach (a, texpr, tstmts) -> "typed for each:" ^ a ^ " " ^ (debug_texpr texpr) ^ " " ^ ( List.fold_left (fun acc item -> acc ^ "," ^ item) "" (List.map debug_tstmt tstmts) )
+    |  TWhile (texpr, tstmts) -> "typed while:" ^ (debug_texpr texpr) ^ " " ^ ( List.fold_left (fun acc item -> acc ^ "," ^ item) "" (List.map debug_tstmt tstmts) )
 
 (*debug for a typed function call*)
 let debug_t_fdecl (tfdecl: t_func_decl) = match tfdecl with
@@ -117,10 +123,23 @@ let debug_t_lambda_decl (tldecl: t_lambda_decl) = match tldecl with
         ^", " ^ "body:" ^ (List.fold_left (fun acc item -> acc ^ "," ^ (debug_tstmt item)) "" tstmts)
         ^", " ^ "return type:" ^ (type_to_string return) 
 
-(* debug debug.ml
+(*
 let _ =
+    let a = Literal(10) and b = Literal(20) in c = Binop(a, Add, b)
+    in print_string (debug_expr c)
+*)
+
+(*debug debug_texpr
+let _ =
+    let a = TBoolLit true and b = TBoolLit true 
+        in c = TBinop((a, Add, b), Bool)
+    in print_string (debug_texpr c)
+    *)
+
+(* debug debug.ml 
+let _ = 
     let a = BoolLit true and b = Set ([BoolLit true;BoolLit false;BoolLit true])
     and c  = Map ([Id "a", BoolLit true;Id "b", BoolLit false;
         Id "c", BoolLit true])
-    in debug_expr c
-    *)
+    in print_string ((debug_expr c)^"\n")
+*)
