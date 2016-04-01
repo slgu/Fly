@@ -35,12 +35,15 @@ rule token = parse
 | "if"     { IF }
 | "else"   { ELSE }
 | "for"    { FOR }
+| "::" {SCOPE}
 | "while"  { WHILE }
 | "return" { RETURN }
 | "int"    { INT }
 | "bool"   { BOOL }
 | "void"   { VOID }
 | "true"   { TRUE }
+(*add null support*)
+| "null" {NULL}
 | '^' {SADD}
 | "false"  { FALSE }
 | "class"  { CLASS } (*for class initialization *)

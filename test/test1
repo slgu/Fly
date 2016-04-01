@@ -1,25 +1,12 @@
-func abc(a,b) {
-    return a - b;
-}
-
-
-func abc2(a, b) {
-    return a + b;
-}
-
-func adapt(f, a, b) {
-    return f(a, b);
+func coolfunc(b, v) {
+    ret = (2 + 3) * v;
+    print(ret);
+    print(v);
+    print(b);
+    return ret;
 }
 
 func main() {
-    a = 3;
-    b = 4.1;
-    d = abc2(a, b);
-    k = abc(1);
-    g = k(2);
-    h = k(1.5);
-    aa = adapt(abc, 1, 2.5);
-    ll = (x,y->x+y+a);
-    res = ll(1,2);
+    coolfunc("hello world", 4);
     return 0;
 }

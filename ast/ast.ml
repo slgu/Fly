@@ -12,7 +12,7 @@ type typ =
     | Class of string (* a class variable *)
     | Chan of typ (* a chan that contains which type *)
     | Signal
-    | Undef (*which means the type is undefined for this node*)
+    | Undef (*which means this is a nulptr*)
     | Func of string * typ list (* function name along with
         some type clojure*)
     | Lfunc of string * typ list (*lambda function along with some type clojure*)
@@ -61,6 +61,7 @@ let rec type_to_string = function
 type expr =
     Literal of int
   | BoolLit of bool
+  | Null of string (*nullpointer belong to class s*)
   | Float of float
   | Id of string (* id token *)
   | Set of expr list

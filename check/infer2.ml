@@ -27,9 +27,9 @@ let infer_check (ast : program) = (* build the hash *)
                                 ),
                                 Mult,
                                 TId("v",Int)
-                            ), 
+                            ),
                             Int
-                        )), 
+                        )),
                 Int
             )
         );

@@ -1,4 +1,4 @@
-open Infer2
+open Infer
 open Codegen
 
 let _ =
@@ -10,4 +10,3 @@ let _ =
     ignore(print_string code);
     ignore(output oc code 0 (String.length code));
     close_out oc
-    

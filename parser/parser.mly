@@ -7,6 +7,7 @@ open Ast
 %token PLUS MINUS TIMES DIVIDE ASSIGN NOT
 %token EQ NEQ LT LEQ GT GEQ TRUE FALSE AND OR SADD
 %token SET MAP
+%token NULL SCOPE
 %token CHAN FLY REGISTER DISPATCH EXEC
 %token RETURN IF ELSE FOR WHILE INT BOOL VOID
 %token LARROW RARROW VERTICAL LMBRACE RMBRACE FUNC
@@ -17,6 +18,7 @@ open Ast
 %token <float> FLOAT
 %token EOF
 
+%right ASSIGN
 %left OR
 %left AND
 %left EQ NEQ
@@ -24,7 +26,6 @@ open Ast
 %left PLUS MINUS
 %left TIMES DIVIDE
 %right NOT NEG
-%right ASSIGN
 %nonassoc UMINUS
 %nonassoc NOELSE
 %nonassoc ELSE       /* highest precedence */
@@ -165,6 +166,7 @@ expr:
     /* TODO add float */
     LITERAL { Literal($1) }
     | TRUE { BoolLit(true) }
+    | ID SCOPE NULL { Null($1)}
     | FALSE { BoolLit(false) }
     | STRING { String($1) }
     | FLOAT {Float($1)}

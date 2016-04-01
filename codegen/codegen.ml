@@ -11,14 +11,14 @@ let rec cat_string_list_with_space sl =
 let rec cat_string_list_with_comma sl =
     match sl with
     | [] -> ""
-    | hd::tl -> 
+    | hd::tl ->
         let tmp = hd ^ "," ^ (cat_string_list_with_space tl) in
         let len = (String.length tmp) in
         if len > 0 then (String.sub tmp 0 (len-1)) else tmp
 
 (* take a formal and generate the string *)
 let handle_fm formals =
-    let fstr = 
+    let fstr =
         List.fold_left (fun ret (str_, type_) -> ret ^ " " ^ (type_to_string type_) ^ " " ^ str_ ^ ",") "" formals in
     let len = (String.length fstr) in
     let trimed = if len > 0 then (String.sub fstr 0 (len-1)) else fstr in
@@ -34,22 +34,22 @@ let rec handle_texpr expr =
     | TSet(_) -> [] (* TODO *)
     | TMap(_) -> [] (* TODO *)
     | TArray(_) -> [] (* TODO *)
-    | TString(str) -> ["\"" ^ str ^ "\""]
-    | TBinop((texpr1, op, texpr2), _) -> 
+    | TString(str) -> [str]
+    | TBinop((texpr1, op, texpr2), _) ->
         ["("] @ (handle_texpr texpr1) @ [op_to_string op] @ (handle_texpr texpr2) @ [")"]
     | TUnop(_) -> [] (* TODO *)
-    | TCall ((fn, texpr_list), _) -> 
+    | TCall ((fn, texpr_list), _) ->
         (
         match fn with
         | "print" ->
             [
-                cat_string_list_with_space 
+                cat_string_list_with_space
                 (["cout"]@(List.fold_left (fun ret ex -> ret@["<<"]@(handle_texpr ex)) [] texpr_list)@["<<endl"])
             ]
         (* above are built-in functions *)
-        | _ -> 
+        | _ ->
             [
-                cat_string_list_with_space 
+                cat_string_list_with_space
                 ([fn;"("]@
                 [cat_string_list_with_comma (List.fold_left (fun ret ex -> ret@(handle_texpr ex)) [] texpr_list)]@
                 [")"])
@@ -71,8 +71,8 @@ let rec handle_texpr expr =
 (* take one tstmt and return a string list *)
 let rec handle_tstmt tstmt_ =
     match tstmt_ with
-    | TBlock(tstmtlist) -> 
-        ["{"] @ 
+    | TBlock(tstmtlist) ->
+        ["{"] @
         (List.fold_left (fun ret tstmt_ -> ret @ (handle_tstmt tstmt_)) [] tstmtlist)
         @ ["}"]
     | TExpr(expr) -> [cat_string_list_with_space ((handle_texpr expr) @ [";"])]
@@ -83,7 +83,7 @@ let rec handle_tstmt tstmt_ =
     | TWhile(_) -> [] (* TODO *)
 
 (* take tstmt list and return string list *)
-let handle_body body = 
+let handle_body body =
     let body_code = List.fold_left (fun ret tstmt_ -> ret @ (handle_tstmt tstmt_)) [] body in
     ["{"] @ body_code @ ["}"]
 
@@ -91,14 +91,14 @@ let handle_body body =
 (* take a function declaration and generate the string list *)
 let handle_fdecl fd =
     match fd with
-    | {tret=rt; tfname=name; tformals=fm; tbody=body ;_} -> 
+    | {tret=rt; tfname=name; tformals=fm; tbody=body ;_} ->
         [ cat_string_list_with_space [(type_to_string rt);name;(handle_fm fm)]] @ (handle_body body)
 
 (* take a fdecl list and generate the string list *)
-let handle_funlist funlist = 
+let handle_funlist funlist =
     List.fold_left (fun ret fdecl -> ret @ (handle_fdecl fdecl)) [] funlist
 
-let codegen_helper funlist = 
+let codegen_helper funlist =
     let header = ["#include<iostream>";"#include<string>";"using namespace std;"] in
     let buffer = header @ (handle_funlist funlist) in
     List.fold_left (fun ret ele -> ret ^ ele ^ "\n") "" buffer
@@ -123,7 +123,7 @@ let rec texp_helper texp_ =
         (* above are built-in functions *)
         | _ ->
             let expr_types_list = List.map get_expr_type_info texprlist in
-            let hash_key = fn ^ 
+            let hash_key = fn ^
             (List.fold_left (fun str item -> str ^ "@" ^ item) "" (List.map type_to_string expr_types_list)) in
             [hash_key] @ (List.fold_left (fun ret exp_ -> ret @ (texp_helper exp_)) [] texprlist)
         )
@@ -159,32 +159,32 @@ let rec tstmt_helper tstmt_ =
     | TBlock(tstmtlist) -> List.fold_left (fun ret tstmt_ -> ret @ (tstmt_helper tstmt_)) [] tstmtlist
     | TExpr(texpr_) -> texp_helper texpr_
     | TReturn(texpr_) -> texp_helper texpr_
-    | TIf(texpr_, tstmtlist_a, tstmtlist_b) -> 
-        (texp_helper texpr_) @ 
+    | TIf(texpr_, tstmtlist_a, tstmtlist_b) ->
+        (texp_helper texpr_) @
         (List.fold_left (fun ret tstmt_ -> ret @ (tstmt_helper tstmt_)) [] (tstmtlist_a @ tstmtlist_b))
     | TFor(ex1, ex2, ex3, tstmtlist) ->
-        (texp_helper ex1) @ (texp_helper ex2) @ (texp_helper ex3) @ 
+        (texp_helper ex1) @ (texp_helper ex2) @ (texp_helper ex3) @
         (List.fold_left (fun ret tstmt_ -> ret @ (tstmt_helper tstmt_)) [] tstmtlist)
     | TForeach(_, texpr_, tstmtlist) ->
         (texp_helper texpr_) @ (List.fold_left (fun ret tstmt_ -> ret @ (tstmt_helper tstmt_)) [] tstmtlist)
-    | TWhile(texpr_, tstmtlist) -> 
+    | TWhile(texpr_, tstmtlist) ->
         (texp_helper texpr_) @ (List.fold_left (fun ret tstmt_ -> ret @ (tstmt_helper tstmt_)) [] tstmtlist)
 
-(* take a function key and return t_func_decl list, 
+(* take a function key and return t_func_decl list,
 which includes the function itself and all functions it calls *)
-let rec dfs ht fkey = 
+let rec dfs ht fkey =
     let hash_value = find_hash fundone fkey in
-    match hash_value with 
+    match hash_value with
     | None ->
         let sfd = find_hash ht fkey in
         (
-            match sfd with 
+            match sfd with
             | None -> raise (Failure ("Function not defined " ^ fkey))
-            | Some (fd) -> 
+            | Some (fd) ->
                 ignore(Hashtbl.add fundone fkey "dummy");
                 (
-                match fd with 
-                | {tbody=body; _} -> 
+                match fd with
+                | {tbody=body; _} ->
                     let fklist = List.fold_left (fun ret tstmt_ -> ret @ (tstmt_helper tstmt_)) [] body in
                     [fd] @ (List.fold_left (fun ret key_ -> dfs ht key_) [] fklist)
                 )
@@ -194,6 +194,6 @@ let rec dfs ht fkey =
 let build_list_from_ht ht =
     List.rev (dfs ht "main")
 
-let codegen ht = 
+let codegen ht =
     let funlist = build_list_from_ht ht in
     codegen_helper funlist

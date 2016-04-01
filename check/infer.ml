@@ -4,7 +4,6 @@ open Sast
 open Util
 let (func_binds : (string, func_decl) Hashtbl.t) = Hashtbl.create 16
 let (class_binds : (string, class_decl) Hashtbl.t) = Hashtbl.create 16
-
 (*typed function bindings*)
 let (t_func_binds: (string, t_func_decl) Hashtbl.t) = Hashtbl.create 16
 (*typed lambda bindings*)
@@ -100,6 +99,16 @@ let bind_name (ast : program) = match ast with
                     ) cdecl_list;
         end
 
+(*just add to function bind for semantic check not codegen*)
+let add_build_in_func () =
+    let print_func = {fname="print";formals=["a"];body=[]}
+    in let build_in_funcs = [print_func]
+    in List.iter (
+        fun item -> begin
+            match item with
+            | {fname=name;_} -> Hashtbl.add func_binds name item
+        end
+        ) build_in_funcs
 
 (* create a new env*)
 let get_new_env() =
@@ -162,7 +171,21 @@ let built_in_str_type =
     [("int", Int);("bool", Bool);("string", String);
      ("float", Float)]
 
+(*check no null*)
+(* we don't permit type null to be get evaluated*)
+(*T/F*)
+let is_null = function
+    | Undef -> false
+    | _ -> true
 
+
+(*function from a string to type*)
+let string_to_type s = match s with
+    | "Int" -> Int
+    | "Bool" -> Bool
+    | "String" -> String
+    | "Float" -> Float
+    | _ -> failwith("this type not support")
 (* infer the function result given input params*)
 (*let rec infer fdecl env *)
 (* return a t_func_decl*)
@@ -187,6 +210,7 @@ let rec infer_func fdecl hash_key type_list level_env =
     let rec infer_expr epr = match epr with
         | Literal x -> TLiteral x
         | BoolLit x -> TBoolLit x
+        | Null x -> TNull (string_to_type x)
         | Id (a) -> TId (a, search_id (!level_env) a)
         | Float x -> TFloat x
         | Set (expr_list) ->
@@ -464,8 +488,10 @@ and infer_func_by_name fname type_list =
 
 (* perform static type checking and inferrence*)
 let infer_check (ast : program) =
-    bind_name ast; (*first bind name*)
+    add_build_in_func(); (*first add some build in func name*)
+    bind_name ast; (*second bind name*)
     (*just infer the main function and recur infer all involved functions *)
     let _ =  infer_func_by_name "main" []
-    in debug_t_func_binds()
+    in debug_t_func_binds();
+    t_func_binds
     (* search main function and do a static type infer*)
