@@ -81,6 +81,28 @@ type t_func_decl = {
         tret: typ (*the return value type*)
     }
 
+(*just raw t_fdecl*)
+let new_null_tfdecl() =
+    {
+        ttkey="";
+        tfname="";
+        tformals=[];
+        tbody=[];
+        tret=Undef;
+    }
+
+
+let compare_and_update tfdecl thistype =
+    match tfdecl with
+    | {ttkey=a;tfname=b;tformals=c;tbody=d;tret=rtype;}->
+        begin match rtype with
+        | Undef ->
+            {ttkey=a;tfname=b;tformals=c;tbody=d;tret=thistype}
+        | x -> if x = thistype then tfdecl
+                else failwith ("return with different type")
+        end
+
+
 let get_func_result tfdecl = match tfdecl with
     | {tret=rtype;_} -> rtype
 

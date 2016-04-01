@@ -1,5 +1,5 @@
 type op = Add | Sub | Mult | Div | Equal | Neq | Less | Leq | Greater | Geq |
-          And | Or | RArrow | LArrow | SAdd
+          And | Or | RArrow | LArrow | SAdd | Mod
 
 type uop = Neg | Not
 
@@ -20,6 +20,7 @@ type typ =
 
 let op_to_string = function
     | Add -> "+"
+    | Mod -> "%"
     | Sub -> "-"
     | Mult -> "*"
     | Div -> "/"

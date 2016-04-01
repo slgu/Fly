@@ -261,6 +261,12 @@ let rec infer_func fdecl hash_key type_list level_env =
                     | _, _ -> failwith ("wrong type binop with each other")
                     end
                     (*TODO chan operation*)
+                | Mod ->
+                    begin
+                    match f_expr_type, s_expr_type  with
+                    | Int, Int -> TBinop ((t_f_expr, bop, t_s_expr), Int)
+                    | _, _ -> failwith ("wrong type binop with each other")
+                    end
                 | _ -> failwith ("chan not implemented,
                         undefined binop for binop -> <-")
             end
@@ -444,7 +450,13 @@ let rec infer_func fdecl hash_key type_list level_env =
         | Expr epr ->
             TExpr (infer_expr epr)
         | Return epr ->
-            TReturn (infer_expr epr)
+            (*TODO may update return type*)
+            let tepr = infer_expr epr
+            in let tepr_type = get_expr_type_info tepr
+            in let tfdecl = Hashtbl.find t_func_binds hash_key
+            in let new_tfdecl = compare_and_update tfdecl tepr_type
+            in Hashtbl.replace t_func_binds hash_key new_tfdecl;
+                TReturn tepr
         | If (judge_expr, f_stmt_list, s_stmt_list) ->
             let judge_t_expr = infer_expr judge_expr
             in
@@ -479,7 +491,7 @@ let rec infer_func fdecl hash_key type_list level_env =
         (*sequencely infer each stmt with level env *)
         let tstmt_lists = List.map infer_stmt stmt_list
         in let t_param_list = List.map2 (fun item1 item2 -> (item1, item2)) param_list type_list
-        in let rtype = get_rtype (List.rev tstmt_lists)
+        in let rtype = get_func_result (Hashtbl.find t_func_binds hash_key)
         in {ttkey = hash_key;tfname = func_name;tformals = t_param_list;tbody = tstmt_lists;tret = rtype}
         (*generate a t func decl*)
 
@@ -501,6 +513,8 @@ and infer_func_by_name fname type_list =
                 begin
                 match fdecl with
                 | {formals=param_list;_} ->
+                    (*first create a binding*)
+                    Hashtbl.add t_func_binds hash_key (new_null_tfdecl());
                     (*create func env*)
                     let func_env =
                         func_level_env()
@@ -516,7 +530,10 @@ and infer_func_by_name fname type_list =
                     Hashtbl.add t_func_binds hash_key tfdecl;
                     tfdecl
                 end
-        | Some x -> x
+        | Some x ->
+            let rtype = get_func_result x
+            in if rtype == Undef then failwith ("no stop recurisve call")
+            else x
 
 
 (* perform static type checking and inferrence*)
@@ -528,7 +545,7 @@ let infer_check (ast : program) =
     in
     (*
     print_endline (debug_t_fdecl main_fdecl);
-    debug_t_func_binds();
     *)
+    debug_t_func_binds();
     t_func_binds
     (* search main function and do a static type infer*)
