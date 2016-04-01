@@ -3,6 +3,7 @@ open Ast
 open Sast
 open Util
 open Debug
+open Env
 let (func_binds : (string, func_decl) Hashtbl.t) = Hashtbl.create 16
 let (class_binds : (string, class_decl) Hashtbl.t) = Hashtbl.create 16
 (*typed function bindings*)
@@ -41,6 +42,14 @@ let check_non_exist_class name =
         failwith ("exist this bind class:" ^ name)
     with
     | Not_found -> ()
+
+(*create a copy of the function env*)
+let func_level_env () =
+    let (env : (string, typ) Hashtbl.t) = Hashtbl.create 16
+    in let f k v = match v with
+        | {fname=name;_} -> Hashtbl.add env k (Func(name,[]))
+    in Hashtbl.iter f func_binds;
+    env
 
 
 (* debug the global function *)
@@ -110,53 +119,6 @@ let add_build_in_func () =
             | {fname=name;_} -> Hashtbl.add func_binds name item
         end
         ) build_in_funcs
-
-(* create a new env*)
-let get_new_env() =
-    let (env : (string, typ) Hashtbl.t) = Hashtbl.create 16
-    in env
-
-(* a multi-layer env operation *)
-let init_level_env () =
-    [get_new_env()]
-
-
-(*create a copy of the function env*)
-let func_level_env () =
-    let (env : (string, typ) Hashtbl.t) = Hashtbl.create 16
-    in let f k v = match v with
-        | {fname=name;_} -> Hashtbl.add env k (Func(name,[]))
-    in Hashtbl.iter f func_binds;
-    env
-
-
-(* append a new level env to level_env*)
-let append_new_level level_env =
-    get_new_env() :: level_env
-
-let update_env level_env k v = match level_env with
-    | (this_level :: arr) -> Hashtbl.add this_level k v;this_level :: arr
-    | _ -> failwith ("no env internal error")
-
-let rec search_id level_env k = match level_env with
-    | [] -> failwith ("variable refered without defined" ^ k)
-    | (this_level :: arr) ->
-        try
-            Hashtbl.find this_level k
-        with
-        | Not_found -> search_id arr k
-
-let back_level level_env = match level_env with
-    | [] -> failwith ("no level to be back")
-    | (this_level :: arr) -> arr
-
-(*debug a level env, just print out to the screeen*)
-let debug_level_env level_env =
-    let rec inner_debug level_env cnt = match level_env with
-        | [] -> ()
-        | (this_level :: arr) -> print_endline ("this level: " ^ (string_of_int cnt));
-    in
-    inner_debug level_env 0
 
 let check_type_same type_list cmp_type=
     List.iter (fun item -> if cmp_type = item then () else failwith ("type is not same")) type_list
