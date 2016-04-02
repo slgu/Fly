@@ -497,7 +497,11 @@ let rec infer_func fdecl hash_key type_list level_env =
         in let tstmt_lists = List.map infer_stmt stmt_list
         in let t_param_list = List.map2 (fun item1 item2 -> (item1, item2)) param_list type_list
         in let rtype = get_func_result (Hashtbl.find t_func_binds hash_key)
-        in {ttkey = hash_key;tfname = func_name;tformals = t_param_list;tbody = tstmt_lists;tret = rtype}
+        in (*if undef then set void*)
+            if rtype == Undef then
+                {ttkey = hash_key;tfname = func_name;tformals = t_param_list;tbody = tstmt_lists;tret = Void}
+            else
+                {ttkey = hash_key;tfname = func_name;tformals = t_param_list;tbody = tstmt_lists;tret = rtype}
         (*generate a t func decl*)
 
 
