@@ -22,7 +22,7 @@ let handle_fm formals refenv =
     let fstr =
         List.fold_left 
         (fun ret (str_, type_) -> 
-            update_env (!refenv) str_ type_;
+            ignore(update_env (!refenv) str_ type_);
             ret ^ " " ^ (type_to_string type_) ^ " " ^ str_ ^ ",") "" formals in
     let len = (String.length fstr) in
     let trimed = if len > 0 then (String.sub fstr 0 (len-1)) else fstr in
@@ -66,7 +66,7 @@ let rec handle_texpr expr refenv =
         (
         match res with
         | None -> 
-            update_env !refenv str ty;
+            ignore(update_env !refenv str ty);
             [(type_to_string ty) ^ " " ^ str ^ " = "] @ handle_texpr expr refenv
         | _ -> [str ^ " = "] @ handle_texpr expr refenv
         )

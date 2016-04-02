@@ -33,7 +33,7 @@ let search_key level_env k =
 
 let search_key2 level_env k =
     try
-        Some (search_id level_env k);
+        ignore(Some (search_id level_env k));
         print_string (k ^ " yes;")
     with
         | _ -> print_string (k ^ " no;")
