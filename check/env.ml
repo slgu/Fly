@@ -9,8 +9,6 @@ let get_new_env() =
 let init_level_env () =
     [get_new_env()]
 
-
-
 (* append a new level env to level_env*)
 let append_new_level level_env =
     get_new_env() :: level_env
@@ -26,6 +24,19 @@ let rec search_id level_env k = match level_env with
             Hashtbl.find this_level k
         with
         | Not_found -> search_id arr k
+
+let search_key level_env k =
+    try
+        Some (search_id level_env k)
+    with
+        | _ -> None
+
+let search_key2 level_env k =
+    try
+        Some (search_id level_env k);
+        print_string (k ^ " yes;")
+    with
+        | _ -> print_string (k ^ " no;")
 
 let back_level level_env = match level_env with
     | [] -> failwith ("no level to be back")

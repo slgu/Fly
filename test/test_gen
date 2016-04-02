@@ -1,4 +1,5 @@
 func coolfunc(b, v) {
+    v = 3;
     ret = (2 + 3) * v;
     if (ret > 10) {
         print("greater than 10");
@@ -13,12 +14,15 @@ func coolfunc(b, v) {
     for (i = 1; i < 10; i = i+1) {
         print(i);
     };
-
     j = 2;
+    j = 3;
+
+/*
     while (j < 5) {
         print(j);
         j = j+1;
     };
+*/
 
     print(ret);
     print(v);
@@ -27,12 +31,7 @@ func coolfunc(b, v) {
     return ret;
 }
 
-func hello2() {
-    print("hello2");
-}
-
 func main() {
     coolfunc("Hello world", 4);
-    fly hello2();
     return 0;
 }

@@ -18,15 +18,18 @@ let rec cat_string_list_with_comma sl =
         if len > 0 then (String.sub tmp 0 (len-1)) else tmp
 
 (* take a formal and generate the string *)
-let handle_fm formals =
+let handle_fm formals refenv =
     let fstr =
-        List.fold_left (fun ret (str_, type_) -> ret ^ " " ^ (type_to_string type_) ^ " " ^ str_ ^ ",") "" formals in
+        List.fold_left 
+        (fun ret (str_, type_) -> 
+            update_env (!refenv) str_ type_;
+            ret ^ " " ^ (type_to_string type_) ^ " " ^ str_ ^ ",") "" formals in
     let len = (String.length fstr) in
     let trimed = if len > 0 then (String.sub fstr 0 (len-1)) else fstr in
     "(" ^ trimed ^ ")"
 
 (* take one expr and return a string list *)
-let rec handle_texpr expr =
+let rec handle_texpr expr refenv =
     match expr with
     | TLiteral(value) -> [string_of_int value]
     | TBoolLit(value) -> if value then ["true"] else ["false"]
@@ -37,7 +40,7 @@ let rec handle_texpr expr =
     | TArray(_) -> [] (* TODO *)
     | TString(str) -> [str]
     | TBinop((texpr1, op, texpr2), _) ->
-        ["("] @ (handle_texpr texpr1) @ [op_to_string op] @ (handle_texpr texpr2) @ [")"]
+        ["("] @ (handle_texpr texpr1 refenv) @ [op_to_string op] @ (handle_texpr texpr2 refenv) @ [")"]
     | TUnop(_) -> [] (* TODO *)
     | TCall ((fn, texpr_list), _) ->
         (
@@ -45,20 +48,28 @@ let rec handle_texpr expr =
         | "print" ->
             [
                 cat_string_list_with_space
-                (["cout"]@(List.fold_left (fun ret ex -> ret@["<<"]@(handle_texpr ex)) [] texpr_list)@["<<endl"])
+                (["cout"]@(List.fold_left (fun ret ex -> ret@["<<"]@(handle_texpr ex refenv)) [] texpr_list)@["<<endl"])
             ]
         (* above are built-in functions *)
         | _ ->
             [
                 cat_string_list_with_space
                 ([fn;"("]@
-                [cat_string_list_with_comma (List.fold_left (fun ret ex -> ret@(handle_texpr ex)) [] texpr_list)]@
+                [cat_string_list_with_comma (List.fold_left (fun ret ex -> ret@(handle_texpr ex refenv)) [] texpr_list)]@
                 [")"])
             ]
         )
     | TObjCall(_) -> [] (* TODO *)
     | TFunc(_) -> [] (* TODO *)
-    | TAssign((str, expr), ty) -> [(type_to_string ty) ^ " " ^ str ^ " = "] @ handle_texpr expr
+    | TAssign((str, expr), ty) -> 
+        let res = search_key (!refenv) str in
+        (
+        match res with
+        | None -> 
+            update_env !refenv str ty;
+            [(type_to_string ty) ^ " " ^ str ^ " = "] @ handle_texpr expr refenv
+        | _ -> [str ^ " = "] @ handle_texpr expr refenv
+        )
     | TListComprehen(_) -> [] (* TODO *)
     | TExec(_) -> [] (* TODO *)
     | TDispatch(_) -> [] (* TODO *)
@@ -71,44 +82,51 @@ let rec handle_texpr expr =
     | TNull(_) -> [] (* TODO *)
 
 (* take one tstmt and return a string list *)
-let rec handle_tstmt tstmt_ =
+let rec handle_tstmt tstmt_ refenv =
     match tstmt_ with
     | TBlock(tstmtlist) ->
         ["{"] @
-        (List.fold_left (fun ret tstmt_ -> ret @ (handle_tstmt tstmt_)) [] tstmtlist)
+        (List.fold_left (fun ret tstmt_ -> ret @ (handle_tstmt tstmt_ refenv)) [] tstmtlist)
         @ ["}"]
-    | TExpr(expr) -> [cat_string_list_with_space ((handle_texpr expr) @ [";"])]
-    | TReturn(expr) -> [cat_string_list_with_space (["return"] @ (handle_texpr expr) @ [";"])]
+    | TExpr(expr) -> [cat_string_list_with_space ((handle_texpr expr refenv) @ [";"])]
+    | TReturn(expr) -> [cat_string_list_with_space (["return"] @ (handle_texpr expr refenv) @ [";"])]
     | TIf(texp_, tstmtl1, tstmtl2) ->
-        [cat_string_list_with_space (["if ("] @ (handle_texpr texp_) @ [")"])] @
-        ["{"] @ ((List.fold_left (fun ret tstmt_ -> ret @ (handle_tstmt tstmt_)) [] tstmtl1)) @ ["}"] @
+        [cat_string_list_with_space (["if ("] @ (handle_texpr texp_ refenv) @ [")"])] @
+        ["{"] @ ((List.fold_left (fun ret tstmt_ -> ret @ (handle_tstmt tstmt_ refenv)) [] tstmtl1)) @ ["}"] @
         ["else"] @
-        ["{"] @ ((List.fold_left (fun ret tstmt_ -> ret @ (handle_tstmt tstmt_)) [] tstmtl2)) @ ["}"]
+        ["{"] @ ((List.fold_left (fun ret tstmt_ -> ret @ (handle_tstmt tstmt_ refenv)) [] tstmtl2)) @ ["}"]
     | TFor(exp1, exp2, exp3, tstmtlist) ->
-        [cat_string_list_with_space (["for ("] @ (handle_texpr exp1) @ [";"] @ (handle_texpr exp2) @ [";"] @ (handle_texpr exp3) @ [")"])] @
-        ["{"] @
-        (List.fold_left (fun ret tstmt_ -> ret @ (handle_tstmt tstmt_)) [] tstmtlist) @
-        ["}"]
+        let newenv = ref (append_new_level !refenv) in
+        let f1 = handle_texpr exp1 newenv in
+        let f2 = handle_texpr exp2 newenv in
+        let f3 = handle_texpr exp3 newenv in
+        let tstmtstr = (List.fold_left (fun ret tstmt_ -> ret @ (handle_tstmt tstmt_ newenv)) [] tstmtlist) in
+        [cat_string_list_with_space (["for ("] @ f1 @ [";"] @ f2 @ [";"] @ f3 @ [")"])] @
+        ["{"] @ tstmtstr @ ["}"]
     | TForeach(_) -> [] (* TODO *)
     | TWhile(expr_, tstmtlist) ->
-        [cat_string_list_with_space (["while ("] @ (handle_texpr expr_))] @
-        (List.fold_left (fun ret tstmt_ -> ret @ (handle_tstmt tstmt_)) [] tstmtlist)
+        [cat_string_list_with_space (["while ("] @ (handle_texpr expr_ refenv))] @
+        (List.fold_left (fun ret tstmt_ -> ret @ (handle_tstmt tstmt_ refenv)) [] tstmtlist)
 
 (* take tstmt list and return string list *)
-let handle_body body =
-    let body_code = List.fold_left (fun ret tstmt_ -> ret @ (handle_tstmt tstmt_)) [] body in
+let handle_body body refenv =
+    let new_env = append_new_level !refenv in
+    let body_code = List.fold_left (fun ret tstmt_ -> ret @ (handle_tstmt tstmt_ (ref new_env))) [] body in
     ["{"] @ body_code @ ["}"]
 
 (* return string list *)
 (* take a function declaration and generate the string list *)
 let handle_fdecl fd g_env =
+    let new_env = ref (append_new_level g_env) in
     match fd with
     | {tret=rt; tfname=name; tformals=fm; tbody=body ;_} ->
-        [ cat_string_list_with_space [(type_to_string rt);name;(handle_fm fm)]] @ (handle_body body)
+        let fmstr = (handle_fm fm new_env) in
+        let bodystr = (handle_body body new_env) in
+        [ cat_string_list_with_space [(type_to_string rt);name;fmstr]] @ bodystr
 
 (* take a fdecl list and generate the string list *)
 let handle_funlist funlist =
-    let g_env = init_level_env in
+    let g_env = init_level_env() in
     List.fold_left (fun ret fdecl -> ret @ (handle_fdecl fdecl g_env)) [] funlist
 
 let codegen_helper funlist =
