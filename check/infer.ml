@@ -261,6 +261,12 @@ let rec infer_func fdecl hash_key type_list level_env =
                     | _, _ -> failwith ("wrong type binop with each other")
                     end
                     (*TODO chan operation*)
+                | Mod ->
+                    begin
+                    match f_expr_type, s_expr_type  with
+                    | Int, Int -> TBinop ((t_f_expr, bop, t_s_expr), Int)
+                    | _, _ -> failwith ("wrong type binop with each other")
+                    end
                 | _ -> failwith ("chan not implemented,
                         undefined binop for binop -> <-")
             end
@@ -444,7 +450,13 @@ let rec infer_func fdecl hash_key type_list level_env =
         | Expr epr ->
             TExpr (infer_expr epr)
         | Return epr ->
-            TReturn (infer_expr epr)
+            (*TODO may update return type*)
+            let tepr = infer_expr epr
+            in let tepr_type = get_expr_type_info tepr
+            in let tfdecl = Hashtbl.find t_func_binds hash_key
+            in let new_tfdecl = compare_and_update tfdecl tepr_type
+            in Hashtbl.replace t_func_binds hash_key new_tfdecl;
+                TReturn tepr
         | If (judge_expr, f_stmt_list, s_stmt_list) ->
             let judge_t_expr = infer_expr judge_expr
             in
@@ -476,10 +488,15 @@ let rec infer_func fdecl hash_key type_list level_env =
     in
     match fdecl with
     | {body = stmt_list;formals = param_list;fname = func_name} ->
+        (* scan twice to check return type*)
+        let _ = List.map (fun item -> try
+            infer_stmt item
+        with
+        | _ -> TExpr (TLiteral 0)) stmt_list
         (*sequencely infer each stmt with level env *)
-        let tstmt_lists = List.map infer_stmt stmt_list
+        in let tstmt_lists = List.map infer_stmt stmt_list
         in let t_param_list = List.map2 (fun item1 item2 -> (item1, item2)) param_list type_list
-        in let rtype = get_rtype (List.rev tstmt_lists)
+        in let rtype = get_func_result (Hashtbl.find t_func_binds hash_key)
         in {ttkey = hash_key;tfname = func_name;tformals = t_param_list;tbody = tstmt_lists;tret = rtype}
         (*generate a t func decl*)
 
@@ -494,13 +511,24 @@ and infer_func_by_name fname type_list =
         fname ^ (List.fold_left
             (fun str item -> str ^ "@" ^ item) "" (List.map type_to_string type_list))
     in let hash_value = find_t_func hash_key
-    in match hash_value with
+    in let check_in_build_in funcname =
+        match funcname with
+        | "print" -> Some (new_raw_type_tfdecl Void)
+        | _ -> None
+    in let test_build_in_func = check_in_build_in fname
+    in match test_build_in_func with
+        | Some x -> x
+        | None ->
+        begin
+        match hash_value with
         | None ->
             let fdecl = find_func fname
             in
                 begin
                 match fdecl with
                 | {formals=param_list;_} ->
+                    (*first create a binding*)
+                    Hashtbl.add t_func_binds hash_key (new_null_tfdecl());
                     (*create func env*)
                     let func_env =
                         func_level_env()
@@ -513,10 +541,14 @@ and infer_func_by_name fname type_list =
                     in let tfdecl = infer_func fdecl hash_key type_list ref_new_func_level_env
                     in
                     (*store in the global hash*)
-                    Hashtbl.add t_func_binds hash_key tfdecl;
+                    Hashtbl.replace t_func_binds hash_key tfdecl;
                     tfdecl
                 end
-        | Some x -> x
+        | Some x ->
+            let rtype = get_func_result x
+            in if rtype == Undef then failwith ("no stop recurisve call" ^hash_key)
+            else x
+        end
 
 
 (* perform static type checking and inferrence*)
@@ -528,7 +560,6 @@ let infer_check (ast : program) =
     in
     (*
     print_endline (debug_t_fdecl main_fdecl);
-    debug_t_func_binds();
     *)
     t_func_binds
     (* search main function and do a static type infer*)

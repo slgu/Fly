@@ -7,6 +7,7 @@ open Ast
 %token PLUS MINUS TIMES DIVIDE ASSIGN NOT
 %token EQ NEQ LT LEQ GT GEQ TRUE FALSE AND OR SADD
 %token SET MAP
+%token MOD
 %token NULL SCOPE
 %token CHAN FLY REGISTER DISPATCH EXEC
 %token RETURN IF ELSE FOR WHILE INT BOOL VOID
@@ -193,6 +194,7 @@ expr:
     | expr GEQ    expr { Binop($1, Geq,   $3) }
     | expr AND    expr { Binop($1, And,   $3) }
     | expr OR     expr { Binop($1, Or,    $3) }
+    | expr MOD expr {Binop($1, Mod, $3)}
     | MINUS expr %prec UMINUS { Unop(Neg, $2) }
     | NOT expr         { Unop(Not, $2) }
     /*function call*/

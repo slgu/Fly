@@ -7,6 +7,7 @@ let string_of_op = function
     | Add -> "add"
     | Sub -> "sub"
     | Mult -> "mul"
+    | Mod -> "mod"
     | Div -> "div"
     | Equal -> "equal"
     | Neq -> "neq"

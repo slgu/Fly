@@ -1,12 +1,17 @@
-func coolfunc(b, v) {
-    ret = (2 + 3) * v;
-    print(ret);
-    print(v);
-    print(b);
-    return ret;
+func gcd(a, b) {
+    if (b > a) {
+        return gcd(b, a);
+    };
+    if (b == 0) {
+        return a;
+    };
+    return gcd(b, a % b);
 }
 
 
-func hahsvalueasdas(b, x) {
-    return x + b;
+func main() {
+    a = gcd(36, 6);
+    b = gcd(36, 6);
+    print(gcd(36,6));
+    return 0;
 }
