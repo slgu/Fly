@@ -488,8 +488,13 @@ let rec infer_func fdecl hash_key type_list level_env =
     in
     match fdecl with
     | {body = stmt_list;formals = param_list;fname = func_name} ->
+        (* scan twice to check return type*)
+        let _ = List.map (fun item -> try
+            infer_stmt item
+        with
+        | _ -> TExpr (TLiteral 0)) stmt_list
         (*sequencely infer each stmt with level env *)
-        let tstmt_lists = List.map infer_stmt stmt_list
+        in let tstmt_lists = List.map infer_stmt stmt_list
         in let t_param_list = List.map2 (fun item1 item2 -> (item1, item2)) param_list type_list
         in let rtype = get_func_result (Hashtbl.find t_func_binds hash_key)
         in {ttkey = hash_key;tfname = func_name;tformals = t_param_list;tbody = tstmt_lists;tret = rtype}
@@ -506,7 +511,16 @@ and infer_func_by_name fname type_list =
         fname ^ (List.fold_left
             (fun str item -> str ^ "@" ^ item) "" (List.map type_to_string type_list))
     in let hash_value = find_t_func hash_key
-    in match hash_value with
+    in let check_in_build_in funcname =
+        match funcname with
+        | "print" -> Some (new_raw_type_tfdecl Void)
+        | _ -> None
+    in let test_build_in_func = check_in_build_in fname
+    in match test_build_in_func with
+        | Some x -> x
+        | None ->
+        begin
+        match hash_value with
         | None ->
             let fdecl = find_func fname
             in
@@ -532,8 +546,9 @@ and infer_func_by_name fname type_list =
                 end
         | Some x ->
             let rtype = get_func_result x
-            in if rtype == Undef then failwith ("no stop recurisve call")
+            in if rtype == Undef then failwith ("no stop recurisve call" ^hash_key)
             else x
+        end
 
 
 (* perform static type checking and inferrence*)
@@ -546,6 +561,5 @@ let infer_check (ast : program) =
     (*
     print_endline (debug_t_fdecl main_fdecl);
     *)
-    debug_t_func_binds();
     t_func_binds
     (* search main function and do a static type infer*)

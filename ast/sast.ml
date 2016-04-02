@@ -91,6 +91,15 @@ let new_null_tfdecl() =
         tret=Undef;
     }
 
+(*raw tfdecl with type*)
+let new_raw_type_tfdecl thistype =
+    {
+        ttkey="";
+        tfname="";
+        tformals=[];
+        tbody=[];
+        tret=thistype;
+    }
 
 let compare_and_update tfdecl thistype =
     match tfdecl with

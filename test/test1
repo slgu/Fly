@@ -1,9 +1,9 @@
 func gcd(a, b) {
-    if (b == 0) {
-        return a;
-    };
     if (b > a) {
         return gcd(b, a);
+    };
+    if (b == 0) {
+        return a;
     };
     return gcd(b, a % b);
 }
@@ -11,6 +11,7 @@ func gcd(a, b) {
 
 func main() {
     a = gcd(36, 6);
+    b = gcd(36, 6);
     print(gcd(36,6));
     return 0;
 }
