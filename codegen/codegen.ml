@@ -1,5 +1,6 @@
 open Ast
 open Sast
+open Env
 
 (* take a string list and concatenate them with interleaving space into a single string *)
 let rec cat_string_list_with_space sl =
@@ -100,14 +101,15 @@ let handle_body body =
 
 (* return string list *)
 (* take a function declaration and generate the string list *)
-let handle_fdecl fd =
+let handle_fdecl fd g_env =
     match fd with
     | {tret=rt; tfname=name; tformals=fm; tbody=body ;_} ->
         [ cat_string_list_with_space [(type_to_string rt);name;(handle_fm fm)]] @ (handle_body body)
 
 (* take a fdecl list and generate the string list *)
 let handle_funlist funlist =
-    List.fold_left (fun ret fdecl -> ret @ (handle_fdecl fdecl)) [] funlist
+    let g_env = init_level_env in
+    List.fold_left (fun ret fdecl -> ret @ (handle_fdecl fdecl g_env)) [] funlist
 
 let codegen_helper funlist =
     let header = ["#include<iostream>";"#include<string>";"using namespace std;"] in
