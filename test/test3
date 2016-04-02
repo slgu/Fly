@@ -1,0 +1,8 @@
+func hello() {
+    print("hello");
+}
+
+func main() {
+    hello();
+    return 0;
+}
