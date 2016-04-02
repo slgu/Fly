@@ -527,7 +527,7 @@ and infer_func_by_name fname type_list =
                     in let tfdecl = infer_func fdecl hash_key type_list ref_new_func_level_env
                     in
                     (*store in the global hash*)
-                    Hashtbl.add t_func_binds hash_key tfdecl;
+                    Hashtbl.replace t_func_binds hash_key tfdecl;
                     tfdecl
                 end
         | Some x ->

@@ -10,6 +10,7 @@ func gcd(a, b) {
 
 
 func main() {
-    print(gcd(6,36));
+    a = gcd(36, 6);
+    print(gcd(36,6));
     return 0;
 }
