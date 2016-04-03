@@ -8,6 +8,7 @@ open Ast
 %token EQ NEQ LT LEQ GT GEQ TRUE FALSE AND OR SADD
 %token SET MAP
 %token MOD
+%token JINHAO
 %token NULL SCOPE
 %token CHAN FLY REGISTER DISPATCH EXEC
 %token RETURN IF ELSE FOR WHILE INT BOOL VOID
@@ -54,18 +55,64 @@ fdecl:
     formals = $4;
     body = $7 } }
 
+variable_ref:
+    ID COLON typedef {
+        ($1, $3)
+    }
+
+variable_defs_opt:
+    /*nothing*/ {[]}
+    | variable_defs {$1}
+
+variable_defs:
+    variable_ref {[$1]}
+    | variable_defs SEMI variable_ref {$3 :: $1}
+
 cdecls:
     /* nothing*/ {[]}
     | cdecls cdecl {$2 :: $1}
 
 /* class definition */
 cdecl:
-    CLASS ID LBRACE assign_exprs fdecls RBRACE {
+    CLASS ID LBRACE variable_defs_opt fdecls RBRACE {
         {
             cname = $2;
             func_decls = $5;
-            assign_exprs = $4
+            member_binds = $4
         }
+    }
+
+typedef_list:
+    typedef {[$1]}
+    | typedef_list COMMA typedef {$3::$1}
+
+typedef_list_opt:
+    /* nothing*/ {[]}
+    | typedef_list {List.rev $1}
+
+/*typedef description*/
+typedef:
+    ID JINHAO typedef_list_opt JINHAO {
+        match $1 with
+        | "int" -> Int
+        | "bool" -> Bool
+        | "void" -> Void
+        | "string" -> String
+        | "float" -> Float
+        | "set" -> begin
+                match $3 with
+                |[x] -> Set x
+                | _ -> failwith ("set just with one parameter")
+                end
+        | "map" -> begin
+                match $3 with
+                | [x;y] -> Map (x,y)
+                | _ -> failwith ("map just two parameter")
+                end
+        | x -> begin match $3 with
+            | [] -> Class x
+            | _ -> failwith("not support for template class")
+            end
     }
 
 formals_opt:
@@ -156,10 +203,6 @@ array:
 
 list_comprehen:
     LMBRACE expr VERTICAL ID LARROW expr RMBRACE { ListComprehen($2, $4, $6)}
-
-assign_exprs:
-    assign_expr SEMI {[$1]}
-    | assign_exprs assign_expr SEMI {$2 :: $1}
 
 assign_expr:
     /*assign expr*/

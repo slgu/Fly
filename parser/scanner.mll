@@ -31,6 +31,7 @@ rule token = parse
 | "&&"     { AND }
 | "||"     { OR }
 | "!"      { NOT }
+| "#"      { JINHAO}
 | "->"     { RARROW } (* for lambda expression *)
 | "<-"     { LARROW } (* for chan *)
 | "if"     { IF }
