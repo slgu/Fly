@@ -63,11 +63,12 @@ variable_ref:
         let y =
         begin
         match $3 with
-        | "int" -> Int
-        | "bool" -> Bool
-        | "void" -> Void
-        | "string" -> String
-        | "float" -> Float
+        | "Int" -> Int
+        | "Bool" -> Bool
+        | "Void" -> Void
+        | "String" -> String
+        | "Float" -> Float
+        | "Map" | "Set" -> failwith ("set map init must with parameters")
         | x -> Class x
         end
         in ($1, y)
@@ -97,12 +98,12 @@ typedef_list_opt:
 typedef:
     ID JINHAO typedef_list_opt JINHAO {
         match $1 with
-        | "set" -> begin
+        | "Set" -> begin
                 match $3 with
                 |[x] -> Set x
                 | _ -> failwith ("set just with one parameter")
                 end
-        | "map" -> begin
+        | "Map" -> begin
                 match $3 with
                 | [x;y] -> Map (x,y)
                 | _ -> failwith ("map just two parameter")

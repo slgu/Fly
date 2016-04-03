@@ -1,6 +1,7 @@
 class a {
-    who:int;
-    a:float;
+    who:Int;
+    a:Float;
+    d:Fuck;
     func fuck(aa) {
         print(aa);
     }
