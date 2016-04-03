@@ -569,6 +569,9 @@ and infer_func_by_name fname type_list =
         end
 
 
+let debug_ast_cdecl ast = match ast with
+    | Program (cdecls, _) -> List.iter (fun item -> print_endline (debug_cdecl item)) cdecls
+
 (* perform static type checking and inferrence*)
 let infer_check (ast : program) =
     add_build_in_func(); (*first add some build in func name*)
@@ -576,6 +579,7 @@ let infer_check (ast : program) =
     (*just infer the main function and recur infer all involved functions *)
     let _ =  infer_func_by_name "main" []
     in
+    debug_ast_cdecl ast;
     debug_t_func_binds();
     (*
     print_endline (debug_t_fdecl main_fdecl);

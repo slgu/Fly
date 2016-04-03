@@ -6,9 +6,9 @@ open Ast
 %token SEMI LPAREN RPAREN LBRACE RBRACE COMMA
 %token PLUS MINUS TIMES DIVIDE ASSIGN NOT
 %token EQ NEQ LT LEQ GT GEQ TRUE FALSE AND OR SADD
-%token SET MAP
+%token SET MAP AT
 %token MOD
-%token JINHAO
+%token LJINHAO RJINHAO
 %token NULL SCOPE
 %token CHAN FLY REGISTER DISPATCH EXEC
 %token RETURN IF ELSE FOR WHILE
@@ -59,21 +59,7 @@ fdecl:
 
 
 variable_ref:
-    | ID COLON ID {
-        let y =
-        begin
-        match $3 with
-        | "Int" -> Int
-        | "Bool" -> Bool
-        | "Void" -> Void
-        | "String" -> String
-        | "Float" -> Float
-        | "Map" | "Set" -> failwith ("set map init must with parameters")
-        | x -> Class x
-        end
-        in ($1, y)
-    }
-    | ID COLON typedef {
+    ID COLON typedef {
         ($1, $3)
     }
 
@@ -96,7 +82,17 @@ typedef_list_opt:
 
 /*typedef description*/
 typedef:
-    ID JINHAO typedef_list_opt JINHAO {
+    ID {
+        match $1 with
+        | "Int" -> Int
+        | "Bool" -> Bool
+        | "Void" -> Void
+        | "String" -> String
+        | "Float" -> Float
+        | "Map" | "Set" -> failwith ("set map init must with parameters")
+        | x -> Class x
+    }
+    | ID LJINHAO typedef_list_opt RJINHAO {
         match $1 with
         | "Set" -> begin
                 match $3 with

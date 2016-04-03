@@ -2,6 +2,7 @@ class a {
     who:Int;
     a:Float;
     d:Fuck;
+    j:Map<#Int,Int#>;
     func fuck(aa) {
         print(aa);
     }
