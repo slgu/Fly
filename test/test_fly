@@ -15,7 +15,6 @@ func loop_wait() {
 func main() {
     a = "Hello World";
     s = fly gen(a);
-    register s recv();
 
     loop_wait();
     return 0;

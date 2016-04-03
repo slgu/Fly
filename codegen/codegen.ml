@@ -2,6 +2,15 @@ open Ast
 open Sast
 open Env
 
+let rec type_to_code_string = function
+    | Int -> "int"
+    | Bool -> "bool"
+    | Void -> "void"
+    | String -> "string"
+    | Float -> "float"
+    | Signal(x) -> "shared_ptr <Signal<" ^ (type_to_code_string x) ^ ">>"
+    | _ -> raise (Failure ("type_to_code_string not yet support this type"))
+
 (* take a string list and concatenate them with interleaving space into a single string *)
 let rec cat_string_list_with_space sl =
     match sl with
@@ -23,7 +32,7 @@ let handle_fm formals refenv =
         List.fold_left 
         (fun ret (str_, type_) -> 
             ignore(update_env (!refenv) str_ type_);
-            ret ^ " " ^ (type_to_string type_) ^ " " ^ str_ ^ ",") "" formals in
+            ret ^ " " ^ (type_to_code_string type_) ^ " " ^ str_ ^ ",") "" formals in
     let len = (String.length fstr) in
     let trimed = if len > 0 then (String.sub fstr 0 (len-1)) else fstr in
     "(" ^ trimed ^ ")"
@@ -85,10 +94,10 @@ and handle_texpr expr refenv =
                     match ty with
                     (* deal with signal assignment *)
                     | Signal(x) -> 
-                        ["shared_ptr <Signal<" ^ (type_to_string x) ^ ">> " ^ str ^ "(new Signal<" ^ (type_to_string x) ^ ">());";] @
+                        [(type_to_code_string ty) ^ " " ^ str ^ "(new Signal<" ^ (type_to_code_string x) ^ ">());";] @
                         handle_fly_expr str expr refenv
                     (* normal *)
-                    | _ -> [(type_to_string ty) ^ " " ^ str ^ " = "] @ handle_texpr expr refenv
+                    | _ -> [(type_to_code_string ty) ^ " " ^ str ^ " = "] @ handle_texpr expr refenv
                 )
             | _ -> (* variable has been declared before *)
                 (
@@ -145,18 +154,23 @@ let handle_body body refenv =
 
 (* return string list *)
 (* take a function declaration and generate the string list *)
-let handle_fdecl fd g_env =
-    let refnewenv = ref (append_new_level g_env) in
+let handle_fdecl fd refenv =
+    let refnewenv = ref (append_new_level !refenv) in
     match fd with
     | {tret=rt; tfname=name; tformals=fm; tbody=body ;_} ->
+        (*
+        let nfm = 
+        (
+            match rt with
+            (* a fly function, add signal to the end of fm *)
+            | Signal(st) -> print_string name; fm @ [(name ^ "_signal", rt)] 
+            (* a normal function *)
+            | _ -> fm
+        ) in
+        *)
         let fmstr = (handle_fm fm refnewenv) in
         let bodystr = (handle_body body refnewenv) in
-        [ cat_string_list_with_space [(type_to_string rt);name;fmstr]] @ bodystr
-
-(* take a fdecl list and generate the string list *)
-let handle_funlist funlist =
-    let g_env = init_level_env() in
-    List.fold_left (fun ret fdecl -> ret @ (handle_fdecl fdecl g_env)) [] funlist
+        [ cat_string_list_with_space [(type_to_code_string rt);name;fmstr]] @ bodystr
 
 let code_header = [
     "#include <iostream>";
@@ -187,10 +201,6 @@ let code_predefined_class = [
     "   data_cond.notify_one();";
     "   }";
     "};"]
-
-let codegen_helper funlist =
-    let buffer = code_header @ code_predefined_class @ (handle_funlist funlist) in
-    List.fold_left (fun ret ele -> ret ^ ele ^ "\n") "" buffer
 
 let (fundone : (string, string) Hashtbl.t) = Hashtbl.create 16
 
@@ -258,27 +268,27 @@ let rec tstmt_helper tstmt_ =
     | TWhile(texpr_, tstmtlist) ->
         (texp_helper texpr_) @ (List.fold_left (fun ret tstmt_ -> ret @ (tstmt_helper tstmt_)) [] tstmtlist)
 
-(* take a function key and return t_func_decl list,
-which includes the function itself and all functions it calls *)
-let rec dfs ht fkey =
+(* take a function key and return string list, which are the code *)
+let rec dfs ht fkey refenv =
     let hash_value = find_hash fundone fkey in
     match hash_value with
     | None ->
         let sfd = find_hash ht fkey in
         (
             match sfd with
-            | None -> [] (*raise (Failure ("Function not defined " ^ fkey))*)
+            | None -> raise (Failure ("Function not defined " ^ fkey))
             | Some (fd) ->
                 ignore(Hashtbl.add fundone fkey "dummy");
                 (
                 match fd with
                 | {tbody=body; _} ->
                     let fklist = List.fold_left (fun ret tstmt_ -> ret @ (tstmt_helper tstmt_)) [] body in
-                    [fd] @ (List.fold_left (fun ret key_ -> ret @ (dfs ht key_)) [] fklist)
+                    (List.fold_left (fun ret key_ -> ret @ (dfs ht key_ refenv)) [] fklist) @ (handle_fdecl fd refenv)
                 )
         )
     | _ -> []
 
+(*
 let ht_left ht = 
     Hashtbl.fold 
     (fun k v ret -> 
@@ -293,10 +303,14 @@ let ht_left ht =
             ret @ [v]
         | _ -> ret
     ) ht []
+*)
 
+(* take ht and return string list, which is code *)
 let build_list_from_ht ht =
-    List.rev (dfs ht "main")
+    let g_env = init_level_env() in
+    dfs ht "main" (ref g_env)
 
 let codegen ht =
-    let funlist = build_list_from_ht ht in
-    codegen_helper funlist
+    let codelist = build_list_from_ht ht in
+    let buffer = code_header @ code_predefined_class @ codelist in
+    List.fold_left (fun ret ele -> ret ^ ele ^ "\n") "" buffer
