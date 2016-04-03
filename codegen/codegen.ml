@@ -27,9 +27,23 @@ let handle_fm formals refenv =
     let len = (String.length fstr) in
     let trimed = if len > 0 then (String.sub fstr 0 (len-1)) else fstr in
     "(" ^ trimed ^ ")"
+                        
+(* take signal name and fly call, return a string list *)
+let rec handle_fly_expr str expr refenv = 
+    match expr with
+    | TFly((fn, texpr_list),t) ->
+            let param = [cat_string_list_with_comma (List.fold_left (fun ret ex -> ret@(handle_texpr ex refenv)) [] texpr_list)] in
+            let param2 =
+            (
+                match param with
+                | [""] -> []
+                | _ -> param @ [","]
+            ) in
+            ["thead(";fn;","] @ param2 @ [str;").detach()"]
+    | _ -> raise (Failure ("Assigning something to Signal other than TFly"))
 
 (* take one expr and return a string list *)
-let rec handle_texpr expr refenv =
+and handle_texpr expr refenv =
     match expr with
     | TLiteral(value) -> [string_of_int value]
     | TBoolLit(value) -> if value then ["true"] else ["false"]
@@ -64,11 +78,26 @@ let rec handle_texpr expr refenv =
     | TAssign((str, expr), ty) -> 
         let res = search_key (!refenv) str in
         (
-        match res with
-        | None -> 
-            ignore(update_env !refenv str ty);
-            [(type_to_string ty) ^ " " ^ str ^ " = "] @ handle_texpr expr refenv
-        | _ -> [str ^ " = "] @ handle_texpr expr refenv
+            match res with
+            | None -> (* variable is first seen here *)
+                ignore(update_env !refenv str ty);
+                (
+                    match ty with
+                    (* deal with signal assignment *)
+                    | Signal(x) -> 
+                        ["shared_ptr <Signal<" ^ (type_to_string x) ^ ">> " ^ str ^ "(new Signal<" ^ (type_to_string x) ^ ">());";] @
+                        handle_fly_expr str expr refenv
+                    (* normal *)
+                    | _ -> [(type_to_string ty) ^ " " ^ str ^ " = "] @ handle_texpr expr refenv
+                )
+            | _ -> (* variable has been declared before *)
+                (
+                    match ty with
+                    (* deal with signal assignment *)
+                    | Signal(_) -> raise (Failure ("Signal re-assigned? " ^ str))
+                    (* normal *)
+                    | _ -> [str ^ " = "] @ handle_texpr expr refenv
+                )
         )
     | TListComprehen(_) -> [] (* TODO *)
     | TExec(_) -> [] (* TODO *)
@@ -129,9 +158,38 @@ let handle_funlist funlist =
     let g_env = init_level_env() in
     List.fold_left (fun ret fdecl -> ret @ (handle_fdecl fdecl g_env)) [] funlist
 
+let code_header = [
+    "#include <iostream>";
+    "#include <string>";
+    "#include <thread>";
+    "#include <mutex>";
+    "#include <condition_variable>";
+    "#include <queue>";
+    "using namespace std;"] 
+
+let code_predefined_class = [
+    "template <typename T> class Signal {";
+    "public:";
+    "   condition_variable data_cond;";
+    "   mutex data_mutex;";
+    "   queue <std::shared_ptr <T>> data_queue;";
+    "   shared_ptr <T> wait() {";
+    "       std::unique_lock<std::mutex> lk(data_mutex);";
+    "       data_cond.wait(lk, [this]{return !this->data_queue.empty();});";
+    "       lk.unlock();";
+    "       auto result = data_queue.front();";
+    "       data_queue.pop();";
+    "       return result;";
+    "   }";
+    "   void notify(std::shared_ptr <T> res) {";
+    "   std::lock_guard<std::mutex> lk(data_mutex);";
+    "   data_queue.push(res);";
+    "   data_cond.notify_one();";
+    "   }";
+    "};"]
+
 let codegen_helper funlist =
-    let header = ["#include<iostream>";"#include<string>";"using namespace std;"] in
-    let buffer = header @ (handle_funlist funlist) in
+    let buffer = code_header @ code_predefined_class @ (handle_funlist funlist) in
     List.fold_left (fun ret ele -> ret ^ ele ^ "\n") "" buffer
 
 let (fundone : (string, string) Hashtbl.t) = Hashtbl.create 16
@@ -172,7 +230,7 @@ let rec texp_helper texp_ =
     (* TDispatch of (string * texpr list * string * string) * typ TODO *)
     | TDispatch (_) -> []
     (* TRegister of (string * string * texpr list) * typ TODO *)
-    | TRegister (_) -> []
+    | TRegister ((sign, fn, texpl), t) -> texp_helper (TCall((fn, texpl), t))
     (* TChan of texpr * typ TODO *)
     | TChan (_) -> []
     (* TChanunop of string * typ TODO *)
@@ -209,7 +267,7 @@ let rec dfs ht fkey =
         let sfd = find_hash ht fkey in
         (
             match sfd with
-            | None -> raise (Failure ("Function not defined " ^ fkey))
+            | None -> [] (*raise (Failure ("Function not defined " ^ fkey))*)
             | Some (fd) ->
                 ignore(Hashtbl.add fundone fkey "dummy");
                 (
@@ -220,6 +278,21 @@ let rec dfs ht fkey =
                 )
         )
     | _ -> []
+
+let ht_left ht = 
+    Hashtbl.fold 
+    (fun k v ret -> 
+        let sfd = find_hash fundone k in
+        match sfd with
+        | None -> 
+            ignore(Hashtbl.add fundone k "dummy");
+            (
+                match v with
+                | {tfname=name; _} -> print_string name
+            );
+            ret @ [v]
+        | _ -> ret
+    ) ht []
 
 let build_list_from_ht ht =
     List.rev (dfs ht "main")
