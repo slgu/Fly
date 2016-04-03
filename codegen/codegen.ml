@@ -2,6 +2,25 @@ open Ast
 open Sast
 open Env
 
+type sigbind = {
+    vn : string;
+    vt : typ;
+}
+
+(* mapping from function key to sigbind *)
+let (signal_funcs : (string, sigbind) Hashtbl.t) = Hashtbl.create 16
+
+let (fundone : (string, string) Hashtbl.t) = Hashtbl.create 16
+
+let add_hash ht k v = 
+    Hashtbl.add ht k v
+
+let find_hash ht key =
+    try
+        Some (Hashtbl.find ht key)
+    with
+    | Not_found -> None
+
 let rec type_to_code_string = function
     | Int -> "int"
     | Bool -> "bool"
@@ -48,7 +67,7 @@ let rec handle_fly_expr str expr refenv =
                 | [""] -> []
                 | _ -> param @ [","]
             ) in
-            ["thead(";fn;","] @ param2 @ [str;").detach()"]
+            ["thread(";fn;","] @ param2 @ [str;").detach()"]
     | _ -> raise (Failure ("Assigning something to Signal other than TFly"))
 
 (* take one expr and return a string list *)
@@ -120,56 +139,74 @@ and handle_texpr expr refenv =
     | TNull(_) -> [] (* TODO *)
 
 (* take one tstmt and return a string list *)
-let rec handle_tstmt tstmt_ refenv =
+let rec handle_tstmt fkey tstmt_ refenv =
     let refnewenv = ref (append_new_level !refenv) in
     match tstmt_ with
     | TBlock(tstmtlist) ->
         ["{"] @
-        (List.fold_left (fun ret tstmt_ -> ret @ (handle_tstmt tstmt_ refnewenv)) [] tstmtlist)
+        (List.fold_left (fun ret tstmt_ -> ret @ (handle_tstmt fkey tstmt_ refnewenv)) [] tstmtlist)
         @ ["}"]
     | TExpr(expr) -> [cat_string_list_with_space ((handle_texpr expr refenv) @ [";"])]
-    | TReturn(expr) -> [cat_string_list_with_space (["return"] @ (handle_texpr expr refenv) @ [";"])]
+    | TReturn(expr) -> 
+        (
+            match (find_hash signal_funcs fkey) with
+            (* a normal function *)
+            | None -> [cat_string_list_with_space (["return"] @ (handle_texpr expr refenv) @ [";"])]
+            (* a fly function, add signal codes *)
+            | Some({vn=_name; vt=_type}) -> 
+            (
+                match _type with
+                | Signal(_type2) -> 
+                    let tstr = type_to_code_string _type2 in
+                    (
+                        match expr with
+                        | TId(str, _) ->
+                            [_name ^ "->notify(shared_ptr<" ^ tstr ^ ">(new " ^ tstr^ "(" ^ str ^ ")));" ] @
+                            [cat_string_list_with_space ["return"; str; ";"]]
+                        | _ -> raise (Failure ("Should return Id"))
+                    )
+                | _ -> raise (Failure ("Should be Signal(t)"))
+            )
+        ) 
     | TIf(texp_, tstmtl1, tstmtl2) ->
         [cat_string_list_with_space (["if ("] @ (handle_texpr texp_ refnewenv) @ [")"])] @
-        ["{"] @ ((List.fold_left (fun ret tstmt_ -> ret @ (handle_tstmt tstmt_ refnewenv)) [] tstmtl1)) @ ["}"] @
+        ["{"] @ ((List.fold_left (fun ret tstmt_ -> ret @ (handle_tstmt fkey tstmt_ refnewenv)) [] tstmtl1)) @ ["}"] @
         ["else"] @
-        ["{"] @ ((List.fold_left (fun ret tstmt_ -> ret @ (handle_tstmt tstmt_ refnewenv)) [] tstmtl2)) @ ["}"]
+        ["{"] @ ((List.fold_left (fun ret tstmt_ -> ret @ (handle_tstmt fkey tstmt_ refnewenv)) [] tstmtl2)) @ ["}"]
     | TFor(exp1, exp2, exp3, tstmtlist) ->
         let f1 = handle_texpr exp1 refnewenv in
         let f2 = handle_texpr exp2 refnewenv in
         let f3 = handle_texpr exp3 refnewenv in
-        let tstmtstr = (List.fold_left (fun ret tstmt_ -> ret @ (handle_tstmt tstmt_ refnewenv)) [] tstmtlist) in
+        let tstmtstr = (List.fold_left (fun ret tstmt_ -> ret @ (handle_tstmt fkey tstmt_ refnewenv)) [] tstmtlist) in
         [cat_string_list_with_space (["for ("] @ f1 @ [";"] @ f2 @ [";"] @ f3 @ [")"])] @
         ["{"] @ tstmtstr @ ["}"]
     | TForeach(_) -> [] (* TODO *)
     | TWhile(expr_, tstmtlist) ->
         [cat_string_list_with_space (["while ("] @ (handle_texpr expr_ refnewenv))] @
-        (List.fold_left (fun ret tstmt_ -> ret @ (handle_tstmt tstmt_ refnewenv)) [] tstmtlist)
+        (List.fold_left (fun ret tstmt_ -> ret @ (handle_tstmt fkey tstmt_ refnewenv)) [] tstmtlist)
 
 (* take tstmt list and return string list *)
-let handle_body body refenv =
+let handle_body fkey body refenv =
     let refnewenv = ref (append_new_level !refenv) in
-    let body_code = List.fold_left (fun ret tstmt_ -> ret @ (handle_tstmt tstmt_ refnewenv)) [] body in
+    let body_code = List.fold_left (fun ret tstmt_ -> ret @ (handle_tstmt fkey tstmt_ refnewenv)) [] body in
     ["{"] @ body_code @ ["}"]
 
 (* return string list *)
-(* take a function declaration and generate the string list *)
-let handle_fdecl fd refenv =
+(* take a function key, declaration and generate the string list *)
+let handle_fdecl fkey fd refenv =
     let refnewenv = ref (append_new_level !refenv) in
     match fd with
     | {tret=rt; tfname=name; tformals=fm; tbody=body ;_} ->
-        (*
         let nfm = 
         (
-            match rt with
-            (* a fly function, add signal to the end of fm *)
-            | Signal(st) -> print_string name; fm @ [(name ^ "_signal", rt)] 
+            match (find_hash signal_funcs fkey) with
             (* a normal function *)
-            | _ -> fm
+            | None -> fm
+            (* a fly function, add signal to the end of fm *)
+            | Some({vn=_name;vt=_type}) -> fm @ [(_name, _type)]
         ) in
-        *)
-        let fmstr = (handle_fm fm refnewenv) in
-        let bodystr = (handle_body body refnewenv) in
+        let fmstr = (handle_fm nfm refnewenv) in
+        let bodystr = (handle_body fkey body refnewenv) in
         [ cat_string_list_with_space [(type_to_code_string rt);name;fmstr]] @ bodystr
 
 let code_header = [
@@ -202,14 +239,6 @@ let code_predefined_class = [
     "   }";
     "};"]
 
-let (fundone : (string, string) Hashtbl.t) = Hashtbl.create 16
-
-let find_hash ht key =
-    try
-        Some (Hashtbl.find ht key)
-    with
-    | Not_found -> None
-
 (* take a texp and return function key list *)
 let rec texp_helper texp_ =
     match texp_ with
@@ -226,7 +255,15 @@ let rec texp_helper texp_ =
             (List.fold_left (fun str item -> str ^ "@" ^ item) "" (List.map type_to_string expr_types_list)) in
             [hash_key] @ (List.fold_left (fun ret exp_ -> ret @ (texp_helper exp_)) [] texprlist)
         )
-    | TFly ((fn, texpl), t) -> texp_helper (TCall((fn, texpl), t))
+    | TFly ((fn, texpl), t) -> 
+        ignore(
+            let typel = List.map get_expr_type_info texpl in
+            let hash_key = fn ^
+                (List.fold_left 
+                (fun str item -> str ^ "@" ^ item) "" (List.map type_to_string typel)) in
+            add_hash signal_funcs hash_key {vn=fn ^ "_signal"; vt=t}
+        );
+        texp_helper (TCall((fn, texpl), t))
     (* TObjCall of (string * string * texpr list) * typ TODO*)
     | TObjCall (_) -> []
     (* TFunc of (string list * texpr) * typ *) (* lambda TODO*)
@@ -283,7 +320,7 @@ let rec dfs ht fkey refenv =
                 match fd with
                 | {tbody=body; _} ->
                     let fklist = List.fold_left (fun ret tstmt_ -> ret @ (tstmt_helper tstmt_)) [] body in
-                    (List.fold_left (fun ret key_ -> ret @ (dfs ht key_ refenv)) [] fklist) @ (handle_fdecl fd refenv)
+                    (List.fold_left (fun ret key_ -> ret @ (dfs ht key_ refenv)) [] fklist) @ (handle_fdecl fkey fd refenv)
                 )
         )
     | _ -> []
