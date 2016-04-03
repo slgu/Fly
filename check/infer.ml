@@ -483,6 +483,18 @@ let rec infer_func fdecl hash_key type_list level_env =
                     TFor (init_texpr, judge_texpr, loop_texpr, tstmt_list)
             | _ -> failwith ("judge expr not bool type")
             end
+        | While (judge_expr, stmt_list) ->
+            let judge_texpr = infer_expr judge_expr
+            in let judge_texpr_type = get_expr_type_info judge_texpr
+            in begin
+            match judge_texpr_type with
+            | Bool ->
+                ref_create_env();
+                let tstmt_list = List.map infer_stmt stmt_list
+                in ref_back_env();
+                    TWhile (judge_texpr, tstmt_list)
+            | _ -> failwith("judge expr not bool type")
+            end
         (* TODO complete other cases*)
         | _ -> TBlock []
     in

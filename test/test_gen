@@ -17,12 +17,10 @@ func coolfunc(b, v) {
     j = 2;
     j = 3;
 
-/*
     while (j < 5) {
         print(j);
         j = j+1;
     };
-*/
 
     print(ret);
     print(v);
