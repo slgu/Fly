@@ -1,5 +1,9 @@
 class a {
-
+    who:int;
+    a:float;
+    func fuck(aa) {
+        print(aa);
+    }
 }
 
 func gcd(a, b) {

@@ -40,9 +40,6 @@ rule token = parse
 | "::" {SCOPE}
 | "while"  { WHILE }
 | "return" { RETURN }
-| "int"    { INT }
-| "bool"   { BOOL }
-| "void"   { VOID }
 | "true"   { TRUE }
 (*add null support*)
 | "null" {NULL}

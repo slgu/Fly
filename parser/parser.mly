@@ -11,7 +11,7 @@ open Ast
 %token JINHAO
 %token NULL SCOPE
 %token CHAN FLY REGISTER DISPATCH EXEC
-%token RETURN IF ELSE FOR WHILE INT BOOL VOID
+%token RETURN IF ELSE FOR WHILE
 %token LARROW RARROW VERTICAL LMBRACE RMBRACE FUNC
 %token COLON DOT DOLLAR CLASS
 %token <int> LITERAL
@@ -55,32 +55,35 @@ fdecl:
     formals = $4;
     body = $7 } }
 
+
+
+
 variable_ref:
-    ID COLON typedef {
+    | ID COLON ID {
+        let y =
+        begin
+        match $3 with
+        | "int" -> Int
+        | "bool" -> Bool
+        | "void" -> Void
+        | "string" -> String
+        | "float" -> Float
+        | x -> Class x
+        end
+        in ($1, y)
+    }
+    | ID COLON typedef {
         ($1, $3)
     }
+
 
 variable_defs_opt:
     /*nothing*/ {[]}
     | variable_defs {$1}
 
 variable_defs:
-    variable_ref {[$1]}
-    | variable_defs SEMI variable_ref {$3 :: $1}
-
-cdecls:
-    /* nothing*/ {[]}
-    | cdecls cdecl {$2 :: $1}
-
-/* class definition */
-cdecl:
-    CLASS ID LBRACE variable_defs_opt fdecls RBRACE {
-        {
-            cname = $2;
-            func_decls = $5;
-            member_binds = $4
-        }
-    }
+    variable_ref SEMI{[$1]}
+    | variable_ref SEMI variable_defs {$1 :: $3}
 
 typedef_list:
     typedef {[$1]}
@@ -94,11 +97,6 @@ typedef_list_opt:
 typedef:
     ID JINHAO typedef_list_opt JINHAO {
         match $1 with
-        | "int" -> Int
-        | "bool" -> Bool
-        | "void" -> Void
-        | "string" -> String
-        | "float" -> Float
         | "set" -> begin
                 match $3 with
                 |[x] -> Set x
@@ -109,10 +107,20 @@ typedef:
                 | [x;y] -> Map (x,y)
                 | _ -> failwith ("map just two parameter")
                 end
-        | x -> begin match $3 with
-            | [] -> Class x
-            | _ -> failwith("not support for template class")
-            end
+        | _ -> failwith ("not suppport template except set map")
+    }
+cdecls:
+    /* nothing*/ {[]}
+    | cdecls cdecl {$2 :: $1}
+
+/* class definition */
+cdecl:
+    CLASS ID LBRACE variable_defs_opt fdecls RBRACE {
+        {
+            cname = $2;
+            func_decls = $5;
+            member_binds = $4
+        }
     }
 
 formals_opt:
@@ -269,8 +277,3 @@ actuals_opt:
 actuals_list:
     expr                    { [$1] }
     | actuals_list COMMA expr { $3 :: $1 }
-
-
-
-
-/* TODO pattern match add to expr*/
