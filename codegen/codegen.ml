@@ -29,16 +29,16 @@ let rec cat_string_list_with_comma sl =
 (* take a formal and generate the string *)
 let handle_fm formals refenv =
     let fstr =
-        List.fold_left 
-        (fun ret (str_, type_) -> 
+        List.fold_left
+        (fun ret (str_, type_) ->
             ignore(update_env (!refenv) str_ type_);
             ret ^ " " ^ (type_to_code_string type_) ^ " " ^ str_ ^ ",") "" formals in
     let len = (String.length fstr) in
     let trimed = if len > 0 then (String.sub fstr 0 (len-1)) else fstr in
     "(" ^ trimed ^ ")"
-                        
+
 (* take signal name and fly call, return a string list *)
-let rec handle_fly_expr str expr refenv = 
+let rec handle_fly_expr str expr refenv =
     match expr with
     | TFly((fn, texpr_list),t) ->
             let param = [cat_string_list_with_comma (List.fold_left (fun ret ex -> ret@(handle_texpr ex refenv)) [] texpr_list)] in
@@ -84,7 +84,7 @@ and handle_texpr expr refenv =
         )
     | TObjCall(_) -> [] (* TODO *)
     | TFunc(_) -> [] (* TODO *)
-    | TAssign((str, expr), ty) -> 
+    | TAssign((str, expr), ty) ->
         let res = search_key (!refenv) str in
         (
             match res with
@@ -93,7 +93,7 @@ and handle_texpr expr refenv =
                 (
                     match ty with
                     (* deal with signal assignment *)
-                    | Signal(x) -> 
+                    | Signal(x) ->
                         [(type_to_code_string ty) ^ " " ^ str ^ "(new Signal<" ^ (type_to_code_string x) ^ ">());";] @
                         handle_fly_expr str expr refenv
                     (* normal *)
@@ -159,11 +159,11 @@ let handle_fdecl fd refenv =
     match fd with
     | {tret=rt; tfname=name; tformals=fm; tbody=body ;_} ->
         (*
-        let nfm = 
+        let nfm =
         (
             match rt with
             (* a fly function, add signal to the end of fm *)
-            | Signal(st) -> print_string name; fm @ [(name ^ "_signal", rt)] 
+            | Signal(st) -> print_string name; fm @ [(name ^ "_signal", rt)]
             (* a normal function *)
             | _ -> fm
         ) in
@@ -179,7 +179,7 @@ let code_header = [
     "#include <mutex>";
     "#include <condition_variable>";
     "#include <queue>";
-    "using namespace std;"] 
+    "using namespace std;"]
 
 let code_predefined_class = [
     "template <typename T> class Signal {";
@@ -289,12 +289,12 @@ let rec dfs ht fkey refenv =
     | _ -> []
 
 (*
-let ht_left ht = 
-    Hashtbl.fold 
-    (fun k v ret -> 
+let ht_left ht =
+    Hashtbl.fold
+    (fun k v ret ->
         let sfd = find_hash fundone k in
         match sfd with
-        | None -> 
+        | None ->
             ignore(Hashtbl.add fundone k "dummy");
             (
                 match v with

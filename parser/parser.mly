@@ -24,6 +24,7 @@ open Ast
 %left AND
 %left EQ NEQ
 %left LT GT LEQ GEQ SADD
+%left MOD
 %left PLUS MINUS
 %left TIMES DIVIDE
 %right NOT NEG
