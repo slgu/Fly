@@ -427,8 +427,10 @@ let rec infer_func fdecl hash_key type_list level_env =
                         | {formals = param_list;_} ->
                         let param_len = List.length param_list and true_len = List.length expr_types
                         in if param_len = true_len + binding_len + 1 then
+                            (*generate t_funcdecl for this call*)
+                            let _ = infer_func_by_name fname (arr @ expr_types @ [x])
                             (*always void for register*)
-                            TRegister ((signal_name, name, texpr_list), Void)
+                            in TRegister ((signal_name, name, texpr_list), Void)
                             else failwith ("param num not consistent")
                         end
                 | _ -> failwith ("not a clojure or function when register call")
@@ -482,6 +484,18 @@ let rec infer_func fdecl hash_key type_list level_env =
                 in ref_back_env();
                     TFor (init_texpr, judge_texpr, loop_texpr, tstmt_list)
             | _ -> failwith ("judge expr not bool type")
+            end
+        | While (judge_expr, stmt_list) ->
+            let judge_texpr = infer_expr judge_expr
+            in let judge_texpr_type = get_expr_type_info judge_texpr
+            in begin
+            match judge_texpr_type with
+            | Bool ->
+                ref_create_env();
+                let tstmt_list = List.map infer_stmt stmt_list
+                in ref_back_env();
+                    TWhile (judge_texpr, tstmt_list)
+            | _ -> failwith("judge expr not bool type")
             end
         (* TODO complete other cases*)
         | _ -> TBlock []
@@ -555,6 +569,9 @@ and infer_func_by_name fname type_list =
         end
 
 
+let debug_ast_cdecl ast = match ast with
+    | Program (cdecls, _) -> List.iter (fun item -> print_endline (debug_cdecl item)) cdecls
+
 (* perform static type checking and inferrence*)
 let infer_check (ast : program) =
     add_build_in_func(); (*first add some build in func name*)
@@ -562,6 +579,8 @@ let infer_check (ast : program) =
     (*just infer the main function and recur infer all involved functions *)
     let _ =  infer_func_by_name "main" []
     in
+    debug_ast_cdecl ast;
+    debug_t_func_binds();
     (*
     print_endline (debug_t_fdecl main_fdecl);
     *)

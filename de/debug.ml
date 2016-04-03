@@ -67,6 +67,12 @@ let debug_fdecl (fdecl : func_decl) = match fdecl with
         "function name:" ^ name ^ ", " ^ "params:" ^ (List.fold_left (fun res item -> res ^ "," ^ item) "" param_list)
         ^ ", body:" ^ (List.fold_left (fun res item -> res ^ "," ^ (debug_stmt item)) "" stmts)
 
+(*debug for class definition*)
+let debug_cdecl cdecl = match cdecl with
+    | {cname=name;member_binds=binds;_} ->
+        "class name:" ^ name ^ "\n" ^ "each member variables:\n"
+            ^ (List.fold_left (fun res (mname, mtype) -> res ^ mname ^ ":" ^ (type_to_string mtype) ^ "\n") "" binds)
+
 (*debug for typed things*)
 let rec debug_texpr = function
       TLiteral a -> "literal: " ^ (string_of_int a)

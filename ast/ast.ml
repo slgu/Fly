@@ -110,7 +110,7 @@ type func_decl = {
 
 type class_decl = {
         cname : string; (* class name *)
-        assign_exprs : expr list; (* member variables *)
+        member_binds:  (string * typ) list; (* member variables*)
         func_decls : func_decl list; (* member functions *)
     }
 

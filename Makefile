@@ -5,7 +5,7 @@ gen_dir = codegen
 debug_dir = de
 all:
 	ocamllex $(parser_dir)/scanner.mll
-	ocamlyacc -v $(parser_dir)/parser.mly
+	ocamlyacc -q -v $(parser_dir)/parser.mly
 	ocamlc -c $(ast_dir)/ast.ml
 	ocamlc -I $(ast_dir) -c $(ast_dir)/sast.ml
 	ocamlc -I $(ast_dir) -c $(parser_dir)/parser.mli
@@ -49,7 +49,7 @@ gen:
 	ocamlc -o fly $(parser_dir)/scanner.cmo $(parser_dir)/parser.cmo $(ast_dir)/ast.cmo $(ast_dir)/sast.cmo $(debug_dir)/debug.cmo $(check_dir)/util.cmo $(check_dir)/env.cmo $(check_dir)/infer.cmo $(gen_dir)/codegen.cmo fly_testgen.cmo
 	cat ${input} | ./fly
 	g++ tmp.cc
-	./a.out
+	#./a.out
 	rm $(parser_dir)/scanner.ml $(parser_dir)/parser.mli $(parser_dir)/parser.ml $(parser_dir)/parser.output */*.cm* *.cm* a.out
 debug:
 	ocamlc -c $(ast_dir)/ast.ml

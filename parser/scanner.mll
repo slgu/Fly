@@ -24,6 +24,7 @@ rule token = parse
 | "=="     { EQ }
 | "!="     { NEQ }
 | '<'      { LT }
+| "@"      { AT }
 | "<="     { LEQ }
 | ">"      { GT }
 | ">="     { GEQ }
@@ -31,6 +32,8 @@ rule token = parse
 | "&&"     { AND }
 | "||"     { OR }
 | "!"      { NOT }
+| "<#"     { LJINHAO}
+| "#>"     { RJINHAO}
 | "->"     { RARROW } (* for lambda expression *)
 | "<-"     { LARROW } (* for chan *)
 | "if"     { IF }
@@ -39,9 +42,6 @@ rule token = parse
 | "::" {SCOPE}
 | "while"  { WHILE }
 | "return" { RETURN }
-| "int"    { INT }
-| "bool"   { BOOL }
-| "void"   { VOID }
 | "true"   { TRUE }
 (*add null support*)
 | "null" {NULL}

@@ -6,11 +6,12 @@ open Ast
 %token SEMI LPAREN RPAREN LBRACE RBRACE COMMA
 %token PLUS MINUS TIMES DIVIDE ASSIGN NOT
 %token EQ NEQ LT LEQ GT GEQ TRUE FALSE AND OR SADD
-%token SET MAP
+%token SET MAP AT
 %token MOD
+%token LJINHAO RJINHAO
 %token NULL SCOPE
 %token CHAN FLY REGISTER DISPATCH EXEC
-%token RETURN IF ELSE FOR WHILE INT BOOL VOID
+%token RETURN IF ELSE FOR WHILE
 %token LARROW RARROW VERTICAL LMBRACE RMBRACE FUNC
 %token COLON DOT DOLLAR CLASS
 %token <int> LITERAL
@@ -24,6 +25,7 @@ open Ast
 %left AND
 %left EQ NEQ
 %left LT GT LEQ GEQ SADD
+%left MOD
 %left PLUS MINUS
 %left TIMES DIVIDE
 %right NOT NEG
@@ -53,17 +55,68 @@ fdecl:
     formals = $4;
     body = $7 } }
 
+
+
+
+variable_ref:
+    ID COLON typedef {
+        ($1, $3)
+    }
+
+
+variable_defs_opt:
+    /*nothing*/ {[]}
+    | variable_defs {$1}
+
+variable_defs:
+    variable_ref SEMI{[$1]}
+    | variable_ref SEMI variable_defs {$1 :: $3}
+
+typedef_list:
+    typedef {[$1]}
+    | typedef_list COMMA typedef {$3::$1}
+
+typedef_list_opt:
+    /* nothing*/ {[]}
+    | typedef_list {List.rev $1}
+
+/*typedef description*/
+typedef:
+    ID {
+        match $1 with
+        | "Int" -> Int
+        | "Bool" -> Bool
+        | "Void" -> Void
+        | "String" -> String
+        | "Float" -> Float
+        | "Map" | "Set" -> failwith ("set map init must with parameters")
+        | x -> Class x
+    }
+    | ID LJINHAO typedef_list_opt RJINHAO {
+        match $1 with
+        | "Set" -> begin
+                match $3 with
+                |[x] -> Set x
+                | _ -> failwith ("set just with one parameter")
+                end
+        | "Map" -> begin
+                match $3 with
+                | [x;y] -> Map (x,y)
+                | _ -> failwith ("map just two parameter")
+                end
+        | _ -> failwith ("not suppport template except set map")
+    }
 cdecls:
     /* nothing*/ {[]}
     | cdecls cdecl {$2 :: $1}
 
 /* class definition */
 cdecl:
-    CLASS ID LBRACE assign_exprs fdecls RBRACE {
+    CLASS ID LBRACE variable_defs_opt fdecls RBRACE {
         {
             cname = $2;
             func_decls = $5;
-            assign_exprs = $4
+            member_binds = $4
         }
     }
 
@@ -156,10 +209,6 @@ array:
 list_comprehen:
     LMBRACE expr VERTICAL ID LARROW expr RMBRACE { ListComprehen($2, $4, $6)}
 
-assign_exprs:
-    assign_expr SEMI {[$1]}
-    | assign_exprs assign_expr SEMI {$2 :: $1}
-
 assign_expr:
     /*assign expr*/
     ID ASSIGN expr   { Assign($1, $3) }
@@ -225,8 +274,3 @@ actuals_opt:
 actuals_list:
     expr                    { [$1] }
     | actuals_list COMMA expr { $3 :: $1 }
-
-
-
-
-/* TODO pattern match add to expr*/

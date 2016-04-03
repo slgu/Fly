@@ -1,9 +1,9 @@
 SAST:
 3. network code generated needed (to be done) MOST IMPORTANT TO design!!!
-5. recursive (to be done) Second important to design !!!
 7. global variable added (to be done) (maybe easy)
 8. set map list comprehen (to be done) (Third important)
-9. class design (Second important)
+9. class design (Second important) (is doing)
+
 
 CODEGEN:
 
