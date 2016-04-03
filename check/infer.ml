@@ -427,8 +427,10 @@ let rec infer_func fdecl hash_key type_list level_env =
                         | {formals = param_list;_} ->
                         let param_len = List.length param_list and true_len = List.length expr_types
                         in if param_len = true_len + binding_len + 1 then
+                            (*generate t_funcdecl for this call*)
+                            let _ = infer_func_by_name fname (arr @ expr_types @ [x])
                             (*always void for register*)
-                            TRegister ((signal_name, name, texpr_list), Void)
+                            in TRegister ((signal_name, name, texpr_list), Void)
                             else failwith ("param num not consistent")
                         end
                 | _ -> failwith ("not a clojure or function when register call")
@@ -574,6 +576,7 @@ let infer_check (ast : program) =
     (*just infer the main function and recur infer all involved functions *)
     let _ =  infer_func_by_name "main" []
     in
+    debug_t_func_binds();
     (*
     print_endline (debug_t_fdecl main_fdecl);
     *)
