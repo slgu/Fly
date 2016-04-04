@@ -7,7 +7,7 @@ func recv(x) {
 }
 
 func loop_wait() {
-    while(1) {
+    while(1==1) {
 
     };
 }
@@ -15,7 +15,6 @@ func loop_wait() {
 func main() {
     a = "Hello World";
     s = fly gen(a);
-
     loop_wait();
     return 0;
 }

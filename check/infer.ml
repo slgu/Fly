@@ -5,11 +5,17 @@ open Util
 open Debug
 open Env
 let (func_binds : (string, func_decl) Hashtbl.t) = Hashtbl.create 16
+(*it is the class_binds*)
 let (class_binds : (string, class_decl) Hashtbl.t) = Hashtbl.create 16
+
 (*typed function bindings*)
 let (t_func_binds: (string, t_func_decl) Hashtbl.t) = Hashtbl.create 16
+
 (*typed lambda bindings*)
 let (t_lambda_binds: (string, t_lambda_decl) Hashtbl.t) = Hashtbl.create 16
+
+(*typed class definition*)
+let (t_class_binds: (string, t_class_decl) Hashtbl.t) = Hashtbl.create 16
 
 let find_t_func name =
     try
@@ -151,7 +157,7 @@ let string_to_type s = match s with
     | _ -> failwith("this type not support")
 (* infer the function result given input params*)
 (*let rec infer fdecl env *)
-(* return a t_func_decl*)
+(* return a t_func_decl can be inside a class*)
 let rec infer_func fdecl hash_key type_list level_env =
     (*level_env is an ref variable modified by infer_expr and infer_stmt*)
     let ref_create_env ()=
@@ -281,6 +287,19 @@ let rec infer_func fdecl hash_key type_list level_env =
                 | Some x -> if expr_type = x then
                     TAssign ((varname, tepr), expr_type)
                     else failwith ("redefine " ^ varname ^ " with different type")
+                end
+        | MAssign (varname, mname, epr) ->
+            let tepr = infer_expr epr
+            in let expr_type = get_expr_type_info tepr
+            in let var = ref_search_id varname
+            in begin match var with
+                | Some (Class cname) ->
+                    let cdecl = find_class cname
+                    in let mvartype = get_class_member_type cdecl mname
+                    in if mvartype = expr_type then TMAssign ((varname, mname,tepr), mvartype)
+                    else failwith ("type not consistent in the obj assign")
+                | None -> failwith ("class obj meber assign without init obj")
+                | _ -> failwith (mname ^ " not exist in the class: " ^ varname)
                 end
         | Unop (unop, epr) ->
             let tepr = infer_expr epr
@@ -437,6 +456,20 @@ let rec infer_func fdecl hash_key type_list level_env =
                 end
             | _ -> failwith ("no signal type can not c")
             end
+        | ObjGen x ->
+            let cdecl = find_class x
+            in TObjGen (x, Class (get_class_name cdecl))
+        | Objid (x, y) ->
+            let ctype = ref_search_id x
+            in begin
+                match ctype with
+                | Some (Class cname) ->
+                    let cdecl = find_class cname
+                    in let mvartype = get_class_member_type cdecl y
+                    in TObjid ((x, y), mvartype)
+                | None -> failwith ("var used without defined: " ^ x)
+                | _ -> failwith ("not class obj can not dot id: " ^ x)
+                end
         (* TODO
         | ObjCall (cname, fname, expr_list) ->
         | Func (lname, rname, expr) ->

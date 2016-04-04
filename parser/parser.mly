@@ -212,6 +212,9 @@ list_comprehen:
 assign_expr:
     /*assign expr*/
     ID ASSIGN expr   { Assign($1, $3) }
+mvar_assign_expr:
+    /*member assign expr*/
+    ID DOT ID ASSIGN expr {MAssign ($1, $3, $5)}
 
 expr:
     /*basic variable and const*/
@@ -229,6 +232,7 @@ expr:
     | lambda_expr {$1} /* lambda init */
     | list_comprehen {$1} /* list comprehension */
     | assign_expr {$1} /* assign expr */
+    | mvar_assign_expr {$1} /* member variale assign expr*/
     /*basic operation for expr*/
     | expr PLUS   expr { Binop($1, Add,   $3) }
     | expr MINUS  expr { Binop($1, Sub,   $3) }
@@ -248,8 +252,13 @@ expr:
     | NOT expr         { Unop(Not, $2) }
     /*function call*/
     | ID LPAREN actuals_opt RPAREN { Call($1, $3) }
-    /*oop function call*/
+    /*class member function call*/
     | ID DOT ID LPAREN actuals_opt RPAREN {ObjCall($1, $3, $5)}
+    /*class member get*/
+    | ID DOT ID {Objid($1, $3)}
+    /*class generation syntax*/
+    | AT ID {ObjGen($2)}
+    /*class generation syntax*/
     /*expression is contained with () */
     | LPAREN expr RPAREN { $2 }
     /*network syntax*/

@@ -15,6 +15,7 @@ type texpr =
   | TObjCall of (string * string * texpr list) * typ(*invoke a method of an object*)
   | TFunc of (string list * texpr) * typ (*lambda expr*)
   | TAssign of (string * texpr) * typ
+  | TMAssign of (string * string * texpr) * typ
   | TListComprehen of (texpr * string * texpr) * typ (*can iterate a tuple?*)
   (*below are network specified exprs*)
   | TExec of string * typ
@@ -25,6 +26,8 @@ type texpr =
   | TChanbinop of (string * string) * typ
   | TFly of (string * texpr list) * typ
   | TFlyo of (string * string * texpr list) * typ
+  | TObjGen of string * typ
+  | TObjid of (string * string) * typ
 
 let get_expr_type_info tepr = match tepr with
     | TLiteral _ -> Int
@@ -51,6 +54,9 @@ let get_expr_type_info tepr = match tepr with
     | TChanbinop (_, x) -> x
     | TFly (_, x) -> x
     | TFlyo (_, x) -> x
+    | TObjGen (_, x) -> x
+    | TObjid (_, x) -> x
+    | TMAssign (_, x) -> x
 
 type tstmt =
     TBlock of tstmt list
@@ -80,6 +86,7 @@ type t_func_decl = {
         tbody: tstmt list;
         tret: typ (*the return value type*)
     }
+
 
 (*just raw t_fdecl*)
 let new_null_tfdecl() =
@@ -124,5 +131,13 @@ let rec get_rtype stmt_list = match stmt_list with
     | [] -> Void (*no return stmts just return void*)
     | (TReturn x::y) -> get_expr_type_info x
     | (x :: y) -> get_rtype y
+
+
+type t_class_decl = {
+        tcname: string;
+        member_binds: (string * typ) list;
+        t_func_decls: t_func_decl list;
+        (* member functions with overloading records*)
+    }
 
 (* debug code for sast*)
