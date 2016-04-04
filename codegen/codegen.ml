@@ -57,7 +57,7 @@ let handle_fm formals refenv =
     "(" ^ trimed ^ ")"
 
 (* take signal name and fly call, return a string list *)
-let rec handle_fly_expr str expr refenv =
+let rec handle_fly_expr signame expr refenv =
     match expr with
     | TFly((fn, texpr_list),t) ->
             let param = [cat_string_list_with_comma (List.fold_left (fun ret ex -> ret@(handle_texpr ex refenv)) [] texpr_list)] in
@@ -67,7 +67,7 @@ let rec handle_fly_expr str expr refenv =
                 | [""] -> []
                 | _ -> param @ [","]
             ) in
-            ["thread(";fn;","] @ param2 @ [str;").detach()"]
+            ["thread(";fn;","] @ param2 @ [signame;").detach()"]
     | _ -> raise (Failure ("Assigning something to Signal other than TFly"))
 
 (* take one expr and return a string list *)
@@ -134,7 +134,8 @@ and handle_texpr expr refenv =
     | TChan(_) -> [] (* TODO *)
     | TChanbinop(_) -> [] (* TODO *)
     | TChanunop(_) -> [] (* TODO *)
-    | TFly(_) -> [] (* TODO *)
+    | TFly((fn, texpr_list),t) ->
+        handle_fly_expr "shared_ptr <Signal<string>> (new Signal<string>())" (TFly((fn, texpr_list),t)) refenv
     | TFlyo(_) -> [] (* TODO *)
     | TNull(_) -> [] (* TODO *)
 
@@ -182,7 +183,7 @@ let rec handle_tstmt fkey tstmt_ refenv =
         ["{"] @ tstmtstr @ ["}"]
     | TForeach(_) -> [] (* TODO *)
     | TWhile(expr_, tstmtlist) ->
-        [cat_string_list_with_space (["while ("] @ (handle_texpr expr_ refnewenv))] @
+        [cat_string_list_with_space (["while ("] @ (handle_texpr expr_ refnewenv) @ [")"])] @
         (List.fold_left (fun ret tstmt_ -> ret @ (handle_tstmt fkey tstmt_ refnewenv)) [] tstmtlist)
 
 (* take tstmt list and return string list *)
@@ -264,6 +265,15 @@ let rec texp_helper texp_ =
             add_hash signal_funcs hash_key {vn=fn ^ "_signal"; vt=t}
         );
         texp_helper (TCall((fn, texpl), t))
+    | TRegister ((sign, fn, texpl), t) -> 
+        ignore(
+            let typel = List.map get_expr_type_info texpl in
+            let hash_key = fn ^
+                (List.fold_left 
+                (fun str item -> str ^ "@" ^ item) "" (List.map type_to_string typel)) in
+            add_hash signal_funcs hash_key {vn=fn ^ "_signal"; vt=t}
+        );
+        texp_helper (TCall((fn, texpl), t))
     (* TObjCall of (string * string * texpr list) * typ TODO*)
     | TObjCall (_) -> []
     (* TFunc of (string list * texpr) * typ *) (* lambda TODO*)
@@ -276,8 +286,6 @@ let rec texp_helper texp_ =
     | TExec (_) -> []
     (* TDispatch of (string * texpr list * string * string) * typ TODO *)
     | TDispatch (_) -> []
-    (* TRegister of (string * string * texpr list) * typ TODO *)
-    | TRegister ((sign, fn, texpl), t) -> texp_helper (TCall((fn, texpl), t))
     (* TChan of texpr * typ TODO *)
     | TChan (_) -> []
     (* TChanunop of string * typ TODO *)
