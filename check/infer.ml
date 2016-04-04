@@ -430,7 +430,7 @@ let rec infer_func fdecl hash_key type_list level_env =
                             (*generate t_funcdecl for this call*)
                             let _ = infer_func_by_name fname (arr @ expr_types @ [x])
                             (*always void for register*)
-                            in TRegister ((signal_name, name, texpr_list), Void)
+                            in TRegister ((signal_name, name, texpr_list), x)
                             else failwith ("param num not consistent")
                         end
                 | _ -> failwith ("not a clojure or function when register call")

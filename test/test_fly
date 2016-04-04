@@ -1,21 +1,20 @@
 func gen(a) {
+    print(a);
     return a;
 }
 
 func recv(x) {
+    print("Got it");
     print(x);
 }
 
-func loop_wait() {
-    while(1) {
-
-    };
-}
-
 func main() {
-    a = "Hello World";
-    s = fly gen(a);
+    fly gen("Hello World 1");
 
-    loop_wait();
+    fly gen("Hello World 2");
+    
+    s = fly gen("Hello World 3");
+    register s recv();
+
     return 0;
 }
