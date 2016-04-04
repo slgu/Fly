@@ -65,6 +65,7 @@ type expr =
   | Null of string (*nullpointer belong to class s*)
   | Float of float
   | Id of string (* id token *)
+  | Objid of string * string
   | Set of expr list
   | Map of (expr * expr) list
   | Array of expr list
@@ -72,9 +73,11 @@ type expr =
   | Binop of expr * op * expr
   | Unop of uop * expr
   | Call of string * expr list
+  | ObjGen of string
   | ObjCall of string * string * expr list (*invoke a method of an object*)
   | Func of string list * expr (*lambda expr*)
   | Assign of string * expr
+  | MAssign of string * string * expr
   | ListComprehen of expr * string * expr (*can iterate a tuple?*)
   | Noexpr
   (*below are network specified exprs*)
@@ -114,5 +117,10 @@ type class_decl = {
         func_decls : func_decl list; (* member functions *)
     }
 
+let get_class_name cdecl = match cdecl with
+    | {cname=name;_} -> name
+
+let get_class_member_type cdecl var = match cdecl with
+    | {member_binds=binds;_} -> List.assoc var binds
 
 type program = Program of class_decl list * func_decl list

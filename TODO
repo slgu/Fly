@@ -3,6 +3,14 @@ SAST:
 7. global variable added (to be done) (maybe easy)
 8. set map list comprehen (to be done) (Third important)
 9. class design (Second important) (is doing)
+    step: generate the t_class_binds
+        from 1.objcall
+    expr generate:
+        id.id (type checking is ok)
+        id.call() (also can be clojure binding the same)
+        id() (class generation easy)
+        from id.call() we can get the actual call to generate
+            t_func_decl
 
 
 CODEGEN:
