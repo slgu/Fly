@@ -8,13 +8,30 @@ func recv(x) {
     print(x);
 }
 
+func add(a, b, c) {
+    sum = a + b + c;
+    return sum;
+}
+
+func get_ans(ans) {
+    print("Got it");
+    print(ans);
+}
+
 func main() {
+
     fly gen("Hello World 1");
 
     fly gen("Hello World 2");
     
     s = fly gen("Hello World 3");
     register s recv();
+
+    s1 = fly add(1, 2, 3);
+    register s1 get_ans();
+
+    while(true) {
+    };
 
     return 0;
 }

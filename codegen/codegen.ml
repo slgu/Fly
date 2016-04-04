@@ -47,12 +47,9 @@ let rec cat_string_list_with_space sl =
 
 (* take a string list and concatenate them with interleaving comma into a single string *)
 let rec cat_string_list_with_comma sl =
-    match sl with
-    | [] -> ""
-    | hd::tl ->
-        let tmp = hd ^ "," ^ (cat_string_list_with_space tl) in
-        let len = (String.length tmp) in
-        if len > 0 then (String.sub tmp 0 (len-1)) else tmp
+    let tmp = List.fold_left (fun ret ele -> ret ^ ele ^ ",") "" sl in
+    let len = (String.length tmp) in
+    if len > 0 then (String.sub tmp 0 (len-1)) else tmp
 
 (* take a formal and generate the string *)
 let handle_fm formals refenv =
@@ -113,7 +110,7 @@ and handle_texpr expr refenv =
     | TObjCall(_) -> [] (* TODO *)
     | TFunc(_) -> [] (* TODO *)
     | TAssign((str, expr), ty) ->
-        let res = search_key (!refenv) str in
+        let res = (search_key (!refenv) str) in
         (
             match res with
             | None -> (* variable is first seen here *)
@@ -148,6 +145,9 @@ and handle_texpr expr refenv =
         handle_fly_expr sign (TFly((fn, []),t)) refenv
     | TFlyo(_) -> [] (* TODO *)
     | TNull(_) -> [] (* TODO *)
+    | TObjGen(_) -> [] (* TODO *)
+    | TObjid(_) -> [] (* TODO *)
+    | TMAssign(_) -> [] (* TODO *)
 
 (* take one tstmt and return a string list *)
 let rec handle_tstmt fkey tstmt_ refenv =
@@ -194,7 +194,9 @@ let rec handle_tstmt fkey tstmt_ refenv =
     | TForeach(_) -> [] (* TODO *)
     | TWhile(expr_, tstmtlist) ->
         [cat_string_list_with_space (["while ("] @ (handle_texpr expr_ refnewenv) @ [")"])] @
-        (List.fold_left (fun ret tstmt_ -> ret @ (handle_tstmt fkey tstmt_ refnewenv)) [] tstmtlist)
+        ["{"] @
+        (List.fold_left (fun ret tstmt_ -> ret @ (handle_tstmt fkey tstmt_ refnewenv)) [] tstmtlist) @
+        ["}"]
 
 (* take tstmt list and return string list *)
 let handle_body fkey body refenv =
