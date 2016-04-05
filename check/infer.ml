@@ -28,21 +28,56 @@ let find_func name =
     try
         Hashtbl.find func_binds name
     with
-    | Not_found -> failwith ("not this function" ^ name)
+    | Not_found -> failwith ("not this function:" ^ name)
 
 let find_class name =
     try
         Hashtbl.find class_binds name
     with
-    | Not_found -> failwith ("not this class" ^ name)
+    | Not_found -> failwith ("not this class:" ^ name)
 
-(*
+
+let find_cfunc cname fname =
+    let cdecl = find_class cname
+    in match cdecl with
+        | {cname=name;member_binds=binds;func_decls=fdecls} ->
+            let rec search_func_by_name fdecls fname = begin
+                match fdecls with
+                | [] -> None
+                | (x::y) -> begin match x with
+                    | {fname=thisfname;_} -> if thisfname = fname then Some x else search_func_by_name y fname
+                end
+                end
+            in search_func_by_name fdecls fname
+
+let find_t_class name =
+    try
+        Hashtbl.find t_class_binds name
+    with
+    | Not_found -> failwith ("not this class:" ^ name)
+
 let init_tclass () =
     let f k v = match v with
         | {cname=name;member_binds=binds;_} ->
-            Hashtbl.add t_class_decl k {tcname=name;member_binds=binds;t_func_decl=[]}
+            Hashtbl.add t_class_binds k {tcname=name;member_binds=binds;t_func_decls=[]}
     in Hashtbl.iter f class_binds
-*)
+
+let update_tclass tcdecl  tfdecl =
+    match tcdecl with
+    | {tcname=name;member_binds=binds;t_func_decls=tfdecls} ->
+        {tcname=name;member_binds=binds;t_func_decls=tfdecl::tfdecls}
+
+let rec search_hash_key tfdecls hash_key = match tfdecls with
+    | [] -> None
+    | (x :: y) -> begin match x with
+        | {ttkey=this_hash_key;_} -> if this_hash_key = hash_key then Some x else search_hash_key y hash_key
+        end
+
+let find_t_mfunc cname hashkey =
+    let tclass = find_t_class cname
+    in match tclass with
+        | {tcname=name;member_binds=binds;t_func_decls=tfdecls} ->
+            search_hash_key tfdecls hashkey
 
 let check_non_exist_func name =
     try
@@ -57,6 +92,10 @@ let check_non_exist_class name =
         failwith ("exist this bind class:" ^ name)
     with
     | Not_found -> ()
+
+let check_not_void thistype = match thistype with
+    | Void -> ()
+    | _ -> failwith ("void error")
 
 (*create a copy of the function env*)
 let func_level_env () =
@@ -288,7 +327,7 @@ let rec infer_func fdecl hash_key type_list level_env =
         | Assign (varname, epr) ->
             let tepr = infer_expr epr
             in let expr_type = get_expr_type_info tepr
-            in let var = ref_search_id varname
+            in check_not_void expr_type;let var = ref_search_id varname
             in  begin
                 match var with
                 | None -> ref_update_env varname expr_type;
@@ -300,7 +339,7 @@ let rec infer_func fdecl hash_key type_list level_env =
         | MAssign (varname, mname, epr) ->
             let tepr = infer_expr epr
             in let expr_type = get_expr_type_info tepr
-            in let var = ref_search_id varname
+            in check_not_void expr_type;let var = ref_search_id varname
             in begin match var with
                 | Some (Class cname) ->
                     let cdecl = find_class cname
@@ -319,36 +358,6 @@ let rec infer_func fdecl hash_key type_list level_env =
                     TUnop ((unop, tepr),Bool)
                 | Neg -> if expr_type != Int && expr_type != Float then failwith ("neg with not int or float")
                         else  TUnop ((unop, tepr), expr_type)
-                end
-            (*clojure*)
-        | Call (name, expr_list) ->
-            (* find in bindings*)
-            let ftype = ref_search_id name
-            in
-                begin
-                match ftype with
-                | None -> failwith("unknow refer" ^ name)
-                | Some (Func (fname, arr)) -> (*with*)
-                    let texpr_list = List.map infer_expr expr_list
-                    in let expr_types = List.map get_expr_type_info texpr_list
-                    in let fdecl = find_func fname (* find the function*)
-                    in let binding_len = List.length arr
-                    in
-                        begin
-                        match fdecl with
-                        | {formals = param_list;_} -> (*set env*)
-                        let param_len = List.length param_list and true_len = List.length expr_types
-                        in if param_len = true_len + binding_len then (* actual a function call *)
-                            let rtype = get_func_result (infer_func_by_name fname (List.append arr expr_types))
-                            in TCall ((name, texpr_list), rtype)
-                            else
-                            if param_len < true_len + binding_len then
-                                failwith ("too many args")
-                            else
-                            TCall ((name, texpr_list), Func (fname, List.append arr expr_types))
-                            (* a clojure which just a function bind less than true parameters*)
-                        end
-                | _ -> failwith  ("not a clojure or function obj when functioncall")
                 end
         | Func (param_list, epr) ->
             (*lambda expression*)
@@ -479,8 +488,66 @@ let rec infer_func fdecl hash_key type_list level_env =
                 | None -> failwith ("var used without defined: " ^ x)
                 | _ -> failwith ("not class obj can not dot id: " ^ x)
                 end
+        (*clojure*)
+        | Call (name, expr_list) ->
+            (* find in bindings*)
+            let ftype = ref_search_id name
+            in
+                begin
+                match ftype with
+                | None -> failwith("unknow refer" ^ name)
+                | Some (Func (fname, arr)) -> (*with*)
+                    let texpr_list = List.map infer_expr expr_list
+                    in let expr_types = List.map get_expr_type_info texpr_list
+                    in let fdecl = find_func fname (* find the function*)
+                    in let binding_len = List.length arr
+                    in
+                        begin
+                        match fdecl with
+                        | {formals = param_list;_} -> (*set env*)
+                        let param_len = List.length param_list and true_len = List.length expr_types
+                        in if param_len = true_len + binding_len then (* actual a function call *)
+                            let rtype = get_func_result (infer_func_by_name fname (List.append arr expr_types))
+                            in TCall ((name, texpr_list), rtype)
+                            else
+                            if param_len < true_len + binding_len then
+                                failwith ("too many args")
+                            else
+                            TCall ((name, texpr_list), Func (fname, List.append arr expr_types))
+                            (* a clojure which just a function bind less than true parameters*)
+                        end
+                | _ -> failwith  ("not a clojure or function obj when functioncall")
+                end
+        (*Haha OBJ CALL!*)
+        | ObjCall (varname, fname, expr_list) ->
+            (* find in bindings*)
+            let ftype = ref_search_id varname
+            in (*check class variable*)
+                begin
+                match ftype with
+                | Some (Class cname) ->
+                    (*get expr type*)
+                    let texpr_list = List.map infer_expr expr_list
+                    in let expr_types = List.map get_expr_type_info texpr_list
+                    in let somefdecl = find_cfunc cname fname
+                    in begin match somefdecl with
+                    | None -> failwith ("this member func not found: " ^ cname ^ " " ^ fname)
+                    | Some fdecl ->
+                        (*check list length, don't consider meberfunc clojure now*)
+                        begin match fdecl with
+                        | {formals=param_list;_} ->
+                        let param_len = List.length param_list and true_len = List.length expr_types
+                        in if param_len = true_len then
+                            let rtype = get_func_result (infer_cfunc_by_name cname fname expr_types)
+                            in TObjCall ((varname, fname, texpr_list), rtype)
+                        else
+                            failwith ("args number not the same")
+                        end
+                    end
+                | None -> failwith ("var used without defined: " ^ varname)
+                | _ -> failwith ("not class obj can not dot id: " ^ varname)
+                end
         (* TODO
-        | ObjCall (cname, fname, expr_list) ->
         | Func (lname, rname, expr) ->
         | ListComprehen (f_expr, varname, s_expr) -> *)
         | _ -> TLiteral 142857
@@ -607,10 +674,45 @@ and infer_func_by_name fname type_list =
             in if rtype == Undef then failwith ("no stop recurisve call" ^hash_key)
             else x
         end
-
-and infer_cfunc_by_name cname fname type_kist =
+(*infer a class member function call*)
+and infer_cfunc_by_name cname fname type_list =
     let hash_key = gen_hash_key fname type_list
-    in let hash_value =
+    in let hash_value = find_t_mfunc cname hash_key
+    in match hash_value with
+        | None ->
+            let somefdecl = find_cfunc cname fname
+            in begin match somefdecl with
+            | None -> failwith ("no this member func")
+            | Some fdecl ->
+                (*bind the env*)
+                begin match fdecl with
+                    | {formals=param_list;_}->
+                    (*first create a binding*)
+                    Hashtbl.add t_func_binds hash_key (new_null_tfdecl());
+                    let tcdecl = find_t_class cname
+                    in
+                    (*create func env*)
+                    let func_env =
+                        func_level_env()
+                    in
+                    (*create env and add param type*)
+                    let new_func_level_env =
+                        List.fold_left2 (fun env param_name this_type -> update_env env param_name this_type) (init_level_env()) param_list type_list
+                    in
+                    let ref_new_func_level_env = ref(List.rev (func_env::new_func_level_env))
+                    in let tfdecl = infer_func fdecl hash_key type_list ref_new_func_level_env
+                    in
+                    let new_tcdecl = update_tclass tcdecl tfdecl
+                    in
+                        (*replace in the global t_class_binds hash*)
+                        Hashtbl.replace t_class_binds cname new_tcdecl;
+                        tfdecl
+                end
+            end
+        | Some x ->
+            let rtype = get_func_result x
+            in if rtype = Undef then failwith ("no class stop recurisve call" ^hash_key)
+            else x
 
 let debug_ast_cdecl ast = match ast with
     | Program (cdecls, _) -> List.iter (fun item -> print_endline (debug_cdecl item)) cdecls
@@ -619,6 +721,7 @@ let debug_ast_cdecl ast = match ast with
 let infer_check (ast : program) =
     add_build_in_func(); (*first add some build in func name*)
     bind_name ast; (*second bind name*)
+    init_tclass();
     (*just infer the main function and recur infer all involved functions *)
     let _ =  infer_func_by_name "main" []
     in

@@ -22,7 +22,8 @@ func main() {
     aa = gcd(36, 6);
     bb = gcd(36, 6);
     c = @a;
-    c.who = "1";
+    c.who = 1;
+    dd = c.fuck(123);
     print(gcd(36,6));
     return 0;
 }
