@@ -1,0 +1,38 @@
+class dog {
+    name:string;
+    int:age;
+    owner:string;
+
+    func bark(to) {
+        msg = "Hi " + to + " my name is";
+        print(msg);
+        print(name);
+    }
+
+    func play() {
+        ans = age + 100;
+        print(ans);
+    }
+}
+
+class cat {
+    name:string;
+    int:age;
+    owner:string;
+
+    func meow(to) {
+        msg = "Hi " + to + " my name is";
+        print(msg);
+        print(name);
+    }
+
+    func play() {
+        ans = age + 100;
+        print(ans);
+    }
+}
+
+func main() {
+
+    return 0;
+}
