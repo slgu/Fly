@@ -384,11 +384,20 @@ let ht_left ht =
 *)
 
 (* take ht and return string list, which is code *)
-let build_list_from_ht ht =
+let build_func_from_ht ht =
     let g_env = init_level_env() in
     dfs ht "main" (ref g_env)
 
-let codegen ht =
-    let codelist = build_list_from_ht ht in
-    let buffer = code_header @ code_predefined_class @ codelist in
+(* take class_decl and return string list (code) TODO *)
+let handle_class cd =
+    []
+
+(* take ht of string->class_decl and return string list *)
+let build_class_from_ht cht =
+    Hashtbl.fold (fun k v code -> code @ (handle_class v)) cht []
+
+let codegen fht cht =
+    let func_codelist = build_func_from_ht fht in
+    let class_codelist = build_class_from_ht cht in
+    let buffer = code_header @ code_predefined_class @ class_codelist @ func_codelist in
     List.fold_left (fun ret ele -> ret ^ ele ^ "\n") "" buffer

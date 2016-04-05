@@ -617,5 +617,5 @@ let infer_check (ast : program) =
     (*
     print_endline (debug_t_fdecl main_fdecl);
     *)
-    t_func_binds
+    (t_func_binds, class_binds)
     (* search main function and do a static type infer*)
