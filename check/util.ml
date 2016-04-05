@@ -1,4 +1,5 @@
 (*code for generate random unique string*)
+open Ast
 let global_cnt = ref(0)
 
 let rec generate_str num =
@@ -12,3 +13,8 @@ let next_random_string () =
     let nxt = (!global_cnt) + 1
     in global_cnt := nxt;
     generate_str nxt
+
+
+let gen_hash_key fname type_list =
+    fname ^ (List.fold_left
+        (fun str item -> str ^ "@" ^ item) "" (List.map type_to_string type_list))

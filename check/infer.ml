@@ -23,6 +23,7 @@ let find_t_func name =
     with
     | Not_found -> None
 
+
 let find_func name =
     try
         Hashtbl.find func_binds name
@@ -34,6 +35,14 @@ let find_class name =
         Hashtbl.find class_binds name
     with
     | Not_found -> failwith ("not this class" ^ name)
+
+(*
+let init_tclass () =
+    let f k v = match v with
+        | {cname=name;member_binds=binds;_} ->
+            Hashtbl.add t_class_decl k {tcname=name;member_binds=binds;t_func_decl=[]}
+    in Hashtbl.iter f class_binds
+*)
 
 let check_non_exist_func name =
     try
@@ -558,9 +567,7 @@ let rec infer_func fdecl hash_key type_list level_env =
 *)
 
 and infer_func_by_name fname type_list =
-    let hash_key =
-        fname ^ (List.fold_left
-            (fun str item -> str ^ "@" ^ item) "" (List.map type_to_string type_list))
+    let hash_key = gen_hash_key fname type_list
     in let hash_value = find_t_func hash_key
     in let check_in_build_in funcname =
         match funcname with
@@ -601,6 +608,9 @@ and infer_func_by_name fname type_list =
             else x
         end
 
+and infer_cfunc_by_name cname fname type_kist =
+    let hash_key = gen_hash_key fname type_list
+    in let hash_value =
 
 let debug_ast_cdecl ast = match ast with
     | Program (cdecls, _) -> List.iter (fun item -> print_endline (debug_cdecl item)) cdecls
@@ -612,9 +622,9 @@ let infer_check (ast : program) =
     (*just infer the main function and recur infer all involved functions *)
     let _ =  infer_func_by_name "main" []
     in
+    (*
     debug_ast_cdecl ast;
     debug_t_func_binds();
-    (*
     print_endline (debug_t_fdecl main_fdecl);
     *)
     (t_func_binds, class_binds)

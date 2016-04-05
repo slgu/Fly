@@ -361,7 +361,7 @@ let rec dfs ht fkey refenv =
                 | {tbody=body; _} ->
                     (*get all t_func_decl needed*)
                     let fklist = List.fold_left (fun ret tstmt_ -> ret @ (tstmt_helper tstmt_)) [] body in
-                    (List.fold_left (fun ret key_ -> ret @ (dfs ht key_ refenv)) [] fklist) @ (handle_fdecl fky fd refenv)
+                    (List.fold_left (fun ret key_ -> ret @ (dfs ht key_ refenv)) [] fklist) @ (handle_fdecl fkey fd refenv)
                 )
         )
     | _ -> []
