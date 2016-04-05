@@ -94,8 +94,8 @@ let check_non_exist_class name =
     | Not_found -> ()
 
 let check_not_void thistype = match thistype with
-    | Void -> ()
-    | _ -> failwith ("void error")
+    | Void -> failwith ("void error")
+    | _ -> ()
 
 (*create a copy of the function env*)
 let func_level_env () =
@@ -285,7 +285,16 @@ let rec infer_func fdecl hash_key type_list level_env =
             in
             begin
                 match bop with
-                | Add | Sub | Mult | Div ->  begin
+                | Add -> begin
+                    match f_expr_type, s_expr_type with
+                    | Int, Int -> TBinop ((t_f_expr, bop, t_s_expr), Int)
+                    | Float, Float -> TBinop ((t_f_expr, bop, t_s_expr), Float)
+                    | Float, Int -> TBinop ((t_f_expr, bop, t_s_expr), Float)
+                    | Int, Float -> TBinop ((t_f_expr, bop, t_s_expr), Float)
+                    | String, String -> TBinop ((t_f_expr, bop, t_s_expr), String)
+                    | _, _ -> failwith ("wrong type binop with each other")
+                    end
+                | Sub | Mult | Div ->  begin
                     match f_expr_type, s_expr_type with
                     | Int, Int -> TBinop ((t_f_expr, bop, t_s_expr), Int)
                     | Float, Float -> TBinop ((t_f_expr, bop, t_s_expr), Float)
@@ -344,8 +353,8 @@ let rec infer_func fdecl hash_key type_list level_env =
                 | Some (Class cname) ->
                     let cdecl = find_class cname
                     in let mvartype = get_class_member_type cdecl mname
-                    in if mvartype = expr_type then TMAssign ((varname, mname,tepr), mvartype)
-                    else failwith ("type not consistent in the obj assign")
+                    in if mvartype == expr_type then TMAssign ((varname, mname,tepr), mvartype)
+                    else failwith ("type not consistent in the obj assign:" ^ (type_to_string mvartype) ^ "," ^ (type_to_string expr_type))
                 | None -> failwith ("class obj meber assign without init obj")
                 | _ -> failwith (mname ^ " not exist in the class: " ^ varname)
                 end
@@ -699,6 +708,12 @@ and infer_cfunc_by_name cname fname type_list =
                     let new_func_level_env =
                         List.fold_left2 (fun env param_name this_type -> update_env env param_name this_type) (init_level_env()) param_list type_list
                     in
+                    let new_func_level_env =
+                        (*add class member variable*)
+                        match tcdecl with
+                        | {member_binds=binds;_} ->
+                            List.fold_left (fun env (varname, thistype) -> update_env env varname thistype) new_func_level_env binds
+                    in
                     let ref_new_func_level_env = ref(List.rev (func_env::new_func_level_env))
                     in let tfdecl = infer_func fdecl hash_key type_list ref_new_func_level_env
                     in
@@ -730,5 +745,5 @@ let infer_check (ast : program) =
     debug_t_func_binds();
     print_endline (debug_t_fdecl main_fdecl);
     *)
-    (t_func_binds, class_binds)
+    (t_func_binds, t_class_binds)
     (* search main function and do a static type infer*)

@@ -13,8 +13,9 @@ type typ =
     | Chan of typ (* a chan that contains which type *)
     | Signal of typ (*signal is like a future obj with typ*)
     | Undef (*which means this is a nulptr*)
-    | Func of string * typ list (* function name along with
+    | Func of string * typ list (* function name along witH
         some type clojure*)
+    | Cfunc of string * string (*class member function cname * fname*)
     | Lfunc of string * typ list (*lambda function along with some type clojure*)
     (*for built-in defned type*)
 

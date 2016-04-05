@@ -5,7 +5,11 @@ class a {
     j:Map<#Int,Int#>;
     func fuck(aa) {
         print(aa);
+        return 3;
     }
+}
+func outerfuck(aa) {
+    return 3;
 }
 func gcd(a, b) {
     if (b > a) {
@@ -23,7 +27,8 @@ func main() {
     bb = gcd(36, 6);
     c = @a;
     c.who = 1;
-    dd = c.fuck(123);
+    dd = outerfuck("asd");
+    dd = c.fuck(aa);
     print(gcd(36,6));
     return 0;
 }

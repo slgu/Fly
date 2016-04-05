@@ -13,6 +13,7 @@ type regibind = {
     rn : string; (* var name to wait for value *)
 }
 
+
 (* mapping from function key to sigbind *)
 let (signal_funcs : (string, sigbind) Hashtbl.t) = Hashtbl.create 16
 
@@ -37,6 +38,7 @@ let rec type_to_code_string = function
     | String -> "string"
     | Float -> "float"
     | Signal(x) -> "shared_ptr <Signal<" ^ (type_to_code_string x) ^ ">>"
+    | Class x -> "shared_ptr <" ^ x ^ ">>"
     | _ -> raise (Failure ("type_to_code_string not yet support this type"))
 
 (* take a string list and concatenate them with interleaving space into a single string *)
@@ -244,6 +246,10 @@ let handle_fdecl fkey fd refenv =
         let bodystr = (handle_body fkey body refnewenv) in
         [ cat_string_list_with_space [(type_to_code_string rt);name;fmstr]] @ bodystr
 
+(*class code generation*)
+let class_code_gen cdecl =
+    None
+
 let code_header = [
     "#include <iostream>";
     "#include <string>";
@@ -386,7 +392,10 @@ let ht_left ht =
 (* take ht and return string list, which is code *)
 let build_func_from_ht ht =
     let g_env = init_level_env() in
-    dfs ht "main" (ref g_env)
+    let res = dfs ht "main" (ref g_env)
+    in
+    (*print_endline (List.fold_left (fun ret ele -> ret ^ ele ^ "\n") "" res);*)
+    res
 
 (* take class_decl and return string list (code) TODO *)
 let handle_class cd =
