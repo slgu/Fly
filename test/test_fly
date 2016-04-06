@@ -27,7 +27,6 @@ func main() {
     gen2("Hello World 0");
 
     fly gen("Hello World 1");
-    gen("helloword");
 
     fly gen("Hello World 2");
 

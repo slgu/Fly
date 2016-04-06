@@ -145,7 +145,22 @@ and handle_texpr expr refenv =
     | TObjGen (x, thistype) ->
         ["shared_ptr <" ^ x ^ ">(new " ^ x ^ "())"] (* TODO *)
     | TObjid(_) -> [] (* TODO *)
-    | TMAssign(_) -> []
+    | TMAssign ((varname, mname, expr), ty)->
+        begin
+            match ty with
+            (* deal with signal assignment *)
+            | Signal(x) ->
+                let tycode = type_to_code_string x
+                in let str = varname ^ "." ^ mname
+                in  [str ^ "=shared_ptr <Signal<" ^ tycode ^ ">>(new Signal<" ^ tycode ^ ">());";] @
+                handle_fly_expr str expr refenv
+            (* normal *)
+            | x ->
+                let tycode = type_to_code_string x
+                in let str = varname ^ "." ^ mname
+                in [str ^ " = "] @ handle_texpr expr refenv
+        end
+
 
 (* take one tstmt and return a string list *)
 let rec handle_tstmt fkey tstmt_ refenv =
@@ -288,7 +303,7 @@ let rec texp_helper texp_ =
         (* above are built-in functions *)
         | _ ->
             let expr_types_list = List.map get_expr_type_info texprlist in
-            let hash_key = gen_hash_key fn expr_types_list in 
+            let hash_key = gen_hash_key fn expr_types_list in
             [hash_key] @ (List.fold_left (fun ret exp_ -> ret @ (texp_helper exp_)) [] texprlist)
         )
     | TFly ((fn, texprlist), t) ->
