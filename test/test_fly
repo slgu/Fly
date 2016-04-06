@@ -4,7 +4,7 @@ func gen(a) {
 }
 
 func recv(x) {
-    print("Got it");
+    print("Got it 1");
     print(x);
 }
 
@@ -14,17 +14,13 @@ func add(a, b, c) {
 }
 
 func get_ans(ans) {
-    print("Got it");
+    print("Got it 2");
     print(ans);
 }
 
-func gen2(a) {
-    print(a);
-}
-
 func main() {
-
-    gen2("Hello World 0");
+    gen("seq 1: Hello World");
+    gen("seq 2: Hello World");
 
     fly gen("Hello World 1");
 
@@ -32,6 +28,11 @@ func main() {
 
     s = fly gen("Hello World 3");
     register s recv();
+    
+    s = fly gen("Hello World 4");
+    register s recv();
+
+/*    register s get_ans();*/
 
     s1 = fly add(1, 2, 3);
     register s1 get_ans();

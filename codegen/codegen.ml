@@ -66,7 +66,8 @@ let handle_fm formals refenv =
     "(" ^ trimed ^ ")"
 
 (* take signal name and fly call, return a string list *)
-let rec handle_fly_expr signame expr refenv =
+let rec handle_fly_expr signame expr refenv async =
+    let syncfunc = if async then "detach()" else "join()" in
     match expr with
     | TFly((fn, texpr_list),_) ->
             let param = [cat_string_list_with_comma (List.fold_left (fun ret ex -> ret@(handle_texpr ex refenv)) [] texpr_list)] in
@@ -76,7 +77,7 @@ let rec handle_fly_expr signame expr refenv =
                 | [""] -> []
                 | _ -> param @ [","]
             ) in
-            ["thread(";fn;","] @ param2 @ [signame;").detach()"]
+            ["thread(";fn;","] @ param2 @ [signame;")." ^ syncfunc]
     | _ -> raise (Failure ("Assigning something to Signal other than TFly"))
 
 (* take one expr and return a string list *)
@@ -93,7 +94,7 @@ and handle_texpr expr refenv =
     | TBinop((texpr1, op, texpr2), _) ->
         ["("] @ (handle_texpr texpr1 refenv) @ [op_to_string op] @ (handle_texpr texpr2 refenv) @ [")"]
     | TUnop(_) -> [] (* TODO *)
-    | TCall ((fn, texpr_list), _) ->
+    | TCall ((fn, texpr_list), t) ->
         (
         match fn with
         | "print" ->
@@ -103,6 +104,12 @@ and handle_texpr expr refenv =
             ]
         (* above are built-in functions *)
         | _ ->
+            let expr_types_list = List.map get_expr_type_info texpr_list in
+            let hash_key = gen_hash_key fn expr_types_list in
+            if (find_hash signal_funcs hash_key) != None then
+                (* this is a sig/recv call without being used in fly or register *)
+                handle_fly_expr "shared_ptr <Signal<string>> (new Signal<string>())" (TFly((fn, texpr_list),t)) refenv false
+            else
             [
                 cat_string_list_with_space
                 ([fn;"("]@
@@ -124,20 +131,17 @@ and handle_texpr expr refenv =
     | TAssign((str, expr), ty) ->
         let res = (search_key (!refenv) str) in
         (
-            match res with
-            | None -> (* variable is first seen here *)
-                ignore(update_env !refenv str ty);
-                (
-                    match ty with
-                    (* deal with signal assignment *)
-                    | Signal(x) ->
-                        [(type_to_code_string ty) ^ " " ^ str ^ "(new Signal<" ^ (type_to_code_string x) ^ ">());";] @
-                        handle_fly_expr str expr refenv
-                    (* normal *)
-                    | _ -> [(type_to_code_string ty) ^ " " ^ str ^ " = "] @ handle_texpr expr refenv
-                )
-            | _ -> (* variable has been declared before *)
-                    [str ^ " = "] @ handle_texpr expr refenv
+            let type_code = type_to_code_string ty in
+            let decl_type_code = if res = None then type_code else "" in
+            ignore(update_env !refenv str ty);
+            (
+                match ty with
+                (* deal with signal assignment *)
+                | Signal(x) ->
+                    [decl_type_code ^ " " ^ str ^ " = " ^ type_code ^ "(new Signal<" ^ (type_to_code_string x) ^ ">());";] @ handle_fly_expr str expr refenv true
+                (* normal *)
+                | _ -> [decl_type_code ^ " " ^ str ^ " = "] @ handle_texpr expr refenv
+            )
         )
     | TListComprehen(_) -> [] (* TODO *)
     | TExec(_) -> [] (* TODO *)
@@ -146,9 +150,9 @@ and handle_texpr expr refenv =
     | TChanbinop(_) -> [] (* TODO *)
     | TChanunop(_) -> [] (* TODO *)
     | TFly((fn, texpr_list),t) ->
-        handle_fly_expr "shared_ptr <Signal<string>> (new Signal<string>())" (TFly((fn, texpr_list),t)) refenv
+        handle_fly_expr "shared_ptr <Signal<string>> (new Signal<string>())" (TFly((fn, texpr_list),t)) refenv true
     | TRegister ((sign, fn, texpr_list), t) ->
-        handle_fly_expr sign (TFly((fn, []),t)) refenv
+        handle_fly_expr sign (TFly((fn, []),t)) refenv true
     | TFlyo(_) -> [] (* TODO *)
     | TNull(_) -> [] (* TODO *)
     | TObjGen (x, thistype) ->
@@ -162,7 +166,7 @@ and handle_texpr expr refenv =
                 let tycode = type_to_code_string x
                 in let str = varname ^ "->" ^ mname
                 in  [str ^ "=shared_ptr <Signal<" ^ tycode ^ ">>(new Signal<" ^ tycode ^ ">());";] @
-                handle_fly_expr str expr refenv
+                handle_fly_expr str expr refenv true
             (* normal *)
             | x ->
                 let tycode = type_to_code_string x
