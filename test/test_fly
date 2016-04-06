@@ -18,13 +18,9 @@ func get_ans(ans) {
     print(ans);
 }
 
-func gen2(a) {
-    print(a);
-}
-
 func main() {
-
-    gen2("Hello World 0");
+    gen("seq 1: Hello World");
+    gen("seq 2: Hello World");
 
     fly gen("Hello World 1");
 
