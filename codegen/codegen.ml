@@ -1,6 +1,7 @@
 open Ast
 open Sast
 open Env
+open Util
 
 type sigbind = {
     vn : string;
@@ -292,24 +293,19 @@ let rec texp_helper texp_ =
         (* above are built-in functions *)
         | _ ->
             let expr_types_list = List.map get_expr_type_info texprlist in
-            let hash_key = fn ^
-            (List.fold_left (fun str item -> str ^ "@" ^ item) "" (List.map type_to_string expr_types_list)) in
+            let hash_key = gen_hash_key fn expr_types_list in 
             [hash_key] @ (List.fold_left (fun ret exp_ -> ret @ (texp_helper exp_)) [] texprlist)
         )
-    | TFly ((fn, texpl), t) ->
+    | TFly ((fn, texprlist), t) ->
         ignore(
-            let typel = List.map get_expr_type_info texpl in
-            let hash_key = fn ^
-                (List.fold_left
-                (fun str item -> str ^ "@" ^ item) "" (List.map type_to_string typel)) in
+            let expr_types_list = List.map get_expr_type_info texprlist in
+            let hash_key = gen_hash_key fn expr_types_list in
             add_hash signal_funcs hash_key {vn=fn ^ "_signal"; vt=t}
         );
-        texp_helper (TCall((fn, texpl), t))
+        texp_helper (TCall((fn, texprlist), t))
     | TRegister ((sign, fn, texpl), t) ->
         (* here we let fname to be fn@t, but later we have to change it to fn@signal:t *)
-        let hash_key = fn ^
-            (List.fold_left
-            (fun str item -> str ^ "@" ^ item) "" (List.map type_to_string [t])) in
+        let hash_key = gen_hash_key fn [t] in
         ignore(add_hash register_funcs hash_key {vn=sign; vt=Signal(t); rn="known"});
         [hash_key]
     (* TObjCall of (string * string * texpr list) * typ TODO*)
