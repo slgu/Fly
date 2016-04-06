@@ -122,20 +122,17 @@ and handle_texpr expr refenv =
     | TAssign((str, expr), ty) ->
         let res = (search_key (!refenv) str) in
         (
-            match res with
-            | None -> (* variable is first seen here *)
-                ignore(update_env !refenv str ty);
-                (
-                    match ty with
-                    (* deal with signal assignment *)
-                    | Signal(x) ->
-                        [(type_to_code_string ty) ^ " " ^ str ^ "(new Signal<" ^ (type_to_code_string x) ^ ">());";] @
-                        handle_fly_expr str expr refenv true
-                    (* normal *)
-                    | _ -> [(type_to_code_string ty) ^ " " ^ str ^ " = "] @ handle_texpr expr refenv
-                )
-            | _ -> (* variable has been declared before *)
-                    [str ^ " = "] @ handle_texpr expr refenv
+            let type_code = type_to_code_string ty in
+            let decl_type_code = if res = None then type_code else "" in
+            ignore(update_env !refenv str ty);
+            (
+                match ty with
+                (* deal with signal assignment *)
+                | Signal(x) ->
+                    [decl_type_code ^ " " ^ str ^ " = " ^ type_code ^ "(new Signal<" ^ (type_to_code_string x) ^ ">());";] @ handle_fly_expr str expr refenv true
+                (* normal *)
+                | _ -> [decl_type_code ^ " " ^ str ^ " = "] @ handle_texpr expr refenv
+            )
         )
     | TListComprehen(_) -> [] (* TODO *)
     | TExec(_) -> [] (* TODO *)
