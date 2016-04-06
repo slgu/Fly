@@ -110,7 +110,16 @@ and handle_texpr expr refenv =
                 [")"])
             ]
         )
-    | TObjCall(_) -> [] (* TODO *)
+    | TObjCall ((varname, mfname, texpr_list), ty) ->
+        let fn = varname ^ "->" ^ mfname
+        in
+        [
+            cat_string_list_with_space
+            ([fn;"("]@
+            [cat_string_list_with_comma (List.fold_left (fun ret ex -> ret@(handle_texpr ex refenv)) [] texpr_list)]@
+            [")"])
+        ]
+
     | TFunc(_) -> [] (* TODO *)
     | TAssign((str, expr), ty) ->
         let res = (search_key (!refenv) str) in
@@ -151,13 +160,13 @@ and handle_texpr expr refenv =
             (* deal with signal assignment *)
             | Signal(x) ->
                 let tycode = type_to_code_string x
-                in let str = varname ^ "." ^ mname
+                in let str = varname ^ "->" ^ mname
                 in  [str ^ "=shared_ptr <Signal<" ^ tycode ^ ">>(new Signal<" ^ tycode ^ ">());";] @
                 handle_fly_expr str expr refenv
             (* normal *)
             | x ->
                 let tycode = type_to_code_string x
-                in let str = varname ^ "." ^ mname
+                in let str = varname ^ "->" ^ mname
                 in [str ^ " = "] @ handle_texpr expr refenv
         end
 
@@ -403,9 +412,12 @@ let build_func_from_ht ht =
     (*print_endline (List.fold_left (fun ret ele -> ret ^ ele ^ "\n") "" res);*)
     res
 
-(* take class_decl and return string list (code) TODO *)
-let handle_class cd =
-    []
+(* take t_class_decl and return string list (code) of the class referrence *)
+let handle_class_refer tcdecl =
+
+(* take t_class_decl and return string list (code) of the class definition *)
+let handle_class_def tcdecl =
+
 
 (* take ht of string->class_decl and return string list *)
 let build_class_from_ht cht =
