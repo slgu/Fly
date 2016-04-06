@@ -19,11 +19,12 @@ class cat {
     name:String;
     age:Int;
     owner:String;
-
+    another_dog:dog;
     func meow(to) {
         msg = "Hi " + to + " my name is";
         print(msg);
         print(name);
+        print(another_dog.age);
     }
 
     func play() {
@@ -33,9 +34,13 @@ class cat {
 }
 
 func main() {
+    d = 2;
+    d = 3;
     a = @dog;
     a.age = 12;
     a.bark("slgu");
     a.play();
+    c = @cat;
+    c.meow("sad");
     return 0;
 }

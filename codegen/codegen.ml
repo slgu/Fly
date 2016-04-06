@@ -38,7 +38,7 @@ let rec type_to_code_string = function
     | String -> "string"
     | Float -> "float"
     | Signal(x) -> "shared_ptr <Signal<" ^ (type_to_code_string x) ^ ">>"
-    | Class x -> "shared_ptr <" ^ x ^ ">>"
+    | Class x -> "shared_ptr <" ^ x ^ ">"
     | _ -> raise (Failure ("type_to_code_string not yet support this type"))
 
 (* take a string list and concatenate them with interleaving space into a single string *)
@@ -127,13 +127,7 @@ and handle_texpr expr refenv =
                     | _ -> [(type_to_code_string ty) ^ " " ^ str ^ " = "] @ handle_texpr expr refenv
                 )
             | _ -> (* variable has been declared before *)
-                (
-                    match ty with
-                    (* deal with signal assignment *)
-                    | Signal(_) -> raise (Failure ("Signal re-assigned? " ^ str))
-                    (* normal *)
-                    | _ -> [str ^ " = "] @ handle_texpr expr refenv
-                )
+                    [str ^ " = "] @ handle_texpr expr refenv
         )
     | TListComprehen(_) -> [] (* TODO *)
     | TExec(_) -> [] (* TODO *)
@@ -147,9 +141,10 @@ and handle_texpr expr refenv =
         handle_fly_expr sign (TFly((fn, []),t)) refenv
     | TFlyo(_) -> [] (* TODO *)
     | TNull(_) -> [] (* TODO *)
-    | TObjGen(_) -> [] (* TODO *)
+    | TObjGen (x, thistype) ->
+        ["shared_ptr <" ^ x ^ ">(new " ^ x ^ "())"] (* TODO *)
     | TObjid(_) -> [] (* TODO *)
-    | TMAssign(_) -> [] (* TODO *)
+    | TMAssign(_) -> []
 
 (* take one tstmt and return a string list *)
 let rec handle_tstmt fkey tstmt_ refenv =

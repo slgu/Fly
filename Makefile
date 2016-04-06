@@ -40,7 +40,7 @@ gen:
 	ocamlc -I $(ast_dir) -c $(parser_dir)/parser.mli
 	ocamlc -I $(parser_dir) -c $(parser_dir)/scanner.ml
 	ocamlc -I $(ast_dir) -I $(parser_dir) -c $(parser_dir)/parser.ml
-	ocamlc -c $(check_dir)/util.ml
+	ocamlc -I $(ast_dir) -c $(check_dir)/util.ml
 	ocamlc -I $(ast_dir) -c $(check_dir)/env.ml
 	ocamlc -I $(ast_dir) -c $(debug_dir)/debug.ml
 	ocamlc -I $(debug_dir) -I $(ast_dir) -I $(check_dir) -c $(check_dir)/infer.ml

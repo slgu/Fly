@@ -21,6 +21,7 @@ func get_ans(ans) {
 func main() {
 
     fly gen("Hello World 1");
+    gen("helloword");
 
     fly gen("Hello World 2");
 

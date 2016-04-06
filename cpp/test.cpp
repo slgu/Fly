@@ -42,4 +42,5 @@ int main() {
     a.guy.reset(new B());
     a.guy->b = 1;
     a.play();
+    std::shared_ptr <A> b = std::shared_ptr <A>(new A());
 }
