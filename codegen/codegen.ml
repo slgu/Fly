@@ -168,7 +168,7 @@ and handle_texpr expr refenv =
             (TFly((fn, texpr_list),st)) refenv
     | TRegister ((sign, fn, texpr_list), t) ->
         (* must change the function name, appending type *)
-        handle_fly_expr sign (TFly((fn, []), Signal(t))) refenv
+        handle_fly_expr sign (TFly((fn, texpr_list), Signal(t))) refenv
     | TFlyo(_) -> [] (* TODO *)
     | TNull(_) -> [] (* TODO *)
     | TObjGen (x, thistype) ->
@@ -266,21 +266,6 @@ let handle_fdecl fkey fd refenv =
     let refnewenv = ref (append_new_level !refenv) in
     match fd with
     | {tret=rt; tfname=name; tformals=fm; tbody=body ;_} ->
-        let nfname = (* must change name for recv func, appending type *)
-        (
-            match (find_hash register_funcs fkey) with
-            (* a register function, append type to name *)
-            | Some({vn=_;vt=r_type}) -> name ^ "_" ^ (type_to_func_string r_type)
-            | None -> (
-                match (find_hash signal_funcs fkey) with
-                (* a fly function, append type to name *)
-                | Some({vn=_;vt=s_type}) -> (List.fold_left 
-                        (fun ret type_ -> ret ^ "_" ^ (type_to_func_string type_)) name (get_typelist_from_fm fm)
-                        ) ^ "_" ^ (type_to_func_string s_type)
-                (* normal function *)
-                | None -> name
-            )
-        ) in 
         let nfm =
         (
             match (find_hash signal_funcs fkey) with
@@ -288,19 +273,45 @@ let handle_fdecl fkey fd refenv =
             (
                 match (find_hash register_funcs fkey) with
                 | None -> fm (* normal function *)
-                (* a register function, make the fm = [Signal(t)] *)
-                (* also uprate the variable name in register_funcs hash *)
+                (* a register function, make the last of fm = Signal(t) *)
+                (* also update the variable name in register_funcs hash *)
                 | Some({vn=_name;vt=_type}) ->
-                    ignore (
-                        match fm with
-                        | [(_rn,_)] -> add_hash register_funcs fkey {vn=_name; vt=_type; rn=_rn}
-                        | _ -> raise (Failure ("registered function can only have one param"))
-                    );
-                    [(_name, _type)]
+                    let tmpfm = List.rev fm in
+                    (
+                    match tmpfm with
+                    | (_rn,_)::tl -> 
+                        ignore(add_hash register_funcs fkey {vn=_name; vt=_type; rn=_rn});
+                        List.rev ([(_name, _type)] @ tl)
+                    | _ -> raise (Failure ("Register function not accepting param? " ^ name))
+                    )
             )
             (* a fly function, add signal to the end of fm *)
             | Some({vn=_name;vt=_type}) -> fm @ [(_name, _type)]
         ) in
+        let nfname = (* must change name for recv/fly func, appending type *)
+        (
+            let type_list = (get_typelist_from_fm nfm) in
+            match (find_hash register_funcs fkey) with
+            (* a register function, append type to name *)
+            | Some({vn=_;vt=r_type}) ->
+                (   List.fold_left 
+                    (fun ret type_ -> ret ^ "_" ^ (type_to_func_string type_))
+                    name 
+                    type_list
+                )
+            | None -> (
+                match (find_hash signal_funcs fkey) with
+                (* a fly function, append type to name *)
+                | Some({vn=_;vt=s_type}) -> 
+                    (   List.fold_left 
+                        (fun ret type_ -> ret ^ "_" ^ (type_to_func_string type_))
+                        name 
+                        type_list
+                    )
+                (* normal function *)
+                | None -> name
+            )
+        ) in 
         let fmstr = (handle_fm nfm refnewenv) in
         let bodystr = (handle_body fkey body refnewenv) in
         [ cat_string_list_with_space [(type_to_code_string rt);nfname;fmstr]] @ bodystr
@@ -362,9 +373,10 @@ let rec texp_helper texp_ =
         );
         texp_helper (TCall((fn, texprlist), t))
     | TRegister ((sign, fn, texpl), t) ->
-        (* here we let fname to be fn@t, but later we have to change it to fn@signal:t *)
-        let hash_key = gen_hash_key fn [t] in
-        ignore(add_hash register_funcs hash_key {vn=sign; vt=Signal(t); rn="known"});
+        let expr_types_list = List.map get_expr_type_info texpl in
+        (* register texpl will miss the last t, so append it*)
+        let hash_key = gen_hash_key fn (expr_types_list @ [t]) in
+        ignore(add_hash register_funcs hash_key {vn=fn ^ "_signal"; vt=Signal(t); rn="known"});
         [hash_key]
     (* TObjCall of (string * string * texpr list) * typ TODO*)
     | TObjCall (_) -> []

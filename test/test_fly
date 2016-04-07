@@ -6,10 +6,10 @@ func gen1(s, n1, n2) {
 }
 
 func recv1(a) {
-    print("1 recving...");
-    ans = "1 recv: " + a;
+    print("recv1 notified");
+    ans = "recv1 get " + a;
     print(ans);
-    print("1 recving done");
+    print("recv1 done");
 }
 
 func gen2(s, a) {
@@ -20,22 +20,31 @@ func gen2(s, a) {
 }
 
 func recv2(a) {
-    print("2 string recving...");
-    ans = "2 string recv: " + a;
+    print("recv2 notified");
+    ans = "recv2 get " + a;
     print(ans);
-    print("2 string recving done");
+    print("recv2 done");
 }
 
 func recv3(a) {
-    print("3 string recving...");
+    print("recv3 notified");
     ans = a;
     print(ans);
-    print("3 string recving done");
+    print("recv3 done");
 }
 
 func no_return_gen(s, a) {
     print(s);
     print(a);
+}
+
+func recv_more(s, n1, n2, get_s) {
+    print("recv_more notified");
+    ans1 = n1 + n2;
+    ans2 = s + " " + get_s;
+    print(ans1);
+    print(ans2);
+    print("recv_more done");
 }
 
 func main() {
@@ -58,6 +67,10 @@ func main() {
     /* signal reassigned to functions returning same type */
     s = fly gen2("Fly: gen2", "Hello");
     register s recv2();
+
+    /* signal recv function taking extra parameter */
+    s = fly gen2("Fly: gen2", "Hello");
+    register s recv_more("World", 1, 2);
 
     /* calling recv in sync fashion */
     recv2("Sync: recv2"); 
