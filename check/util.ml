@@ -18,3 +18,7 @@ let next_random_string () =
 let gen_hash_key fname type_list =
     fname ^ (List.fold_left
         (fun str item -> str ^ "@" ^ item) "" (List.map type_to_string type_list))
+
+let rec explode = function
+    "" -> []
+    | s  -> (String.get s 0) :: explode (String.sub s 1 ((String.length s) - 1));;

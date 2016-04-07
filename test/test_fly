@@ -1,41 +1,82 @@
-func gen(a) {
-    print(a);
-    return a;
-}
-
-func recv(x) {
-    print("Got it 1");
-    print(x);
-}
-
-func add(a, b, c) {
-    sum = a + b + c;
-    return sum;
-}
-
-func get_ans(ans) {
-    print("Got it 2");
+func gen1(s, n1, n2) {
+    print(s);
+    ans = n1 + n2;
     print(ans);
+    return ans;
+}
+
+func recv1(a) {
+    print("recv1 notified");
+    ans = "recv1 get " + a;
+    print(ans);
+    print("recv1 done");
+}
+
+func gen2(s, a) {
+    print(s);
+    ans = a + " World";
+    print(ans);
+    return ans;
+}
+
+func recv2(a) {
+    print("recv2 notified");
+    ans = "recv2 get " + a;
+    print(ans);
+    print("recv2 done");
+}
+
+func recv3(a) {
+    print("recv3 notified");
+    ans = a;
+    print(ans);
+    print("recv3 done");
+}
+
+func no_return_gen(s, a) {
+    print(s);
+    print(a);
+}
+
+func recv_more(s, n1, n2, get_s) {
+    print("recv_more notified");
+    ans1 = n1 + n2;
+    ans2 = s + " " + get_s;
+    print(ans1);
+    print(ans2);
+    print("recv_more done");
 }
 
 func main() {
-    gen("seq 1: Hello World");
-    gen("seq 2: Hello World");
+    /* function overloading */
+    gen1("Sync: gen1", "Hello", " World");
+    gen1("Sync: gen1", 1, 1);
 
-    fly gen("Hello World 1");
+    /* function overloading for fly */
+    fly gen1("Fly: gen1", "Hello", " World");
+    fly gen1("Fly: gen1", 2, 2);
 
-    fly gen("Hello World 2");
+    /* fly send signal of same type */
+    s = fly gen1("Fly: gen1", "Hello", " World");
+    register s recv1();
 
-    s = fly gen("Hello World 3");
-    register s recv();
+    /* fly using overloading function */
+    s_int = fly gen1("Fly: gen1", 100, 200);
+    register s_int recv3();
 
-    s = fly gen("Hello World 4");
-    register s recv();
+    /* signal reassigned to functions returning same type */
+    s = fly gen2("Fly: gen2", "Hello");
+    register s recv2();
 
-/*    register s get_ans();*/
+    /* signal recv function taking extra parameter */
+    s = fly gen2("Fly: gen2", "Hello");
+    register s recv_more("World", 1, 2);
 
-    s1 = fly add(1, 2, 3);
-    register s1 get_ans();
+    /* calling recv in sync fashion */
+    recv2("Sync: recv2");
+
+    /* flying a function which does not return anything */
+    fly no_return_gen("Fly: no_return_gen","Hello World");
 
     while(true) {
     };
