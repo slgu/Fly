@@ -143,9 +143,10 @@ and handle_texpr expr refenv =
             ignore(update_env !refenv str ty);
             (
                 match ty with
-                (* deal with signal assignment *)
+                (* deal with signal assignment from fly *)
                 | Signal(x) ->
-                    
+                    (* flying a no return function is not allowed *)
+                    ignore(if x = Void then raise (Failure ("Function should return something to signal")));
                     [decl_type_code ^ " " ^ str ^ " = " ^ type_code ^ "(new Signal<" ^ (type_to_code_string x) ^ ">());";] @ handle_fly_expr str expr refenv
                 (* normal *)
                 | _ -> [decl_type_code ^ " " ^ str ^ " = "] @ handle_texpr expr refenv
@@ -355,11 +356,9 @@ let rec texp_helper texp_ =
         )
     | TFly ((fn, texprlist), Signal(t)) ->
         ignore(
-            if t = Void then raise (Failure ("fly function should not return void"))
-            else
-                let expr_types_list = List.map get_expr_type_info texprlist in
-                let hash_key = gen_hash_key fn expr_types_list in
-                add_hash signal_funcs hash_key {vn=fn ^ "_signal"; vt=Signal(t)}
+            let expr_types_list = List.map get_expr_type_info texprlist in
+            let hash_key = gen_hash_key fn expr_types_list in
+            add_hash signal_funcs hash_key {vn=fn ^ "_signal"; vt=Signal(t)}
         );
         texp_helper (TCall((fn, texprlist), t))
     | TRegister ((sign, fn, texpl), t) ->

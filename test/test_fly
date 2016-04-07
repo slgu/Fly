@@ -1,5 +1,5 @@
-func gen1(n1, n2) {
-    print("gen1 called");
+func gen1(s, n1, n2) {
+    print(s);
     ans = n1 + n2;
     print(ans);
     return ans;
@@ -12,8 +12,8 @@ func recv1(a) {
     print("1 recving done");
 }
 
-func gen2(a) {
-    print("gen2 called");
+func gen2(s, a) {
+    print(s);
     ans = a + " World";
     print(ans);
     return ans;
@@ -33,29 +33,37 @@ func recv3(a) {
     print("3 string recving done");
 }
 
+func no_return_gen(s, a) {
+    print(s);
+    print(a);
+}
+
 func main() {
     /* function overloading */
-    gen1("Hello", " World");
-    gen1(1, 1);
+    gen1("Sync: gen1", "Hello", " World");
+    gen1("Sync: gen1", 1, 1);
 
     /* function overloading for fly */
-    fly gen1("fly: Hello", " World");
-    fly gen1(2, 2);
+    fly gen1("Fly: gen1", "Hello", " World");
+    fly gen1("Fly: gen1", 2, 2);
 
     /* fly send signal of same type */
-    s = fly gen1("fly sig1: Hello", " World");
+    s = fly gen1("Fly: gen1", "Hello", " World");
     register s recv1();
 
     /* fly using overloading function */
-    s_int = fly gen1(100, 200);
+    s_int = fly gen1("Fly: gen1", 100, 200);
     register s_int recv3(); 
 
     /* signal reassigned to functions returning same type */
-    s = fly gen2("fly sig2: Hello");
+    s = fly gen2("Fly: gen2", "Hello");
     register s recv2();
 
     /* calling recv in sync fashion */
-    recv2("Sync fashion"); 
+    recv2("Sync: recv2"); 
+
+    /* flying a function which does not return anything */
+    fly no_return_gen("Fly: no_return_gen","Hello World");
 
     while(true) {
     };
