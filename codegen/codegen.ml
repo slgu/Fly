@@ -418,10 +418,12 @@ let build_func_from_ht ht =
 
 (* take t_class_decl and return string list (code) of the class referrence *)
 let handle_class_refer tcdecl =
-
+    None
 (* take t_class_decl and return string list (code) of the class definition *)
 let handle_class_def tcdecl =
+    None
 
+let handle_class x = []
 
 (* take ht of string->class_decl and return string list *)
 let build_class_from_ht cht =

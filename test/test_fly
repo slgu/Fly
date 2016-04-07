@@ -28,7 +28,7 @@ func main() {
 
     s = fly gen("Hello World 3");
     register s recv();
-    
+
     s = fly gen("Hello World 4");
     register s recv();
 
