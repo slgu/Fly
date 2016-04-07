@@ -1,41 +1,61 @@
-func gen(a) {
-    print(a);
-    return a;
-}
-
-func recv(x) {
-    print("Got it 1");
-    print(x);
-}
-
-func add(a, b, c) {
-    sum = a + b + c;
-    return sum;
-}
-
-func get_ans(ans) {
-    print("Got it 2");
+func gen1(n1, n2) {
+    print("gen1 called");
+    ans = n1 + n2;
     print(ans);
+    return ans;
+}
+
+func recv1(a) {
+    print("1 recving...");
+    ans = "1 recv: " + a;
+    print(ans);
+    print("1 recving done");
+}
+
+func gen2(a) {
+    print("gen2 called");
+    ans = a + " World";
+    print(ans);
+    return ans;
+}
+
+func recv2(a) {
+    print("2 string recving...");
+    ans = "2 string recv: " + a;
+    print(ans);
+    print("2 string recving done");
+}
+
+func recv3(a) {
+    print("3 string recving...");
+    ans = a;
+    print(ans);
+    print("3 string recving done");
 }
 
 func main() {
-    gen("seq 1: Hello World");
-    gen("seq 2: Hello World");
+    /* function overloading */
+    gen1("Hello", " World");
+    gen1(1, 1);
 
-    fly gen("Hello World 1");
+    /* function overloading for fly */
+    fly gen1("fly: Hello", " World");
+    fly gen1(2, 2);
 
-    fly gen("Hello World 2");
+    /* fly send signal of same type */
+    s = fly gen1("fly sig1: Hello", " World");
+    register s recv1();
 
-    s = fly gen("Hello World 3");
-    register s recv();
-    
-    s = fly gen("Hello World 4");
-    register s recv();
+    /* fly using overloading function */
+    s_int = fly gen1(100, 200);
+    register s_int recv3(); 
 
-/*    register s get_ans();*/
+    /* signal reassigned to functions returning same type */
+    s = fly gen2("fly sig2: Hello");
+    register s recv2();
 
-    s1 = fly add(1, 2, 3);
-    register s1 get_ans();
+    /* calling recv in sync fashion */
+    recv2("Sync fashion"); 
 
     while(true) {
     };
