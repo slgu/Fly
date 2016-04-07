@@ -90,7 +90,7 @@ let rec handle_fly_expr signame expr refenv =
     match expr with
     | TFly((fn, texpr_list), st) ->
             let expr_types_list = List.map get_expr_type_info texpr_list in
-            let nfn = (List.fold_left (fun ret et -> ret ^ "_" ^ (type_to_func_string et)) fn expr_types_list) 
+            let nfn = (List.fold_left (fun ret et -> ret ^ "_" ^ (type_to_func_string et)) fn expr_types_list)
                 ^ "_" ^ (type_to_func_string st) in
             let param = [cat_string_list_with_comma (List.fold_left (fun ret ex -> ret@(handle_texpr ex refenv)) [] texpr_list)] in
             let param2 =
@@ -168,9 +168,9 @@ and handle_texpr expr refenv =
     | TChanbinop(_) -> [] (* TODO *)
     | TChanunop(_) -> [] (* TODO *)
     | TFly((fn, texpr_list),st) ->
-        let type_str = 
-        match st with 
-            | Signal(t) -> type_to_code_string t 
+        let type_str =
+        match st with
+            | Signal(t) -> type_to_code_string t
             | _ -> raise (Failure ("Fly type error"))
         in
         handle_fly_expr ("shared_ptr <Signal<" ^ type_str ^ ">> (new Signal<" ^ type_str ^">())")
@@ -194,8 +194,7 @@ and handle_texpr expr refenv =
                 handle_fly_expr str expr refenv
             (* normal *)
             | x ->
-                let tycode = type_to_code_string x
-                in let str = varname ^ "->" ^ mname
+                let str = varname ^ "->" ^ mname
                 in [str ^ " = "] @ handle_texpr expr refenv
         end
 
@@ -264,7 +263,7 @@ let handle_body fkey body refenv =
     let body_code = List.fold_left (fun ret tstmt_ -> ret @ (handle_tstmt fkey tstmt_ refnewenv)) [] body in
     ["{"] @ pre_code @ body_code @ ["}"]
 
-let get_typelist_from_fm fm = 
+let get_typelist_from_fm fm =
     List.fold_left
     (fun ret (str_, type_) -> ret @ [type_])
     [] fm
@@ -288,7 +287,7 @@ let handle_fdecl fkey fd refenv =
                     let tmpfm = List.rev fm in
                     (
                     match tmpfm with
-                    | (_rn,_)::tl -> 
+                    | (_rn,_)::tl ->
                         ignore(add_hash register_funcs fkey {vn=_name; vt=_type; rn=_rn});
                         List.rev ([(_name, _type)] @ tl)
                     | _ -> raise (Failure ("Register function not accepting param? " ^ name))
@@ -303,24 +302,24 @@ let handle_fdecl fkey fd refenv =
             match (find_hash register_funcs fkey) with
             (* a register function, append type to name *)
             | Some({vn=_;vt=r_type}) ->
-                (   List.fold_left 
+                (   List.fold_left
                     (fun ret type_ -> ret ^ "_" ^ (type_to_func_string type_))
-                    name 
+                    name
                     type_list
                 )
             | None -> (
                 match (find_hash signal_funcs fkey) with
                 (* a fly function, append type to name *)
-                | Some({vn=_;vt=s_type}) -> 
-                    (   List.fold_left 
+                | Some({vn=_;vt=s_type}) ->
+                    (   List.fold_left
                         (fun ret type_ -> ret ^ "_" ^ (type_to_func_string type_))
-                        name 
+                        name
                         type_list
                     )
                 (* normal function *)
                 | None -> name
             )
-        ) in 
+        ) in
         let fmstr = (handle_fm nfm refnewenv) in
         let bodystr = (handle_body fkey body refnewenv) in
         [ cat_string_list_with_space [(type_to_code_string rt);nfname;fmstr]] @ bodystr
@@ -466,21 +465,21 @@ let ht_left ht =
 
 (* from signal_funcs and register_funcs, get all the fk *)
 let get_func_overload_klist ht =
-    let kl1 = Hashtbl.fold 
+    let kl1 = Hashtbl.fold
     (
-        fun k v ret -> 
+        fun k v ret ->
         match find_hash ht k with
         | Some(fd_) -> ret @ [{fkey=k;fd=fd_}]
         | _ -> raise (Failure (""))
-    ) 
+    )
     signal_funcs [] in
-    let kl2 = Hashtbl.fold 
+    let kl2 = Hashtbl.fold
     (
-        fun k v ret -> 
+        fun k v ret ->
         match find_hash ht k with
         | Some(fd_) -> ret @ [{fkey=k;fd=fd_}]
         | _ -> raise (Failure (""))
-    ) 
+    )
     register_funcs [] in
     kl1 @ kl2
 
@@ -492,9 +491,9 @@ let build_func_from_ht ht =
     let func_overload_klist = get_func_overload_klist ht in
     ignore(clean_up_hash signal_funcs);
     ignore(clean_up_hash register_funcs);
-    let overload_code = List.fold_left 
+    let overload_code = List.fold_left
         (
-            fun ret {fkey=fk_;fd=fd_} -> 
+            fun ret {fkey=fk_;fd=fd_} ->
             match find_hash fundone fk_ with
             | None ->
                 ignore(add_hash fundone fk_ "");
@@ -505,13 +504,37 @@ let build_func_from_ht ht =
     overload_code @ res
 
 (* take t_class_decl and return string list (code) of the class referrence *)
-let handle_class_refer tcdecl =
-    None
+let handle_class_refer tcdecl = match tcdecl with
+    | {tcname=cname;member_binds=binds;t_func_decls=tfdecls}->
+        let class_header = "class " ^ cname ^ " {"
+        in let var_defs  =
+            List.map (fun (varname, thistype) ->
+                (type_to_code_string thistype) ^ " " ^ varname ^ ";"
+            ) binds
+        in let refer_map tfdecl = begin match tfdecl with
+            | {tfname=fname;tformals=bind_list;tret=rtype;_} ->
+            let var_refs = List.map (fun (varname, thistype) ->
+                (type_to_code_string thistype) ^ " " ^ varname ^ ""
+            ) bind_list
+            in let fstr = list_join var_refs ","
+            in
+                (type_to_code_string rtype) ^ " " ^ fname ^ "(" ^ fstr ^ ");"
+            end
+        in let func_refers =
+            List.map refer_map tfdecls
+        in let tab_var_defs = tablize var_defs
+        in let tab_func_refers = tablize func_refers
+        in let end_lines = "};"
+        in (*concate with \n*)
+            let total = List.concat [[class_header];tab_var_defs;tab_func_refers;[end_lines]]
+        in List.fold_left (fun res item -> res ^ item ^ "\n") "" total
+
 (* take t_class_decl and return string list (code) of the class definition *)
 let handle_class_def tcdecl =
     None
 
-let handle_class x = []
+let handle_class x =
+    [handle_class_refer x]
 
 (* take ht of string->class_decl and return string list *)
 let build_class_from_ht cht =

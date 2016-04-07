@@ -22,3 +22,11 @@ let gen_hash_key fname type_list =
 let rec explode = function
     "" -> []
     | s  -> (String.get s 0) :: explode (String.sub s 1 ((String.length s) - 1));;
+
+let tablize arr =
+    List.map (fun item -> "\t" ^ item) arr
+
+let list_join string_arr join_string = match string_arr with
+    | (x::y) ->
+        x ^ (List.fold_left (fun res item -> res ^ "," ^ item) "" y)
+    | [] -> ""
