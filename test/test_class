@@ -4,12 +4,12 @@ class dog {
     owner:String;
 
     func bark(to) {
-        msg = "Hi " + to + " my name is";
+        msg = "Hi " + to + " my name is" + name;
         print(msg);
-        print(name);
     }
 
     func play() {
+        age = 10;
         ans = age + 100;
         print(ans);
     }
@@ -21,10 +21,8 @@ class cat {
     owner:String;
     another_dog:dog;
     func meow(to) {
-        msg = "Hi " + to + " my name is";
+        msg = "Hi " + to + " my name is " + name;
         print(msg);
-        print(name);
-        print(another_dog.age);
     }
 
     func play() {
@@ -38,9 +36,11 @@ func main() {
     d = 3;
     a = @dog;
     a.age = 12;
+    a.name = "gsl";
     a.bark("slgu");
     a.play();
     c = @cat;
+    c.name = "das";
     c.meow("sad");
     return 0;
 }

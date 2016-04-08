@@ -503,10 +503,11 @@ let build_func_from_ht ht =
     (*print_endline (List.fold_left (fun ret ele -> ret ^ ele ^ "\n") "" res);*)
     overload_code @ res
 
+
 (* take t_class_decl and return string list (code) of the class referrence *)
 let handle_class_refer tcdecl = match tcdecl with
     | {tcname=cname;member_binds=binds;t_func_decls=tfdecls}->
-        let class_header = "class " ^ cname ^ " {"
+        let class_header = "class " ^ cname ^ " {\npublic:\n" (*all public*)
         in let var_defs  =
             List.map (fun (varname, thistype) ->
                 (type_to_code_string thistype) ^ " " ^ varname ^ ";"
@@ -527,18 +528,52 @@ let handle_class_refer tcdecl = match tcdecl with
         in let end_lines = "};"
         in (*concate with \n*)
             let total = List.concat [[class_header];tab_var_defs;tab_func_refers;[end_lines]]
-        in List.fold_left (fun res item -> res ^ item ^ "\n") "" total
+        in [List.fold_left (fun res item -> res ^ item ^ "\n") "" total]
+
 
 (* take t_class_decl and return string list (code) of the class definition *)
-let handle_class_def tcdecl =
-    None
+let handle_class_def tcdecl = match tcdecl with
+    | {tcname=cname;member_binds=binds;t_func_decls=tfdecls}->
+        let def_map tfdecl = begin match tfdecl with
+            | {tfname=fname;tformals=bind_list;tret=rtype;_} ->
+            let var_refs = List.map (fun (varname, thistype) ->
+                (type_to_code_string thistype) ^ " " ^ varname ^ ""
+            ) bind_list
+            in let fstr = list_join var_refs ","
+            in
+                (type_to_code_string rtype) ^ " " ^ cname ^ "::" ^fname ^ "(" ^ fstr ^ ")"
+            end
+        in
+        let gen_body tfdecl = begin match tfdecl with
+            | {tfname=fname;tformals=bind_list;tret=rtype;tbody=stmt_list;_} ->
+                (*I don't know what is fkey*)
+                (*create a new env with member variables and parameters*)
+                let new_env = List.fold_left (
+                    fun thisenv (varname, thistype) ->
+                    update_env thisenv varname thistype
+                    ) (init_level_env()) binds
+                in let new_env = List.fold_left (fun thisenv (varname, thistype) ->
+                    update_env thisenv varname thistype) new_env bind_list
+                in let new_env_ref = ref(new_env)
+                in handle_body "" stmt_list new_env_ref
+                end
+        in let gen_all tfdecl =
+            let func_def = def_map tfdecl
+            in let body = gen_body tfdecl
+            in [func_def] @ body
+        in List.concat (List.map gen_all tfdecls)
 
-let handle_class x =
-    [handle_class_refer x]
+
+let handle_class_forward tcdecl = match tcdecl with
+     | {tcname=cname;member_binds=binds;t_func_decls=tfdecls}->
+        ["class " ^ cname ^ ";\n"]
 
 (* take ht of string->class_decl and return string list *)
 let build_class_from_ht cht =
-    Hashtbl.fold (fun k v code -> code @ (handle_class v)) cht []
+    (*first generate forward decl*)
+    let code_v1 = Hashtbl.fold (fun k v code -> code @ (handle_class_forward v)) cht []
+    in let code_v2 = Hashtbl.fold (fun k v code -> code @ (handle_class_refer v)) cht code_v1
+    in Hashtbl.fold (fun k v code -> code @ (handle_class_def v)) cht code_v2
 
 let codegen fht cht =
     let func_codelist = build_func_from_ht fht in
