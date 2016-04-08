@@ -19,6 +19,9 @@ type fkey_fd_bind = {
     fd   : t_func_decl;
 }
 
+let gen_clojure_class funcname type_list =
+    funcname ^ (List.fold_left (fun res item -> res ^ "_" ^ (type_to_string item)) "" type_list)
+
 (* mapping from function key to sigbind *)
 let (signal_funcs : (string, sigbind) Hashtbl.t) = Hashtbl.create 16
 
@@ -59,6 +62,7 @@ let rec type_to_code_string = function
     | Float -> "float"
     | Signal(x) -> "shared_ptr <Signal<" ^ (type_to_code_string x) ^ ">>"
     | Class x -> "shared_ptr <" ^ x ^ ">"
+    | Func (x, type_list) -> "shared_ptr <" ^ (gen_clojure_class x type_list) ^ ">"
     | _ -> raise (Failure ("type_to_code_string not yet support this type"))
 
 (* take a string list and concatenate them with interleaving space into a single string *)
