@@ -19,14 +19,14 @@ type fkey_fd_bind = {
     fd   : t_func_decl;
 }
 
+(* store signal funcs *)
+let (signal_funcs : (string, string) Hashtbl.t) = Hashtbl.create 16
+
+(* store register funcs *)
+let (register_funcs : (string, string) Hashtbl.t) = Hashtbl.create 16
+
 let gen_clojure_class funcname type_list =
     funcname ^ (List.fold_left (fun res item -> res ^ "_" ^ (type_to_string item)) "clojure_" type_list)
-
-(* mapping from function key to sigbind *)
-let (signal_funcs : (string, sigbind) Hashtbl.t) = Hashtbl.create 16
-
-(* mapping from function key to sigbind *)
-let (register_funcs : (string, regibind) Hashtbl.t) = Hashtbl.create 16
 
 let (fundone : (string, string) Hashtbl.t) = Hashtbl.create 16
 
@@ -273,27 +273,7 @@ let rec handle_tstmt fkey tstmt_ refenv =
         (List.fold_left (fun ret tstmt_ -> ret @ (handle_tstmt fkey tstmt_ refnewenv)) [] tstmtlist)
         @ ["}"]
     | TExpr(expr) -> [cat_string_list_with_space ((handle_texpr expr refenv) @ [";"])]
-    | TReturn(expr) ->
-        (
-            match (find_hash signal_funcs fkey) with
-            (* a normal function *)
-            | None -> [cat_string_list_with_space (["return"] @ (handle_texpr expr refenv) @ [";"])]
-            (* a fly function, add signal codes *)
-            | Some({vn=_name; vt=_type}) ->
-            (
-                match _type with
-                | Signal(_type2) ->
-                    let tstr = type_to_code_string _type2 in
-                    (
-                        match expr with
-                        | TId(str, _) ->
-                            [_name ^ "->notify(shared_ptr<" ^ tstr ^ ">(new " ^ tstr^ "(" ^ str ^ ")));" ] @
-                            [cat_string_list_with_space ["return"; str; ";"]]
-                        | _ -> raise (Failure ("Should return Id"))
-                    )
-                | _ -> raise (Failure ("Should be Signal(t)"))
-            )
-        )
+    | TReturn(expr) -> [cat_string_list_with_space (["return"] @ (handle_texpr expr refenv) @ [";"])]
     | TIf(texp_, tstmtl1, tstmtl2) ->
         [cat_string_list_with_space (["if ("] @ (handle_texpr texp_ refnewenv) @ [")"])] @
         ["{"] @ ((List.fold_left (fun ret tstmt_ -> ret @ (handle_tstmt fkey tstmt_ refnewenv)) [] tstmtl1)) @ ["}"] @
@@ -317,16 +297,8 @@ let rec handle_tstmt fkey tstmt_ refenv =
 (*对stmt list 产生code*)
 let handle_body fkey body refenv =
     let refnewenv = ref (append_new_level !refenv) in
-    let pre_code =
-    (
-        match (find_hash register_funcs fkey) with
-        | Some({vn=_name;vt=Signal(_t);rn=_rn}) -> (* register function: get value from signal first *)
-            ignore(update_env (!refnewenv) _rn _t);
-            [(type_to_code_string _t) ^ " " ^ _rn ^ " = *" ^ _name ^ "->wait();"]
-        | _ -> [] (* normal function *)
-    ) in
     let body_code = List.fold_left (fun ret tstmt_ -> ret @ (handle_tstmt fkey tstmt_ refnewenv)) [] body in
-    ["{"] @ pre_code @ body_code @ ["}"]
+    ["{"] @ body_code @ ["}"]
 
 (* return string list *)
 (* take a function key, declaration and generate the string list *)
@@ -334,55 +306,9 @@ let handle_fdecl fkey fd refenv =
     let refnewenv = ref (append_new_level !refenv) in
     match fd with
     | {tret=rt; tfname=name; tformals=fm; tbody=body ;_} ->
-        let nfm =
-        (
-            match (find_hash signal_funcs fkey) with
-            | None ->
-            (
-                match (find_hash register_funcs fkey) with
-                | None -> fm (* normal function *)
-                (* a register function, make the last of fm = Signal(t) *)
-                (* also update the variable name in register_funcs hash *)
-                | Some({vn=_name;vt=_type}) ->
-                    let tmpfm = List.rev fm in
-                    (
-                    match tmpfm with
-                    | (_rn,_)::tl ->
-                        ignore(add_hash register_funcs fkey {vn=_name; vt=_type; rn=_rn});
-                        List.rev ([(_name, _type)] @ tl)
-                    | _ -> raise (Failure ("Register function not accepting param? " ^ name))
-                    )
-            )
-            (* a fly function, add signal to the end of fm *)
-            | Some({vn=_name;vt=_type}) -> fm @ [(_name, _type)]
-        ) in
-        let nfname = (* must change name for recv/fly func, appending type *)
-        (
-            let type_list = (get_typelist_from_fm nfm) in
-            match (find_hash register_funcs fkey) with
-            (* a register function, append type to name *)
-            | Some({vn=_;vt=r_type}) ->
-                (   List.fold_left
-                    (fun ret type_ -> ret ^ "_" ^ (type_to_func_string type_))
-                    name
-                    type_list
-                )
-            | None -> (
-                match (find_hash signal_funcs fkey) with
-                (* a fly function, append type to name *)
-                | Some({vn=_;vt=s_type}) ->
-                    (   List.fold_left
-                        (fun ret type_ -> ret ^ "_" ^ (type_to_func_string type_))
-                        name
-                        type_list
-                    )
-                (* normal function *)
-                | None -> name
-            )
-        ) in
-        let fmstr = (handle_fm nfm refnewenv) in
+        let fmstr = (handle_fm fm refnewenv) in
         let bodystr = (handle_body fkey body refnewenv) in
-        [ cat_string_list_with_space [(type_to_code_string rt);nfname;fmstr]] @ bodystr
+        [ cat_string_list_with_space [(type_to_code_string rt);name;fmstr]] @ bodystr
 
 (*class code generation*)
 let class_code_gen cdecl =
@@ -437,14 +363,14 @@ let rec texp_helper texp_ =
         ignore(
             let expr_types_list = List.map get_expr_type_info texprlist in
             let hash_key = gen_hash_key fn expr_types_list in
-            add_hash signal_funcs hash_key {vn=fn ^ "_signal"; vt=Signal(t)}
+            add_hash signal_funcs hash_key ""
         );
         texp_helper (TCall((fn, texprlist), t))
     | TRegister ((sign, fn, texpl), t) ->
         let expr_types_list = List.map get_expr_type_info texpl in
         (* register texpl will miss the last t, so append it*)
         let hash_key = gen_hash_key fn (expr_types_list @ [t]) in
-        ignore(add_hash register_funcs hash_key {vn=fn ^ "_signal"; vt=Signal(t); rn="known"});
+        ignore(add_hash register_funcs hash_key "");
         [hash_key]
     (* TObjCall of (string * string * texpr list) * typ TODO*)
     | TObjCall (_) -> []
@@ -524,26 +450,6 @@ let ht_left ht =
     ) ht []
 *)
 
-(* from signal_funcs and register_funcs, get all the fk *)
-let get_func_overload_klist ht =
-    let kl1 = Hashtbl.fold
-    (
-        fun k v ret ->
-        match find_hash ht k with
-        | Some(fd_) -> ret @ [{fkey=k;fd=fd_}]
-        | _ -> raise (Failure (""))
-    )
-    signal_funcs [] in
-    let kl2 = Hashtbl.fold
-    (
-        fun k v ret ->
-        match find_hash ht k with
-        | Some(fd_) -> ret @ [{fkey=k;fd=fd_}]
-        | _ -> raise (Failure (""))
-    )
-    register_funcs [] in
-    kl1 @ kl2
-
 let gen_rest ht refenv =
     let fcode = Hashtbl.fold 
         (
@@ -557,26 +463,60 @@ let gen_rest ht refenv =
         ) ht [] in
     fcode
 
+(* generate signal wrappers *)
+let gen_sig_wrapper ht = 
+    let g_env = init_level_env() in
+    let sig_funcs = Hashtbl.fold 
+    (
+        fun k v ret -> 
+        match find_hash fundone k with
+        | None ->
+            ignore(add_hash fundone k "");
+            (
+                match find_hash ht k with
+                | Some(fd) -> ret @ (handle_fd_fly fd (ref g_env))
+                | None -> raise (Failure (k ^ " not in fht"))
+            )
+        | _ -> ret
+    ) signal_funcs [] in
+    let regi_funcs = Hashtbl.fold
+    (
+        fun k v ret -> 
+        match find_hash fundone k with
+        | None ->
+            ignore(add_hash fundone k "");
+            (
+                match find_hash ht k with
+                | Some(fd) -> ret @ handle_fd_register fd (ref g_env)
+                | None -> raise (Failure (k ^ " not in fht"))
+            )
+        | _ -> ret
+    ) register_funcs [] in
+    sig_funcs @ regi_funcs
+
+let handle_func_forward fd refenv = 
+    let refnewenv = ref (append_new_level !refenv) in
+    match fd with
+    | {tret=rt; tfname=name; tformals=fm;_} ->
+        let fmstr = (handle_fm fm refnewenv) in
+        [ cat_string_list_with_space [(type_to_code_string rt);name;fmstr;] ^ ";"]
+
+let gen_forward ht refenv = 
+    Hashtbl.fold (fun k v code -> code @ (handle_func_forward v refenv)) ht []
+
+let gen_sig_wrapper_forward ht refenv = []
+
 (* take ht and return string list, which is code *)
 let build_func_from_ht ht =
     let g_env = init_level_env() in
-    let res = dfs ht "main" (ref g_env) in
-    let res2 = gen_rest ht (ref g_env) @ res in
+    let refenv = (ref g_env) in
+    let res = dfs ht "main" refenv in
+    let res2 = gen_rest ht refenv in
+    let forward = gen_forward ht refenv in
     ignore(clean_up_hash fundone);
-    let func_overload_klist = get_func_overload_klist ht in
-    ignore(clean_up_hash signal_funcs);
-    ignore(clean_up_hash register_funcs);
-    let overload_code = List.fold_left
-        (
-            fun ret {fkey=fk_;fd=fd_} ->
-            match find_hash fundone fk_ with
-            | None ->
-                ignore(add_hash fundone fk_ "");
-                ret @ handle_fdecl fk_ fd_ (ref g_env)
-            | _ -> ret
-        ) [] func_overload_klist in
-    (*print_endline (List.fold_left (fun ret ele -> ret ^ ele ^ "\n") "" res);*)
-    overload_code @ res2
+    let sig_wrapper_code = gen_sig_wrapper ht in
+    let sig_wrapper_forward = gen_sig_wrapper_forward ht refenv in
+    forward @ sig_wrapper_forward @ res2 @ sig_wrapper_code @ res
 
 (* take t_class_decl and return string list (code) of the class referrence *)
 let handle_class_refer tcdecl = match tcdecl with
