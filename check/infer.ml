@@ -11,11 +11,31 @@ let (class_binds : (string, class_decl) Hashtbl.t) = Hashtbl.create 16
 (*typed function bindings*)
 let (t_func_binds: (string, t_func_decl) Hashtbl.t) = Hashtbl.create 16
 
-(*typed lambda bindings*)
-let (t_lambda_binds: (string, t_lambda_decl) Hashtbl.t) = Hashtbl.create 16
-
 (*typed class definition*)
 let (t_class_binds: (string, t_class_decl) Hashtbl.t) = Hashtbl.create 16
+
+(*clojure call binds*)
+let (clojure_calls: (string, (typ list * typ list) list) Hashtbl.t) = Hashtbl.create 16
+
+
+let rec get_or_create funcname =
+    try
+        Hashtbl.find clojure_calls funcname
+    with
+    | Not_found -> Hashtbl.add clojure_calls funcname []; get_or_create funcname
+
+let rec update_if_no exist_calls f_type_list s_type_list =
+    match exist_calls with
+    | [] -> [(f_type_list, s_type_list)]
+    | (x::y) -> if x = (f_type_list, s_type_list) then (x::y) else
+        x :: (update_if_no y f_type_list s_type_list)
+
+
+let update_clojure_calls funcname f_type_list s_type_list =
+    let exist_calls = get_or_create funcname
+    in let new_calls = update_if_no exist_calls f_type_list s_type_list
+    in Hashtbl.replace clojure_calls funcname new_calls
+
 
 let find_t_func name =
     try
@@ -29,6 +49,7 @@ let find_func name =
         Hashtbl.find func_binds name
     with
     | Not_found -> failwith ("not this function:" ^ name)
+
 
 let find_class name =
     try
@@ -515,7 +536,10 @@ let rec infer_func fdecl hash_key type_list level_env =
                         match fdecl with
                         | {formals = param_list;_} -> (*set env*)
                         let param_len = List.length param_list and true_len = List.length expr_types
-                        in if param_len = true_len + binding_len then (* actual a function call *)
+                        in
+                            (*update clojure calls*)
+                            update_clojure_calls fname arr expr_types;
+                            if param_len = true_len + binding_len then (* actual a function call *)
                             let rtype = get_func_result (infer_func_by_name fname (List.append arr expr_types))
                             in TCall ((name, texpr_list), rtype)
                             else

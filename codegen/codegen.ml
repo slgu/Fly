@@ -20,7 +20,7 @@ type fkey_fd_bind = {
 }
 
 let gen_clojure_class funcname type_list =
-    funcname ^ (List.fold_left (fun res item -> res ^ "_" ^ (type_to_string item)) "" type_list)
+    funcname ^ (List.fold_left (fun res item -> res ^ "_" ^ (type_to_string item)) "clojure_" type_list)
 
 (* mapping from function key to sigbind *)
 let (signal_funcs : (string, sigbind) Hashtbl.t) = Hashtbl.create 16
@@ -39,11 +39,14 @@ let find_hash ht key =
     with
     | Not_found -> None
 
+
 let remove_hash ht key =
     Hashtbl.remove ht key
 
+
 let clean_up_hash ht =
     Hashtbl.iter (fun k v -> remove_hash ht k) ht
+
 
 let rec type_to_func_string = function
     | Int -> "int"
