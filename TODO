@@ -1,8 +1,22 @@
-SAST:
-1.socket code distribute key word
-2. global variable added (to be done) (maybe easy)
-3. set map list comprehen (to be done) (Third important)
-4. implement the clojure
+1.socket library and distribute keyword (brian)
+2.global variable (easy)
+3.array set map support (brian)
+4.implement clojure (slgu)
+5.implement chan.cpp (slgu)
+
+build-in functions:
+
+format:
+    funcname, type_list -> "function code"
+
+    type change:
+        float()
+        int()
+        str()
+    system:
+        sleep()
+        exit()
+
 
 CODEGEN:
 
