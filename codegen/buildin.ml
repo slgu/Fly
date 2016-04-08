@@ -22,12 +22,27 @@ void exit(int exit_code){
 	exit(exit_code);
 }
 
+let exit = {
+	ttkey = "";
+	tfname = "exit";
+	tformals = [("int", int)];
+	tbody = [];
+	tret = void;
+}
+let sleep = {
+	ttkey = "";
+	tfname = "sleep";
+	tformals = [("int", int)];
+	tbody = [];
+	tret = int;
+}
+
 (*string to_string(void a){} *)
 (*string to_string(array a){} *)
 (*string to_string(set a ){} *)
 
 
-let build_in_func =
+(*let build_in_func =
     [t_func_decl]
         ;
         ;
@@ -37,3 +52,4 @@ let build_in_func =
 
 let build_in_class =
     [t_class_decls];
+*)
