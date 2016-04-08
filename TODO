@@ -18,7 +18,6 @@ format:
         sleep()
         exit()
 
-
 CODEGEN:
 
 cp1.We are implicit typing like C++ template.
