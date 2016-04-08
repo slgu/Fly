@@ -1,5 +1,5 @@
 open Ast
-using namespace std;
+open Sast
 
 (* to_float, to_int, to_string, sleep, exit *)
 
@@ -20,7 +20,7 @@ string to_string(int a ){
 	return to_string(a);
 }
 string to_string(float a ){
-	return to_string(a);		
+	return to_string(a);
 }
 
 void sleep(int seconds){
@@ -34,69 +34,69 @@ void exit(int exit_code){
 "
 
 let int_to_float = {
-	ttkey = ""; 
-	tfname = "to_float"; 
-	tformals = [("int", int)]; 
-	tbody = []; 
-	tret = float;
+	ttkey = "";
+	tfname = "to_float";
+	tformals = [("int", Int)];
+	tbody = [];
+	tret = Float;
 }
 
 let string_to_float = {
-	ttkey = ""; 
-	tfname = "to_float"; 
-	tformals = [("string", string)]; 
-	tbody = []; 
-	tret = float;
+	ttkey = "";
+	tfname = "to_float";
+	tformals = [("string", String)];
+	tbody = [];
+	tret = Float;
 }
 
 let string_to_int = {
-	ttkey = ""; 
-	tfname = "to_int"; 
-	tformals = [("string", string)]; 
-	tbody = []; 
-	tret = int;
+	ttkey = "";
+	tfname = "to_int";
+	tformals = [("string", String)];
+	tbody = [];
+	tret = Int;
 }
 
 let int_to_string = {
-	ttkey = ""; 
-	tfname = "to_string"; 
-	tformals = [("int", int)]; 
-	tbody = []; 
-	tret = string;
+	ttkey = "";
+	tfname = "to_string";
+	tformals = [("int", Int)];
+	tbody = [];
+	tret = String;
 }
 
 let float_to_string = {
-	ttkey = ""; 
-	tfname = "to_string"; 
-	tformals = [("float", float)]; 
-	tbody = []; 
-	tret = string;
+	ttkey = "";
+	tfname = "to_string";
+	tformals = [("float", Float)];
+	tbody = [];
+	tret = String;
 }
 
 let exit_func = {
 	ttkey = "";
 	tfname = "exit";
-	tformals = [("int", int)];
+	tformals = [("int", Int)];
 	tbody = [];
-	tret = void;
+	tret = Void;
 }
 
 let sleep_func = {
 	ttkey = "";
 	tfname = "sleep";
-	tformals = [("int", int)];
+	tformals = [("int", Int)];
 	tbody = [];
-	tret = void;
+	tret = Void;
 }
 
 let build_in_func =
-    [int_to_string];
-    [float_to_string];
-    [string_to_int];
-	[int_to_string];
-	[float_to_string];
-	[exit_func];
-	[sleep_func];
+    [int_to_string;
+    float_to_string;
+    string_to_int;
+	int_to_string;
+	float_to_string;
+	exit_func;
+	sleep_func]
 
 
 (*string to_string(void a){} *)

@@ -549,9 +549,9 @@ let get_func_overload_klist ht =
     kl1 @ kl2
 
 let gen_rest ht refenv =
-    let fcode = Hashtbl.fold 
+    let fcode = Hashtbl.fold
         (
-            fun k v code -> 
+            fun k v code ->
             match (find_hash fundone k) with
             | None ->
                 ignore(add_hash fundone k "");

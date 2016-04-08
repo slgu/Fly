@@ -3,6 +3,10 @@ ast_dir = ast
 check_dir = check
 gen_dir = codegen
 debug_dir = de
+buildin:
+	ocamlc -c $(ast_dir)/ast.ml
+	ocamlc -I $(ast_dir) -c $(ast_dir)/sast.ml
+	ocamlc -I $(ast_dir) -I $(check_dir) -c $(gen_dir)/buildin.ml
 all:
 	ocamllex $(parser_dir)/scanner.mll
 	ocamlyacc -q -v $(parser_dir)/parser.mly

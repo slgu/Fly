@@ -769,5 +769,5 @@ let infer_check (ast : program) =
     debug_t_func_binds();
     print_endline (debug_t_fdecl main_fdecl);
     *)
-    (t_func_binds, t_class_binds)
+    (t_func_binds, t_class_binds, clojure_calls)
     (* search main function and do a static type infer*)
