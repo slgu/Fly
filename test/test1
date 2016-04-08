@@ -29,6 +29,5 @@ func main() {
     c.who = 1;
     dd = outerfuck("asd");
     dd = c.fuck(aa);
-    print(gcd(36,6));
     return 0;
 }

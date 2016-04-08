@@ -94,54 +94,54 @@ let handle_fm formals refenv =
     "(" ^ trimed ^ ")"
 
 (* generate fly wrapper, return string list *)
-let handle_fd_fly fd refenv = 
+let handle_fd_fly fd refenv =
     match fd with
     | {tret=rt; tfname=name; tformals=fm; tbody=body ;_} ->
         let ret = ["void"] in
         let rtstr = type_to_code_string rt in
         let tlist = get_typelist_from_fm fm in
-        let fname = List.fold_left 
+        let fname = List.fold_left
                     (fun ret type_ -> ret ^ "_" ^ (type_to_func_string type_))
-                    name 
+                    name
                     (tlist @ [Signal(rt)]) in
         let sigvar = fname ^ "_sig" in
         let fmstr = handle_fm (fm @ [(sigvar, Signal(rt))]) refenv in
         let param = cat_string_list_with_comma (List.map (fun (n,_) -> n) fm) in
         let getvar = fname ^ "_var" in
-        let body = 
+        let body =
             if rt = Void then
-                ["{"] @ 
+                ["{"] @
                 [name ^ "(" ^ param ^ ");"] @
-                ["}"] 
+                ["}"]
             else
-                ["{"] @ 
-                [(type_to_code_string rt) ^ " " ^ getvar ^ " = " ^ name ^ "(" ^ param ^ ");"] @ 
+                ["{"] @
+                [(type_to_code_string rt) ^ " " ^ getvar ^ " = " ^ name ^ "(" ^ param ^ ");"] @
                 [sigvar ^ "->notify(shared_ptr<" ^ rtstr ^ ">(new " ^ rtstr ^ "(" ^ getvar ^ ")));"] @
-                ["}"] 
+                ["}"]
         in
         ret @ [fname] @ [fmstr] @ body
 
 (* generate register wrapper, return string list *)
-let handle_fd_register fd refenv = 
+let handle_fd_register fd refenv =
     match fd with
     | {tret=rt; tfname=name; tformals=fm; tbody=body ;_} ->
         let (getvar, sigty) = match List.rev fm with
             | (var, ty)::tl -> (var, ty)
             | _ -> raise (Failure ("This register function doesn't have param")) in
         let sigvar = name ^ "_sig" in
-        let nfm = match List.rev fm with 
+        let nfm = match List.rev fm with
             | _::tl -> (List.rev tl) @ [(sigvar, Signal(sigty))]
             | _ -> [] in
         let rtstr = type_to_code_string rt in
         let tlist = get_typelist_from_fm nfm in
-        let fname = List.fold_left 
+        let fname = List.fold_left
                     (fun ret type_ -> ret ^ "_" ^ (type_to_func_string type_))
-                    name 
+                    name
                     tlist in
         let fmstr = handle_fm nfm refenv in
         let param = cat_string_list_with_comma (List.map (fun (n,_) -> n) fm) in
-        let body = ["{"] @ 
-            [(type_to_code_string sigty) ^ " " ^ getvar ^ " = *" ^ sigvar ^ "->wait();"] @ 
+        let body = ["{"] @
+            [(type_to_code_string sigty) ^ " " ^ getvar ^ " = *" ^ sigvar ^ "->wait();"] @
             [name ^ "(" ^ param ^ ");"] @
             ["}"] in
         [rtstr] @ [fname] @ [fmstr] @ body
@@ -481,6 +481,7 @@ let rec tstmt_helper tstmt_ =
         (texp_helper texpr_) @ (List.fold_left (fun ret tstmt_ -> ret @ (tstmt_helper tstmt_)) [] tstmtlist)
     | TWhile(texpr_, tstmtlist) ->
         (texp_helper texpr_) @ (List.fold_left (fun ret tstmt_ -> ret @ (tstmt_helper tstmt_)) [] tstmtlist)
+
 
 (* take a function key and return string list, which are the code *)
 let rec dfs ht fkey refenv =

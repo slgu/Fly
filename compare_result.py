@@ -9,7 +9,7 @@ comma = ', '
 command1 = 'make'
 command2 = './Fly < test/'
 command3 = ' > test.cpp'
-command4 = 'g++ test.cpp'
+command4 = 'g++ -std=c++11 test.cpp'
 command5 = './a.out > ' + fly_results #put the results from running fly code into 'fly_result.txt'
 
 test_list = os.listdir(test_dir)

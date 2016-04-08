@@ -1,8 +1,9 @@
 1.socket library and distribute keyword (brian)
 2.global variable (easy)
 3.array set map support (brian)
-4.implement clojure (slgu)
+4.implement clojure, pass by function (slgu)
 5.implement chan.cpp (slgu)
+6.fly objcall (brian)
 
 build-in functions:
 
@@ -27,3 +28,17 @@ cp2.when set None variable, we need class modification
     (Rule: type needs to be decided when first access to it*)
 cp3.
     (Small optimization)
+
+
+a = @server;
+a.listen()
+while True:
+    con = a.accept
+    con.send
+    close
+    receive
+b = @client
+b.connect()
+b.send
+close
+receivce
