@@ -15,9 +15,7 @@ string to_string(int a ){
 string to_string(float a ){
 	return to_string(a);		
 }
-string to_string(bool a){
-	return to_string(a);	
-}
+
 void exit(int exit_code){
 	exit(exit_code);
 }
