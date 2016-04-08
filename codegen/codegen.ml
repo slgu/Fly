@@ -494,7 +494,7 @@ let rec dfs ht fkey refenv =
         let sfd = find_hash ht fkey in
         (
             match sfd with
-            | None -> raise (Failure ("Function not defined " ^ fkey))
+            | None -> []
             | Some (fd) ->
                 ignore(Hashtbl.add fundone fkey "dummy");
                 (
@@ -544,10 +544,24 @@ let get_func_overload_klist ht =
     register_funcs [] in
     kl1 @ kl2
 
+let gen_rest ht refenv =
+    let fcode = Hashtbl.fold 
+        (
+            fun k v code -> 
+            match (find_hash fundone k) with
+            | None ->
+                ignore(add_hash fundone k "");
+                code @ (handle_fdecl k v refenv)
+            | _ ->
+            code
+        ) ht [] in
+    fcode
+
 (* take ht and return string list, which is code *)
 let build_func_from_ht ht =
     let g_env = init_level_env() in
     let res = dfs ht "main" (ref g_env) in
+    let res2 = gen_rest ht (ref g_env) @ res in
     ignore(clean_up_hash fundone);
     let func_overload_klist = get_func_overload_klist ht in
     ignore(clean_up_hash signal_funcs);
@@ -562,8 +576,7 @@ let build_func_from_ht ht =
             | _ -> ret
         ) [] func_overload_klist in
     (*print_endline (List.fold_left (fun ret ele -> ret ^ ele ^ "\n") "" res);*)
-    overload_code @ res
-
+    overload_code @ res2
 
 (* take t_class_decl and return string list (code) of the class referrence *)
 let handle_class_refer tcdecl = match tcdecl with
