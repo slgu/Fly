@@ -25,6 +25,13 @@ let (signal_funcs : (string, string) Hashtbl.t) = Hashtbl.create 16
 (* store register funcs *)
 let (register_funcs : (string, string) Hashtbl.t) = Hashtbl.create 16
 
+let gen_clojure_class_name funcname type_list =
+    funcname ^ (List.fold_left (fun res item -> res ^ "_" ^ (type_to_string item)) "clojure_" type_list)
+
+let gen_clojure_classes clojure_calls =
+    let gen_clojure_class fname call_list =
+        let a =
+
 let gen_clojure_class funcname type_list =
     funcname ^ (List.fold_left (fun res item -> res ^ "_" ^ (type_to_string item)) "clojure_" type_list)
 
@@ -65,7 +72,7 @@ let rec type_to_code_string = function
     | Float -> "float"
     | Signal(x) -> "shared_ptr <Signal<" ^ (type_to_code_string x) ^ ">>"
     | Class x -> "shared_ptr <" ^ x ^ ">"
-    | Func (x, type_list) -> "shared_ptr <" ^ (gen_clojure_class x type_list) ^ ">"
+    | Func (x, type_list) -> "shared_ptr <" ^ (gen_clojure_class_name x type_list) ^ ">"
     | _ -> raise (Failure ("type_to_code_string not yet support this type"))
 
 (* take a string list and concatenate them with interleaving space into a single string *)
@@ -451,9 +458,9 @@ let ht_left ht =
 *)
 
 let gen_rest ht refenv =
-    let fcode = Hashtbl.fold 
+    let fcode = Hashtbl.fold
         (
-            fun k v code -> 
+            fun k v code ->
             match (find_hash fundone k) with
             | None ->
                 ignore(add_hash fundone k "");
@@ -589,7 +596,7 @@ let build_class_from_ht cht =
     in let code_v2 = Hashtbl.fold (fun k v code -> code @ (handle_class_refer v)) cht code_v1
     in Hashtbl.fold (fun k v code -> code @ (handle_class_def v)) cht code_v2
 
-let codegen fht cht =
+let codegen fht cht clojure_calls =
     let func_codelist = build_func_from_ht fht in
     let class_codelist = build_class_from_ht cht in
     let buffer = code_header @ code_predefined_class @ class_codelist @ func_codelist in
