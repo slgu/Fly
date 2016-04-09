@@ -7,5 +7,6 @@ func adapt(f, a, b) {
 }
 
 func main() {
+    a = fuck(1);
     adapt(fuck, 1, 3);
 }

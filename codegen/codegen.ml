@@ -105,7 +105,7 @@ let gen_clojure_classes clojure_calls func_binds t_func_binds =
                         }
                     else
                     let res_class_name = gen_clojure_class_name fname (List.concat [f_type_list;s_type_list])
-                    in let new_obj_stmt = TAssign (("tmp", TObjGen(res_class_name, Class res_class_name)), Class res_class_name)
+                    in let new_obj_stmt = TExpr (TAssign (("tmp", TObjGen(res_class_name, Class res_class_name)), Class res_class_name))
                     in let f_assign_stmts =
                         List.map (fun (varname, thistype) -> TExpr (TMAssign(("tmp", "_" ^ varname, TId (varname, thistype)), thistype))) f_binds
                     in let s_assign_stmts =
@@ -116,7 +116,7 @@ let gen_clojure_classes clojure_calls func_binds t_func_binds =
                             ttkey=gen_hash_key "call" s_type_list;
                             tfname="call";
                             tformals=s_binds;
-                            tbody = f_assign_stmts @ s_assign_stmts @[return_stmt];
+                            tbody = [new_obj_stmt] @ f_assign_stmts @ s_assign_stmts @[return_stmt];
                             tret = Class res_class_name
                         }
                     in begin match tcdecl with
