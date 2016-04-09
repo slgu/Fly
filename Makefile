@@ -3,10 +3,6 @@ ast_dir = ast
 check_dir = check
 gen_dir = codegen
 debug_dir = de
-buildin:
-	ocamlc -c $(ast_dir)/ast.ml
-	ocamlc -I $(ast_dir) -c $(ast_dir)/sast.ml
-	ocamlc -I $(ast_dir) -I $(check_dir) -c $(gen_dir)/buildin.ml
 all:
 	ocamllex $(parser_dir)/scanner.mll
 	ocamlyacc -q -v $(parser_dir)/parser.mly
@@ -22,6 +18,10 @@ all:
 	ocamlc -I $(ast_dir) -I $(check_dir) -c $(gen_dir)/codegen.ml
 	ocamlc -I $(parser_dir) -I $(check_dir) -I $(gen_dir) -c fly_testgen.ml
 	ocamlc -o fly $(parser_dir)/scanner.cmo $(parser_dir)/parser.cmo $(ast_dir)/ast.cmo $(ast_dir)/sast.cmo $(debug_dir)/debug.cmo $(check_dir)/util.cmo $(check_dir)/env.cmo $(check_dir)/infer.cmo $(gen_dir)/codegen.cmo fly_testgen.cmo
+buildin:
+	ocamlc -c $(ast_dir)/ast.ml
+	ocamlc -I $(ast_dir) -c $(ast_dir)/sast.ml
+	ocamlc -I $(ast_dir) -I $(check_dir) -c $(gen_dir)/buildin.ml
 sast:
 	ocamllex $(parser_dir)/scanner.mll
 	ocamlyacc -v $(parser_dir)/parser.mly

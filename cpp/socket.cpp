@@ -29,7 +29,7 @@ static int create_server_socket(unsigned short port)
         cout << "socket() failed" << endl;
         exit(1);
     }
-      
+
     /* Construct local address structure */
     memset(&servAddr, 0, sizeof(servAddr));       /* Zero out structure */
     servAddr.sin_family = AF_INET;                /* Internet address family */
@@ -59,7 +59,7 @@ void server::accept(int port) {
     int serv_sock = create_server_socket(port);
     while (1) {
         struct sockaddr_in clntAddr;
-        unsigned int clntLen = sizeof(clntAddr); 
+        unsigned int clntLen = sizeof(clntAddr);
         int clntSock = ::accept(serv_sock, (struct sockaddr *)&clntAddr, &clntLen);
         if (clntSock < 0) {
             cout << "accept() failed" << endl;
@@ -75,4 +75,3 @@ int main() {
     ser->accept(5566);
     return 0;
 }
-

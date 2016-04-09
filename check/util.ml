@@ -30,3 +30,13 @@ let list_join string_arr join_string = match string_arr with
     | (x::y) ->
         x ^ (List.fold_left (fun res item -> res ^ "," ^ item) "" y)
     | [] -> ""
+
+let rec zip arr1 arr2 = match arr1, arr2 with
+    | [], _ -> []
+    | _, [] -> []
+    | (x1::y1), (x2::y2) -> (x1, x2) :: zip y1 y2
+
+let rec drop_first arr n = match arr, n with
+    | _, 0 -> arr
+    | (x::y), _ ->  drop_first y (n - 1)
+    | _, _ -> failwith ("drop_first error not enought arr elements")

@@ -38,17 +38,102 @@ let (signal_funcs : (string, string) Hashtbl.t) = Hashtbl.create 16
 (* store register funcs *)
 let (register_funcs : (string, string) Hashtbl.t) = Hashtbl.create 16
 
+
 let gen_clojure_class_name funcname type_list =
     funcname ^ (List.fold_left (fun res item -> res ^ "_" ^ (type_to_string item)) "clojure_" type_list)
 
-(*
-let gen_clojure_classes clojure_calls =
-    let gen_clojure_class fname call_list =
-        let a =
-*)
 
-let gen_clojure_class funcname type_list =
-    funcname ^ (List.fold_left (fun res item -> res ^ "_" ^ (type_to_string item)) "clojure_" type_list)
+let gen_clojure_classes clojure_calls func_binds t_func_binds =
+    let find_func name =
+        try
+            Hashtbl.find func_binds name
+        with
+        | Not_found -> failwith ("not this function:" ^ name)
+    in
+    let gen_clojure_class fname call_list =
+        let (clojure_class_hash : (string, t_class_decl) Hashtbl.t) = Hashtbl.create 16
+        in let fdecl = find_func fname
+        in let init_tcdecl fname type_list = begin match fdecl with
+            | {formals=param_list;_} ->
+                let bind_len = List.length type_list
+                in let modify_param_list = List.map (fun item -> "_" ^ item) param_list
+                in let binds = zip modify_param_list type_list
+                in let clojure_name = gen_clojure_class_name fname type_list
+                in {tcname=clojure_name;member_binds=binds;t_func_decls=[]}
+            end
+        in let rec get_or_init fname type_list =
+            let clojure_name = gen_clojure_class_name fname type_list
+            in
+            try
+                Hashtbl.find clojure_class_hash clojure_name
+            with
+            | _ -> Hashtbl.add clojure_class_hash clojure_name (init_tcdecl fname type_list);get_or_init fname type_list
+        in let rec update_if_no tfdecls tfdecl = match tfdecls with
+            | [] -> [tfdecl]
+            | (x::y) -> begin match x, tfdecl with
+                | {ttkey=key1;_}, {ttkey=key2;_} ->
+                    if key1 = key2 then y else x :: (update_if_no y tfdecl)
+                end
+        in let gen_tfdecl fname f_type_list s_type_list =
+            let clojure_name = gen_clojure_class_name fname f_type_list
+            in let tcdecl = get_or_init fname f_type_list
+            in begin match fdecl with
+            | {formals=param_list;_} ->
+                let l1 = List.length f_type_list
+                in let l2 = List.length s_type_list
+                in let lt = List.length param_list
+                in let f_binds = zip param_list f_type_list
+                in let s_param_list = drop_first param_list l1
+                in let s_binds = zip s_param_list s_type_list
+                in
+                    let new_tfdecl =
+                    if l1 + l2 = lt then
+                        let tfkey = gen_hash_key fname (List.concat [f_type_list;s_type_list])
+                        in let tfdecl = Hashtbl.find t_func_binds tfkey
+                        in let rtype = get_func_result tfdecl
+                        in
+                        let ftexprs = List.map (fun (varname, thistype) -> TId("_" ^ varname, thistype)) f_binds
+                        in let stexprs = List.map (fun (varname, thistype) -> TId(varname, thistype)) s_binds
+                        in let ttexprs = List.concat [ftexprs;stexprs]
+                        in let body = [TReturn (TCall ((fname, ttexprs), rtype))]
+                        in {
+                            ttkey=gen_hash_key "call" s_type_list;
+                            tfname="call";
+                            tformals=s_binds;
+                            tbody = body;
+                            tret = rtype
+                        }
+                    else
+                    let res_class_name = gen_clojure_class_name fname (List.concat [f_type_list;s_type_list])
+                    in let new_obj_stmt = TAssign (("tmp", TObjGen(res_class_name, Class res_class_name)), Class res_class_name)
+                    in let f_assign_stmts =
+                        List.map (fun (varname, thistype) -> TExpr (TMAssign(("tmp", "_" ^ varname, TId (varname, thistype)), thistype))) f_binds
+                    in let s_assign_stmts =
+                        List.map (fun (varname, thistype) -> TExpr (TMAssign(("tmp", "_" ^ varname, TId (varname, thistype)), thistype))) s_binds
+                    in let return_stmt =
+                        TReturn (TId ("tmp", Class res_class_name))
+                    in {
+                            ttkey=gen_hash_key "call" s_type_list;
+                            tfname="call";
+                            tformals=s_binds;
+                            tbody = f_assign_stmts @ s_assign_stmts @[return_stmt];
+                            tret = Class res_class_name
+                        }
+                    in begin match tcdecl with
+                        | {tcname=tmp1;member_binds=tmp2;t_func_decls=tfdecls;_} ->
+                            let new_tfdecls = update_if_no tfdecls new_tfdecl
+                            in Hashtbl.replace clojure_class_hash clojure_name {tcname=tmp1;member_binds=tmp2;t_func_decls=new_tfdecls}
+                    end
+            end
+    in
+        List.iter (fun (f_type_list, s_type_list) -> gen_tfdecl fname f_type_list s_type_list) call_list;
+        Hashtbl.fold (fun k v arr -> (k,v)::arr) clojure_class_hash []
+    in
+        List.concat (Hashtbl.fold (fun k v arr -> (gen_clojure_class k v) :: arr) clojure_calls [])
+
+
+
+
 
 let (fundone : (string, string) Hashtbl.t) = Hashtbl.create 16
 
@@ -328,7 +413,7 @@ let handle_fdecl fkey fd refenv =
     let refnewenv = ref (append_new_level !refenv) in
     match fd with
     | {tret=rt; tfname=name; tformals=fm; tbody=body ;_} ->
-        if name = "" 
+        if name = ""
         then []
         else
             let fmstr = (handle_fm fm refnewenv) in
@@ -489,11 +574,11 @@ let gen_rest ht refenv =
     fcode
 
 (* generate signal wrappers *)
-let gen_sig_wrapper ht = 
+let gen_sig_wrapper ht =
     let g_env = init_level_env() in
-    let sig_funcs = Hashtbl.fold 
+    let sig_funcs = Hashtbl.fold
     (
-        fun k v ret -> 
+        fun k v ret ->
         match find_hash fundone k with
         | None ->
             ignore(add_hash fundone k "");
@@ -506,7 +591,7 @@ let gen_sig_wrapper ht =
     ) signal_funcs [] in
     let regi_funcs = Hashtbl.fold
     (
-        fun k v ret -> 
+        fun k v ret ->
         match find_hash fundone k with
         | None ->
             ignore(add_hash fundone k "");
@@ -519,17 +604,17 @@ let gen_sig_wrapper ht =
     ) register_funcs [] in
     sig_funcs @ regi_funcs
 
-let handle_func_forward fd refenv = 
+let handle_func_forward fd refenv =
     let refnewenv = ref (append_new_level !refenv) in
     match fd with
     | {tret=rt; tfname=name; tformals=fm;_} ->
-        if name = "" 
+        if name = ""
         then []
         else
             let fmstr = (handle_fm fm refnewenv) in
             [ cat_string_list_with_space [(type_to_code_string rt);name;fmstr;] ^ ";"]
 
-let gen_forward ht refenv = 
+let gen_forward ht refenv =
     Hashtbl.fold (fun k v code -> code @ (handle_func_forward v refenv)) ht []
 
 let gen_sig_wrapper_forward ht refenv = []
@@ -617,8 +702,16 @@ let build_class_from_ht cht =
     in let code_v2 = Hashtbl.fold (fun k v code -> code @ (handle_class_refer v)) cht code_v1
     in Hashtbl.fold (fun k v code -> code @ (handle_class_def v)) cht code_v2
 
-let codegen fht cht clojure_calls =
+let build_clojure_class clojure_classes =
+    (*first generate forward decl*)
+    let code_v1 = List.fold_left (fun code (k, v) -> code @ (handle_class_forward v)) [] clojure_classes
+    in let code_v2 = List.fold_left (fun code (k, v) -> code @ (handle_class_refer v)) code_v1 clojure_classes
+    in List.fold_left (fun code (k,v) -> code @ (handle_class_def v)) code_v2 clojure_classes
+
+let codegen fht cht clojure_calls func_binds t_func_binds =
+    let clojure_classes = gen_clojure_classes clojure_calls func_binds t_func_binds in
+    let clojure_codes = build_clojure_class clojure_classes in
     let (forward_codelist, func_codelist) = build_func_from_ht fht in
     let class_codelist = build_class_from_ht cht in
-    let buffer = code_header @ code_predefined_class @ forward_codelist @ class_codelist @ func_codelist in
+    let buffer = code_header @ code_predefined_class @ clojure_codes @ forward_codelist @ class_codelist @ func_codelist in
     List.fold_left (fun ret ele -> ret ^ ele ^ "\n") "" buffer
