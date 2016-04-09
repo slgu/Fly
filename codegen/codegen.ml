@@ -19,6 +19,19 @@ type fkey_fd_bind = {
     fd   : t_func_decl;
 }
 
+type objfly_bind = {
+    objname : string;
+    classname : string;
+    fname : string;
+    paramt : typ list;
+    rtype : typ;
+}
+
+let gen_ofly_fkey oname fname =  ""
+
+(* store signal funcs *)
+let (objsignal_funcs : (string, objfly_bind) Hashtbl.t) = Hashtbl.create 16
+
 (* store signal funcs *)
 let (signal_funcs : (string, string) Hashtbl.t) = Hashtbl.create 16
 

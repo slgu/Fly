@@ -1,3 +1,5 @@
+socket:
+	g++ -pthread -o socket -std=c++11 socket.cpp
 thread:
 	g++ -pthread -o thread -std=c++11 thread.cpp
 future:
