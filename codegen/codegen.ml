@@ -28,9 +28,11 @@ let (register_funcs : (string, string) Hashtbl.t) = Hashtbl.create 16
 let gen_clojure_class_name funcname type_list =
     funcname ^ (List.fold_left (fun res item -> res ^ "_" ^ (type_to_string item)) "clojure_" type_list)
 
+(*
 let gen_clojure_classes clojure_calls =
     let gen_clojure_class fname call_list =
         let a =
+*)
 
 let gen_clojure_class funcname type_list =
     funcname ^ (List.fold_left (fun res item -> res ^ "_" ^ (type_to_string item)) "clojure_" type_list)
@@ -313,9 +315,12 @@ let handle_fdecl fkey fd refenv =
     let refnewenv = ref (append_new_level !refenv) in
     match fd with
     | {tret=rt; tfname=name; tformals=fm; tbody=body ;_} ->
-        let fmstr = (handle_fm fm refnewenv) in
-        let bodystr = (handle_body fkey body refnewenv) in
-        [ cat_string_list_with_space [(type_to_code_string rt);name;fmstr]] @ bodystr
+        if name = "" 
+        then []
+        else
+            let fmstr = (handle_fm fm refnewenv) in
+            let bodystr = (handle_body fkey body refnewenv) in
+            [ cat_string_list_with_space [(type_to_code_string rt);name;fmstr]] @ bodystr
 
 (*class code generation*)
 let class_code_gen cdecl =
@@ -505,8 +510,11 @@ let handle_func_forward fd refenv =
     let refnewenv = ref (append_new_level !refenv) in
     match fd with
     | {tret=rt; tfname=name; tformals=fm;_} ->
-        let fmstr = (handle_fm fm refnewenv) in
-        [ cat_string_list_with_space [(type_to_code_string rt);name;fmstr;] ^ ";"]
+        if name = "" 
+        then []
+        else
+            let fmstr = (handle_fm fm refnewenv) in
+            [ cat_string_list_with_space [(type_to_code_string rt);name;fmstr;] ^ ";"]
 
 let gen_forward ht refenv = 
     Hashtbl.fold (fun k v code -> code @ (handle_func_forward v refenv)) ht []
@@ -523,7 +531,7 @@ let build_func_from_ht ht =
     ignore(clean_up_hash fundone);
     let sig_wrapper_code = gen_sig_wrapper ht in
     let sig_wrapper_forward = gen_sig_wrapper_forward ht refenv in
-    forward @ sig_wrapper_forward @ res2 @ sig_wrapper_code @ res
+    (forward @ sig_wrapper_forward, res2 @ sig_wrapper_code @ res)
 
 (* take t_class_decl and return string list (code) of the class referrence *)
 let handle_class_refer tcdecl = match tcdecl with
@@ -597,7 +605,7 @@ let build_class_from_ht cht =
     in Hashtbl.fold (fun k v code -> code @ (handle_class_def v)) cht code_v2
 
 let codegen fht cht clojure_calls =
-    let func_codelist = build_func_from_ht fht in
+    let (forward_codelist, func_codelist) = build_func_from_ht fht in
     let class_codelist = build_class_from_ht cht in
-    let buffer = code_header @ code_predefined_class @ class_codelist @ func_codelist in
+    let buffer = code_header @ code_predefined_class @ forward_codelist @ class_codelist @ func_codelist in
     List.fold_left (fun ret ele -> ret ^ ele ^ "\n") "" buffer
