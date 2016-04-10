@@ -2,6 +2,7 @@ open Ast
 open Sast
 open Env
 open Util
+open Infer
 
 type sigbind = {
     vn : string;
@@ -40,7 +41,7 @@ let (register_funcs : (string, string) Hashtbl.t) = Hashtbl.create 16
 
 
 let gen_clojure_class_name funcname type_list =
-    funcname ^ (List.fold_left (fun res item -> res ^ "_" ^ (type_to_string item)) "clojure_" type_list)
+    funcname ^ (List.fold_left (fun res item -> res ^ "_" ^ (type_to_string item)) "_clojure" type_list)
 
 
 let gen_clojure_classes clojure_calls func_binds t_func_binds =
@@ -76,7 +77,7 @@ let gen_clojure_classes clojure_calls func_binds t_func_binds =
                 end
         in let gen_tfdecl fname f_type_list s_type_list =
             let clojure_name = gen_clojure_class_name fname f_type_list
-            in let tcdecl = get_or_init fname f_type_list
+            in let _ = get_or_init fname (List.concat [f_type_list;s_type_list]) and tcdecl = get_or_init fname f_type_list
             in begin match fdecl with
             | {formals=param_list;_} ->
                 let l1 = List.length f_type_list
@@ -280,7 +281,16 @@ and handle_texpr expr refenv =
     | TLiteral(value) -> [string_of_int value]
     | TBoolLit(value) -> if value then ["true"] else ["false"]
     | TFloat(value) -> [string_of_float value]
-    | TId(str, _) -> [str]
+    | TId(str, _) ->
+        (* TODO if this is a func passing, we convert it into our self defined obj*)
+        begin
+        try
+            let _ = Hashtbl.find func_binds str
+            in let raw_clojure_class_name = gen_clojure_class_name str []
+            in ["shared_ptr<" ^ raw_clojure_class_name ^ ">(new " ^ raw_clojure_class_name ^ "())"]
+        with
+        | _ -> [str]
+        end
     | TSet(_) -> [] (* TODO *)
     | TMap(_) -> [] (* TODO *)
     | TArray(_) -> [] (* TODO *)
@@ -298,12 +308,40 @@ and handle_texpr expr refenv =
             ]
         (* above are built-in functions *)
         | _ ->
-            [
+            begin
+            try
+                let fdecl = Hashtbl.find func_binds fn
+                in begin match fdecl with
+                | {formals=binds;_} ->
+                    let bind_len = List.length binds and expr_len = List.length texpr_list
+                    in
+                    if bind_len = expr_len then
+                    [
+                        cat_string_list_with_space
+                        ([fn;"("]@
+                        [cat_string_list_with_comma (List.fold_left (fun ret ex -> ret@(handle_texpr ex refenv)) [] texpr_list)]@
+                        [")"])
+                    ]
+                    else
+                    let raw_clojure_class_name = gen_clojure_class_name fn []
+                    in let func_obj =
+                        "(shared_ptr<" ^ raw_clojure_class_name ^ ">(new " ^ raw_clojure_class_name ^ "()))"
+                    in
+                    [
+                    cat_string_list_with_space
+                    ([func_obj;"->call("]@
+                    [cat_string_list_with_comma (List.fold_left (fun ret ex -> ret@(handle_texpr ex refenv)) [] texpr_list)]@
+                    [")"])
+                    ]
+                end
+            with | _ ->
+                [
                 cat_string_list_with_space
-                ([fn;"("]@
+                ([fn;"->call("]@
                 [cat_string_list_with_comma (List.fold_left (fun ret ex -> ret@(handle_texpr ex refenv)) [] texpr_list)]@
                 [")"])
-            ]
+                ]
+            end
         )
     | TObjCall ((varname, mfname, texpr_list), ty) ->
         let fn = varname ^ "->" ^ mfname
