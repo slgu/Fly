@@ -43,13 +43,13 @@ private:
     FILE *c_fp = NULL;
 public:
     connection(int c): c_sock(c) {};
-    shared_ptr<string> recv();
+    string recv();
     void close();
 };
 
-shared_ptr<string> connection::recv() {
+string connection::recv() {
 
-    shared_ptr<string> rmsg (new string());
+    string rmsg;
     char requestLine[1024] = {0};
 
     if (!c_fp) {
@@ -66,7 +66,7 @@ shared_ptr<string> connection::recv() {
             
     fgets(requestLine, sizeof(requestLine), c_fp);
 
-    (*rmsg) = string(requestLine);
+    rmsg = string(requestLine);
 
     return rmsg;
 }
@@ -134,7 +134,7 @@ shared_ptr<connection> server::accept(void) {
 void handle_req(shared_ptr<connection> con) {
     while(true) {
         auto msg = con->recv();
-        cout << "handle_req " << *msg << endl;
+        cout << "handle_req " << msg << endl;
         /*
         s  =   fly calculate(msg);
         register s sendback(con);
@@ -171,7 +171,7 @@ func main() {
 
 func handle_req(con) {
     while(true) {
-        msg = recv(con);
+        msg = con.recv();
         s  =   fly calculate(msg);
         register s sendback(con);
     }
