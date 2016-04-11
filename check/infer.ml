@@ -18,6 +18,11 @@ let (t_class_binds: (string, t_class_decl) Hashtbl.t) = Hashtbl.create 16
 let (clojure_calls: (string, (typ list * typ list) list) Hashtbl.t) = Hashtbl.create 16
 
 
+let build_in_func_name = ["print"]
+
+let check_build_in name =
+    List.mem name build_in_func_name
+
 let rec get_or_create funcname =
     try
         Hashtbl.find clojure_calls funcname
@@ -537,8 +542,8 @@ let rec infer_func fdecl hash_key type_list level_env =
                         | {formals = param_list;_} -> (*set env*)
                         let param_len = List.length param_list and true_len = List.length expr_types
                         in
-                            (*update clojure calls*)
-                            update_clojure_calls fname arr expr_types;
+                            (*update clojure calls if not build in*)
+                            if check_build_in fname then () else update_clojure_calls fname arr expr_types;
                             if param_len = true_len + binding_len then (* actual a function call *)
                             let rtype = get_func_result (infer_func_by_name fname (List.append arr expr_types))
                             in TCall ((name, texpr_list), rtype)

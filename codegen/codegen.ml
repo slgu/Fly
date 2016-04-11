@@ -90,7 +90,8 @@ let gen_clojure_classes clojure_calls func_binds t_func_binds =
                     let new_tfdecl =
                     if l1 + l2 = lt then
                         let tfkey = gen_hash_key fname (List.concat [f_type_list;s_type_list])
-                        in let tfdecl = Hashtbl.find t_func_binds tfkey
+                        in
+                        let tfdecl = Hashtbl.find t_func_binds tfkey
                         in let rtype = get_func_result tfdecl
                         in
                         let ftexprs = List.map (fun (varname, thistype) -> TId("_" ^ varname, thistype)) f_binds
@@ -751,5 +752,5 @@ let codegen fht cht clojure_calls func_binds t_func_binds =
     let clojure_codes = build_clojure_class clojure_classes in
     let (forward_codelist, func_codelist) = build_func_from_ht fht in
     let class_codelist = build_class_from_ht cht in
-    let buffer = code_header @ code_predefined_class @ clojure_codes @ forward_codelist @ class_codelist @ func_codelist in
+    let buffer = code_header @ code_predefined_class @ forward_codelist @ clojure_codes @  class_codelist @ func_codelist in
     List.fold_left (fun ret ele -> ret ^ ele ^ "\n") "" buffer
