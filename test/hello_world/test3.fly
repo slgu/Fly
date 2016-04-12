@@ -1,0 +1,17 @@
+
+func main() {
+
+    ans = say_hello(", World", 1, 2, 3);
+
+    print(ans);
+
+    return 0;
+}
+
+func say_hello(str, a, b, c) {
+    msg = "Hello" + str;
+    print(msg);
+
+    sum = a+b*c;
+    return sum;
+}

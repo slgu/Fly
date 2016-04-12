@@ -1,0 +1,22 @@
+
+func main() {
+
+    for( i = 1; i < 11; i = i+1) {
+        fly say_hello(", World", i, 0, 0);
+    };
+
+    while(true) {
+
+    };
+
+    return 0;
+}
+
+func say_hello(str, a, b, c) {
+    msg = "Hello" + str;
+    print(msg);
+
+    sum = a+b*c;
+    print(sum);
+    return sum;
+}

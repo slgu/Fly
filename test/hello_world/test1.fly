@@ -1,0 +1,14 @@
+
+func main() {
+    a = 3;
+    b = 4;
+    print(a+b);
+
+    for(i=1;i < 3;i=i+1) {
+        print(i);
+    };
+
+    print("Hello, World");
+
+    return 0;
+}
