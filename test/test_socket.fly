@@ -1,0 +1,22 @@
+/*
+func handle_req(con) {
+    while(true) {
+        msg = con.recv();
+        print(msg);
+    };
+}
+*/
+
+func main() {
+    a = @server;
+/*
+    a.listen(5566); 
+    while(true) {
+        con = a.accept();
+        if (con >= 0) {
+            fly handle_req(con);
+        }
+    };
+*/
+}
+

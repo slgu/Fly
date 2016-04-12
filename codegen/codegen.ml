@@ -3,6 +3,7 @@ open Sast
 open Env
 open Util
 open Infer
+open Buildin
 
 type sigbind = {
     vn : string;
@@ -459,35 +460,21 @@ let handle_fdecl fkey fd refenv =
             let bodystr = (handle_body fkey body refnewenv) in
             [ cat_string_list_with_space [(type_to_code_string rt);name;fmstr]] @ bodystr
 
-let code_header = [
-    "#include <iostream>";
-    "#include <string>";
-    "#include <thread>";
-    "#include <mutex>";
-    "#include <condition_variable>";
-    "#include <queue>";
-    "using namespace std;"]
+let code_header = ["
+    #include <iostream>
+    #include <string>
+    #include <string.h>     /* for memset() */
+    #include <thread>
+    #include <mutex>
+    #include <condition_variable>
+    #include <queue>
+    #include <sys/socket.h>
+    #include <arpa/inet.h>  /* for sockaddr_in and inet_ntoa() */
+    #include <stdlib.h>     /* for atoi() and exit() */
+    #include <unistd.h>     /* for close() */
 
-let code_predefined_class = [
-    "template <typename T> class Signal {";
-    "public:";
-    "   condition_variable data_cond;";
-    "   mutex data_mutex;";
-    "   queue <std::shared_ptr <T>> data_queue;";
-    "   shared_ptr <T> wait() {";
-    "       std::unique_lock<std::mutex> lk(data_mutex);";
-    "       data_cond.wait(lk, [this]{return !this->data_queue.empty();});";
-    "       lk.unlock();";
-    "       auto result = data_queue.front();";
-    "       data_queue.pop();";
-    "       return result;";
-    "   }";
-    "   void notify(std::shared_ptr <T> res) {";
-    "       std::lock_guard<std::mutex> lk(data_mutex);";
-    "       data_queue.push(res);";
-    "       data_cond.notify_one();";
-    "   }";
-    "};"]
+    using namespace std;
+"]
 
 (* take a texp and return function key list *)
 let rec texp_helper texp_ =
@@ -749,5 +736,5 @@ let codegen fht cht clojure_calls func_binds t_func_binds =
     let (clojure_class_forwards, clojure_class_refers, clojure_class_defs)= build_clojure_class clojure_classes in
     let (forward_codelist, func_codelist) = build_func_from_ht fht in
     let class_codelist = build_class_from_ht cht in
-    let buffer = code_header @ code_predefined_class @ clojure_class_forwards @ forward_codelist @ clojure_class_refers @ clojure_class_defs @ class_codelist @ func_codelist in
+    let buffer = code_header @ build_in_class_code @ clojure_class_forwards @ forward_codelist @ clojure_class_refers @ clojure_class_defs @ class_codelist @ func_codelist in
     List.fold_left (fun ret ele -> ret ^ ele ^ "\n") "" buffer

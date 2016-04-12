@@ -58,6 +58,7 @@ let rec type_to_string = function
             (fun str item -> str ^ "_" ^ item) "" (List.map type_to_string type_list))
     | Lfunc (x, type_list) -> "lfunc_" ^ x ^ (List.fold_left
             (fun str item -> str ^ "_" ^ item) "" (List.map type_to_string type_list))
+    | _ -> raise (Failure ("ast.ml: type_to_string not yet support this type"))
 
 
 type expr =

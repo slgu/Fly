@@ -9,4 +9,4 @@ atomic:
 test:
 	g++ -o test -std=c++11 test.cpp
 clean:
-	rm thread future atomic test
+	rm thread future atomic test socket
