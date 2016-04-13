@@ -1,5 +1,6 @@
 socket:
-	g++ -pthread -o socket -std=c++11 socket.cpp
+	g++ -pthread -o socket -std=c++11 -g socket.cpp
+	g++ -pthread -o client -std=c++11 -g client.cpp
 thread:
 	g++ -pthread -o thread -std=c++11 thread.cpp
 future:
@@ -9,4 +10,4 @@ atomic:
 test:
 	g++ -o test -std=c++11 test.cpp
 clean:
-	rm thread future atomic test socket
+	rm thread future atomic test socket client

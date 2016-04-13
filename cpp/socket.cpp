@@ -44,8 +44,26 @@ private:
 public:
     connection(int c): c_sock(c) {};
     string recv();
+    bool send(string s);
     void close();
 };
+
+bool connection::send(string msg) {
+    if (c_sock < 0) {
+        cout << "connection::send wrong socket " << c_sock << endl;
+        return false;
+    }
+
+    msg += "\n";
+
+    int len = msg.length();
+    if (::send(c_sock, msg.c_str(), len, 0) != len) {
+        cout << "connection::send fail " << endl;
+        return false;
+    }
+
+    return true;
+}
 
 string connection::recv() {
 
@@ -118,6 +136,7 @@ int server::create_server_socket(unsigned short port)
 }
 
 void server::listen(int port) {
+    signal(SIGPIPE, SIG_IGN);
     serv_sock = create_server_socket(port);
 }
 
@@ -132,14 +151,14 @@ shared_ptr<connection> server::accept(void) {
 }
 
 void handle_req(shared_ptr<connection> con) {
-    while(true) {
-        auto msg = con->recv();
-        cout << "handle_req " << msg << endl;
+
+    auto msg = con->recv();
+    cout << "handle_req " << msg << endl;
+    con->send("pong"); 
         /*
         s  =   fly calculate(msg);
         register s sendback(con);
         */
-    }
 }
 
 void handle_req_wrapper(shared_ptr<connection> con, shared_ptr<Signal<void>> sig) {
@@ -148,9 +167,11 @@ void handle_req_wrapper(shared_ptr<connection> con, shared_ptr<Signal<void>> sig
 
 int main() {
     shared_ptr <server> a = shared_ptr <server> (new server());
-    a->listen(5566);
+    a->listen(5567);
     while(true) {
+        cout << "waiting" << endl;
         shared_ptr<connection> con = a->accept();
+        cout << "got it" << endl;
         thread(handle_req_wrapper, con, shared_ptr<Signal<void>> (new Signal<void>)).detach();
     }
     return 0;

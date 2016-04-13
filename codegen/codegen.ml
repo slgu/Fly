@@ -472,6 +472,7 @@ let code_header = ["
     #include <arpa/inet.h>  /* for sockaddr_in and inet_ntoa() */
     #include <stdlib.h>     /* for atoi() and exit() */
     #include <unistd.h>     /* for close() */
+    #include <signal.h>     /* for signal() */
 
     using namespace std;
 "]
