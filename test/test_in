@@ -1,6 +1,7 @@
 func main() {
-    a = "asd" + to_string(1);
-    b = 1 + to_float("123.1");
+    a = "asd" + _string(1);
+    b = 1 + _float("123.1");
     print(b);
+    print(a);
     return 0;
 }

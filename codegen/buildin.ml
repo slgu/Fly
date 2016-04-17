@@ -4,38 +4,49 @@ open Sast
 (* to_float, to_int, to_string, sleep, exit *)
 
 let build_in_code =
+[
 "
-float to_float(int a){
+void print(int a) {
+	cout << a << endl;
+}
+void print(string a) {
+	cout << a << endl;
+}
+void print(float a) {
+	cout << a << endl;
+}
+float _float(int a){
 	return float(a);
-
-float to_float(string a) {
+}
+float _float(string a) {
 	return stof(a);
 }
 
-int to_int(string a){
+int _int(string a){
 	return stoi(a);
 }
 
-string to_string(int a ){
+string _string(int a ){
 	return to_string(a);
 }
-string to_string(float a ){
+string _string(float a ){
 	return to_string(a);
 }
 
-void sleep(int seconds){
+void _sleep(int seconds){
 	std::chrono::seconds duration(seconds);
 	std::this_thread::sleep_for(duration);
 }
 
-void exit(int exit_code){
+void _exit(int exit_code){
 	exit(exit_code);
 }
 "
+]
 
 let int_to_float = {
 	ttkey = "";
-	tfname = "to_float";
+	tfname = "_float";
 	tformals = [("int", Int)];
 	tbody = [];
 	tret = Float;
@@ -43,7 +54,7 @@ let int_to_float = {
 
 let string_to_float = {
 	ttkey = "";
-	tfname = "to_float";
+	tfname = "_float";
 	tformals = [("string", String)];
 	tbody = [];
 	tret = Float;
@@ -75,7 +86,7 @@ let print_str = {
 
 let string_to_int = {
 	ttkey = "";
-	tfname = "to_int";
+	tfname = "_int";
 	tformals = [("string", String)];
 	tbody = [];
 	tret = Int;
@@ -83,7 +94,7 @@ let string_to_int = {
 
 let int_to_string = {
 	ttkey = "";
-	tfname = "to_string";
+	tfname = "_string";
 	tformals = [("int", Int)];
 	tbody = [];
 	tret = String;
@@ -91,7 +102,7 @@ let int_to_string = {
 
 let float_to_string = {
 	ttkey = "";
-	tfname = "to_string";
+	tfname = "_string";
 	tformals = [("float", Float)];
 	tbody = [];
 	tret = String;
@@ -99,7 +110,7 @@ let float_to_string = {
 
 let exit_func = {
 	ttkey = "";
-	tfname = "exit";
+	tfname = "_exit";
 	tformals = [("int", Int)];
 	tbody = [];
 	tret = Void;

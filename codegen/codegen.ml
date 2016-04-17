@@ -302,11 +302,15 @@ and handle_texpr expr refenv =
     | TUnop(_) -> [] (* TODO *)
     | TCall ((fn, texpr_list), t) ->
         (
-        match fn with
-        | "print" ->
+        let expr_types = List.map get_expr_type_info texpr_list
+        in let if_check_in = match_build_in build_in_func fn expr_types
+        in match if_check_in with
+        | Some x ->
             [
-                cat_string_list_with_space
-                (["cout"]@(List.fold_left (fun ret ex -> ret@["<<"]@(handle_texpr ex refenv)) [] texpr_list)@["<<endl"])
+            cat_string_list_with_space
+            ([fn;"("]@
+            [cat_string_list_with_comma (List.fold_left (fun ret ex -> ret@(handle_texpr ex refenv)) [] texpr_list)]@
+            [")"])
             ]
         (* above are built-in functions *)
         | _ ->
@@ -737,5 +741,5 @@ let codegen fht cht clojure_calls func_binds t_func_binds =
     let (clojure_class_forwards, clojure_class_refers, clojure_class_defs)= build_clojure_class clojure_classes in
     let (forward_codelist, func_codelist) = build_func_from_ht fht in
     let class_codelist = build_class_from_ht cht in
-    let buffer = code_header @ build_in_class_code @ clojure_class_forwards @ forward_codelist @ clojure_class_refers @ clojure_class_defs @ class_codelist @ func_codelist in
+    let buffer = code_header @ build_in_code @ build_in_class_code @ clojure_class_forwards @ forward_codelist @ clojure_class_refers @ clojure_class_defs @ class_codelist @ func_codelist in
     List.fold_left (fun ret ele -> ret ^ ele ^ "\n") "" buffer
