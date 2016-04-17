@@ -112,6 +112,14 @@ let connection_recv = {
     tret = String;
 }
 
+let connection_send = {
+    ttkey = "";
+    tfname = "send";
+    tformals = [("msg", String)];
+    tbody = [];
+    tret = Bool;
+}
+
 let connection_close = {
     ttkey = "";
     tfname = "close";
@@ -123,7 +131,7 @@ let connection_close = {
 let connection = {
     tcname = "connection";
     member_binds = [];
-    t_func_decls = [connection_recv; connection_close];
+    t_func_decls = [connection_recv; connection_close; connection_send];
 }
 
 let server_listen = {
@@ -180,8 +188,26 @@ private:
 public:
     connection(int c): c_sock(c) {};
     string recv();
+    bool send(string s);
     void close();
 };
+
+bool connection::send(string msg) {
+    if (c_sock < 0) {
+        cout << \"connection::send wrong socket \" << c_sock << endl;
+        return false;
+    }
+
+    msg += \"\\n\";
+
+    int len = msg.length();
+    if (::send(c_sock, msg.c_str(), len, 0) != len) {
+        cout << \"connection::send fail \" << endl;
+        return false;
+    }
+
+    return true;
+}
 
 string connection::recv() {
 
@@ -254,6 +280,7 @@ int server::create_server_socket(unsigned short port)
 }
 
 void server::listen(int port) {
+    signal(SIGPIPE, SIG_IGN);
     serv_sock = create_server_socket(port);
 }
 
