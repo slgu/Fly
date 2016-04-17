@@ -32,7 +32,6 @@ let rec update_if_no exist_calls f_type_list s_type_list =
     | (x::y) -> if x = (f_type_list, s_type_list) then (x::y) else
         x :: (update_if_no y f_type_list s_type_list)
 
-
 let update_clojure_calls funcname f_type_list s_type_list =
     let exist_calls = get_or_create funcname
     in let new_calls = update_if_no exist_calls f_type_list s_type_list
@@ -507,8 +506,13 @@ let rec infer_func fdecl hash_key type_list level_env =
             | _ -> failwith ("no signal type can not c")
             end
         | ObjGen x ->
-            let cdecl = find_class x
-            in TObjGen (x, Class (get_class_name cdecl))
+            (* check build in class first*)
+            let if_build_in_class = check_build_in_class x
+            in if if_build_in_class then
+                TObjGen (x, Class x)
+            else
+                let cdecl = find_class x
+                in TObjGen (x, Class (get_class_name cdecl))
         | Objid (x, y) ->
             let ctype = ref_search_id x
             in begin
@@ -531,7 +535,7 @@ let rec infer_func fdecl hash_key type_list level_env =
                 match ftype with
                 | None ->
                     (*maybe build in no support for clojure build in now*)
-                    let test_build_in_func = match_build_in build_in_func name expr_types
+                    let test_build_in_func = match_build_in name expr_types
                     in begin match test_build_in_func with
                      | None -> failwith ("no refer to " ^ name)
                      | Some tfdecl ->
@@ -575,7 +579,18 @@ let rec infer_func fdecl hash_key type_list level_env =
                     (*get expr type*)
                     let texpr_list = List.map infer_expr expr_list
                     in let expr_types = List.map get_expr_type_info texpr_list
-                    in let somefdecl = find_cfunc cname fname
+                    in
+                    (*check build in_class call*)
+                    if check_build_in_class cname then
+                        let match_tfdecl = match_build_in_objcall cname fname expr_types
+                        in begin match match_tfdecl with
+                        | None -> failwith("build in call error plz search ref mannue")
+                        | Some x ->
+                        let rtype = get_func_result x
+                        in TObjCall ((varname, fname, texpr_list), rtype)
+                        end
+                    else
+                    let somefdecl = find_cfunc cname fname
                     in begin match somefdecl with
                     | None -> failwith ("this member func not found: " ^ cname ^ " " ^ fname)
                     | Some fdecl ->
@@ -591,7 +606,7 @@ let rec infer_func fdecl hash_key type_list level_env =
                         end
                     end
                 | None -> failwith ("var used without defined: " ^ varname)
-                | _ -> failwith ("not class obj can not dot id: " ^ varname)
+                | _ -> failwith ("not class obj can not objcall: " ^ varname)
                 end
         (* TODO
         | Func (lname, rname, expr) ->
@@ -683,7 +698,7 @@ and infer_func_by_name fname type_list =
     let hash_key = gen_hash_key fname type_list
     in let hash_value = find_t_func hash_key
     (*this is the place for check in*)
-    in let test_build_in_func = match_build_in build_in_func fname type_list
+    in let test_build_in_func = match_build_in fname type_list
     in match test_build_in_func with
         | Some x -> x
         | None ->

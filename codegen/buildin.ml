@@ -137,15 +137,19 @@ let build_in_func =
 	print_float]
 
 
-let rec match_build_in funcs fname type_list = match funcs with
+
+let rec match_build_in fname type_list =
+	let rec inner_func funcs fname type_list = match funcs with
 	| [] -> None
 	| (x::y) -> begin match x with
 		| {tfname=thisfname;tformals=binds;_}->
 			let thistype_list = List.map snd binds
 			in if type_list = thistype_list && fname = thisfname
 			then Some x
-			else match_build_in y fname type_list
+			else inner_func y fname type_list
 		end
+	in
+	inner_func build_in_func fname type_list
 
 let rec check_build_in_name fname =
 	List.exists (fun item -> match item with
@@ -211,6 +215,35 @@ let server = {
 
 let build_in_class =
     [server; connection]
+
+let check_build_in_class cname =
+	List.exists (fun item -> match item with
+		| {tcname=thiscname;_}-> if cname = thiscname then true else false) build_in_class
+
+let match_build_in_objcall cname fname type_list =
+	let match_func tfdecl fname type_list = match tfdecl with
+		| {tfname=thisfname;tformals=binds;_} ->
+			let thistype_list = List.map snd binds
+			in if thisfname = fname && thistype_list = type_list
+			then true
+			else false
+	in
+	let rec match_funcs tfdecls fname type_list = match tfdecls with
+		| [] -> None
+		| (x::y) -> if match_func x fname type_list then Some x else match_funcs y fname type_list
+	in
+	let rec inner_func classes cname fname type_list = match classes with
+		| [] -> None
+		| (x::y) ->
+			begin
+			match x with
+			| {tcname=thiscname;t_func_decls=tfdecls;_} ->
+				if thiscname = cname
+				then match_funcs tfdecls fname type_list
+				else inner_func y cname fname type_list
+			end
+	in
+	inner_func build_in_class cname fname type_list
 
 let build_in_class_code = ["
 

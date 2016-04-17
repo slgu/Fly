@@ -303,7 +303,7 @@ and handle_texpr expr refenv =
     | TCall ((fn, texpr_list), t) ->
         (
         let expr_types = List.map get_expr_type_info texpr_list
-        in let if_check_in = match_build_in build_in_func fn expr_types
+        in let if_check_in = match_build_in fn expr_types
         in match if_check_in with
         | Some x ->
             [
