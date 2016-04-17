@@ -4,6 +4,7 @@ open Sast
 open Util
 open Debug
 open Env
+open Buildin
 let (func_binds : (string, func_decl) Hashtbl.t) = Hashtbl.create 16
 (*it is the class_binds*)
 let (class_binds : (string, class_decl) Hashtbl.t) = Hashtbl.create 16
@@ -18,10 +19,6 @@ let (t_class_binds: (string, t_class_decl) Hashtbl.t) = Hashtbl.create 16
 let (clojure_calls: (string, (typ list * typ list) list) Hashtbl.t) = Hashtbl.create 16
 
 
-let build_in_func_name = ["print"]
-
-let check_build_in name =
-    List.mem name build_in_func_name
 
 let rec get_or_create funcname =
     try
@@ -526,15 +523,26 @@ let rec infer_func fdecl hash_key type_list level_env =
         (*clojure*)
         | Call (name, expr_list) ->
             (* find in bindings*)
-            let ftype = ref_search_id name
+            let texpr_list = List.map infer_expr expr_list
+            in let expr_types = List.map get_expr_type_info texpr_list
+            in let ftype = ref_search_id name
             in
                 begin
                 match ftype with
-                | None -> failwith("unknow refer" ^ name)
+                | None ->
+                    (*maybe build in no support for clojure build in now*)
+                    let test_build_in_func = match_build_in build_in_func name expr_types
+                    in begin match test_build_in_func with
+                     | None -> failwith ("no refer to " ^ name)
+                     | Some tfdecl ->
+                        begin
+                        match tfdecl with
+                        | {tret=rtype;_} ->
+                        TCall ((name, texpr_list), rtype)
+                        end
+                    end
                 | Some (Func (fname, arr)) -> (*with*)
-                    let texpr_list = List.map infer_expr expr_list
-                    in let expr_types = List.map get_expr_type_info texpr_list
-                    in let fdecl = find_func fname (* find the function*)
+                    let fdecl = find_func fname (* find the function*)
                     in let binding_len = List.length arr
                     in
                         begin
@@ -543,7 +551,7 @@ let rec infer_func fdecl hash_key type_list level_env =
                         let param_len = List.length param_list and true_len = List.length expr_types
                         in
                             (*update clojure calls if not build in*)
-                            if check_build_in fname then () else update_clojure_calls fname arr expr_types;
+                            if check_build_in_name fname then () else update_clojure_calls fname arr expr_types;
                             if param_len = true_len + binding_len then (* actual a function call *)
                             let rtype = get_func_result (infer_func_by_name fname (List.append arr expr_types))
                             in TCall ((name, texpr_list), rtype)
@@ -674,11 +682,8 @@ let rec infer_func fdecl hash_key type_list level_env =
 and infer_func_by_name fname type_list =
     let hash_key = gen_hash_key fname type_list
     in let hash_value = find_t_func hash_key
-    in let check_in_build_in funcname =
-        match funcname with
-        | "print" -> Some (new_raw_type_tfdecl Void)
-        | _ -> None
-    in let test_build_in_func = check_in_build_in fname
+    (*this is the place for check in*)
+    in let test_build_in_func = match_build_in build_in_func fname type_list
     in match test_build_in_func with
         | Some x -> x
         | None ->

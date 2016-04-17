@@ -1,9 +1,9 @@
 1.socket library and distribute keyword (brian)
 2.global variable (easy)
-3.array set map support (brian)
-4.implement clojure, pass by function (slgu)
+3.array set map support (slgu)
 5.implement chan.cpp (slgu)
 6.fly objcall (brian)
+7.integrate build in code (slgu)
 
 build-in functions:
 

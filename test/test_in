@@ -1,0 +1,6 @@
+func main() {
+    a = "asd" + to_string(1);
+    b = 1 + to_float("123.1");
+    print(b);
+    return 0;
+}

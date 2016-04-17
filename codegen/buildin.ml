@@ -49,6 +49,30 @@ let string_to_float = {
 	tret = Float;
 }
 
+let print_float = {
+	ttkey = "";
+	tfname = "print";
+	tformals = [("float", Float)];
+	tbody = [];
+	tret = Void;
+}
+
+let print_int = {
+	ttkey = "";
+	tfname = "print";
+	tformals = [("int", Int)];
+	tbody = [];
+	tret = Void;
+}
+
+let print_str = {
+	ttkey = "";
+	tfname = "print";
+	tformals = [("string", String)];
+	tbody = [];
+	tret = Void;
+}
+
 let string_to_int = {
 	ttkey = "";
 	tfname = "to_int";
@@ -93,10 +117,28 @@ let build_in_func =
     [int_to_string;
     float_to_string;
     string_to_int;
-	int_to_string;
-	float_to_string;
+	string_to_float;
+	int_to_float;
 	exit_func;
-	sleep_func]
+	sleep_func;
+	print_str;
+	print_int;
+	print_float]
+
+
+let rec match_build_in funcs fname type_list = match funcs with
+	| [] -> None
+	| (x::y) -> begin match x with
+		| {tfname=thisfname;tformals=binds;_}->
+			let thistype_list = List.map snd binds
+			in if type_list = thistype_list && fname = thisfname
+			then Some x
+			else match_build_in y fname type_list
+		end
+
+let rec check_build_in_name fname =
+	List.exists (fun item -> match item with
+	| {tfname=thisfname;_} -> if fname = thisfname then true else false) build_in_func
 
 (*string to_string(void a){} *)
 (*string to_string(array a){} *)
