@@ -165,6 +165,7 @@ let rec type_to_func_string = function
     | String -> "string"
     | Float -> "float"
     | Signal(x) -> "signal_" ^ (type_to_func_string x)
+    | Class(x) -> "class_" ^ x
     | _ -> raise (Failure ("type_to_func_string not yet support this type"))
 
 let rec type_to_code_string = function
