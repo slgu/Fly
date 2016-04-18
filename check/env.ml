@@ -49,3 +49,7 @@ let debug_level_env level_env =
         | (this_level :: arr) -> print_endline ("this level: " ^ (string_of_int cnt));
     in
     inner_debug level_env 0
+
+let rec level_env_copy level_env = match level_env with
+    | [] -> []
+    | (x::y) -> Hashtbl.copy x :: level_env_copy y

@@ -365,7 +365,8 @@ let rec infer_func fdecl hash_key type_list level_env =
                     TAssign ((varname, tepr), expr_type)
                 | Some x -> if expr_type = x then
                     TAssign ((varname, tepr), expr_type)
-                    else failwith ("redefine " ^ varname ^ " with different type")
+                    else
+                    failwith ("redefine " ^ varname ^ " with different type")
                 end
         | MAssign (varname, mname, epr) ->
             let tepr = infer_expr epr
@@ -432,6 +433,8 @@ let rec infer_func fdecl hash_key type_list level_env =
             in
             let inner_param_name_binds = List.map (fun (name, thistype) -> name) inner_params_binds
             in
+            let inner_param_type_binds = List.map (fun (name, thistype) -> thistype) inner_params_binds
+            in
             let new_lambda_name =
                 "_" ^ next_random_string()
             in
@@ -447,7 +450,9 @@ let rec infer_func fdecl hash_key type_list level_env =
             let texpr_list = List.map (fun (name, thistype) -> TId (name, thistype)) inner_params_binds
             (*replace with a clojure call*)
             and type_list = List.map (fun (name, thistype) -> thistype) inner_params_binds
-            in TCall ((new_lambda_name, texpr_list), Func (new_lambda_name, type_list))
+            in (* update to clojure call binds*)
+            update_clojure_calls new_lambda_name [] inner_param_type_binds;
+            TCall ((new_lambda_name, texpr_list), Func (new_lambda_name, type_list))
         | Fly (name, expr_list) ->
             let ftype = ref_search_id name
             in
@@ -673,12 +678,18 @@ let rec infer_func fdecl hash_key type_list level_env =
     match fdecl with
     | {body = stmt_list;formals = param_list;fname = func_name} ->
         (* scan twice to check return type*)
+        (*save env*)
+        let saved_env = level_env_copy !level_env
+        in
         let _ = List.map (fun item -> try
             infer_stmt item
         with
         | _ -> TExpr (TLiteral 0)) stmt_list
         (*sequencely infer each stmt with level env *)
-        in let tstmt_lists = List.map infer_stmt stmt_list
+        in (*recover*)
+        print_endline "fuck";
+        level_env := saved_env;
+        let tstmt_lists = List.map infer_stmt stmt_list
         in let t_param_list = List.map2 (fun item1 item2 -> (item1, item2)) param_list type_list
         in let rtype = get_func_result (Hashtbl.find t_func_binds hash_key)
         in (*if undef then set void*)
