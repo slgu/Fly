@@ -257,7 +257,7 @@ expr:
     /*class member get*/
     | ID DOT ID {Objid($1, $3)}
     /*class generation syntax*/
-    | AT ID {ObjGen($2)}
+    | AT typedef {ObjGen($2)}
     /*class generation syntax*/
     /*expression is contained with () */
     | LPAREN expr RPAREN { $2 }

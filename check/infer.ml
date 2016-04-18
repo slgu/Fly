@@ -510,7 +510,9 @@ let rec infer_func fdecl hash_key type_list level_env =
                 end
             | _ -> failwith ("no signal type can not c")
             end
-        | ObjGen x ->
+        | ObjGen typename ->
+        begin match typename with
+        | Class x ->
             (* check build in class first*)
             let if_build_in_class = check_build_in_class x
             in if if_build_in_class then
@@ -518,6 +520,9 @@ let rec infer_func fdecl hash_key type_list level_env =
             else
                 let cdecl = find_class x
                 in TObjGen (x, Class (get_class_name cdecl))
+        | _ -> (*TODO array gen*)
+            failwith ("no support for map array gen")
+        end
         | Objid (x, y) ->
             let ctype = ref_search_id x
             in begin

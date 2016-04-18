@@ -75,7 +75,7 @@ type expr =
   | Binop of expr * op * expr
   | Unop of uop * expr
   | Call of string * expr list
-  | ObjGen of string
+  | ObjGen of typ
   | ObjCall of string * string * expr list (*invoke a method of an object*)
   | Func of string list * expr (*lambda expr*)
   | Assign of string * expr
