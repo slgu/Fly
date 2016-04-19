@@ -45,6 +45,8 @@ let gen_clojure_class_name funcname type_list =
     funcname ^ (List.fold_left (fun res item -> res ^ "_" ^ (type_to_string item)) "_clojure" type_list)
 
 
+
+
 let gen_clojure_classes clojure_calls func_binds t_func_binds =
     let find_func name =
         try
@@ -108,7 +110,7 @@ let gen_clojure_classes clojure_calls func_binds t_func_binds =
                         }
                     else
                     let res_class_name = gen_clojure_class_name fname (List.concat [f_type_list;s_type_list])
-                    in let new_obj_stmt = TExpr (TAssign (("tmp", TObjGen(res_class_name, Class res_class_name)), Class res_class_name))
+                    in let new_obj_stmt = TExpr (TAssign (("tmp", TObjGen(Class res_class_name, Class res_class_name)), Class res_class_name))
                     in let f_assign_stmts =
                         List.map (fun (varname, thistype) -> TExpr (TMAssign(("tmp", "_" ^ varname, TId (varname, thistype)), thistype))) f_binds
                     in let s_assign_stmts =
@@ -176,8 +178,19 @@ let rec type_to_code_string = function
     | Float -> "float"
     | Signal(x) -> "shared_ptr <Signal<" ^ (type_to_code_string x) ^ ">>"
     | Class x -> "shared_ptr <" ^ x ^ ">"
+    | Array x -> "shared_ptr < vector <" ^ (type_to_code_string x) ^ "> >"
     | Func (x, type_list) -> "shared_ptr <" ^ (gen_clojure_class_name x type_list) ^ ">"
     | _ -> raise (Failure ("type_to_code_string not yet support this type"))
+
+let rec new_type_to_code_string = function
+    | Class x -> x
+    | Array x -> "vector <" ^ (type_to_code_string x) ^ ">"
+    | Int -> "int"
+    | Bool -> "bool"
+    | Void -> "void"
+    | String -> "string"
+    | Float -> "float"
+    | x -> print_endline (type_to_string x);failwith ("not support for other new_type_to_code_string")
 
 (* take a string list and concatenate them with interleaving space into a single string *)
 let rec cat_string_list_with_space sl =
@@ -397,8 +410,13 @@ and handle_texpr expr refenv =
         handle_fly_expr sign (TFly((fn, texpr_list), Signal(t))) refenv
     | TFlyo(_) -> [] (* TODO *)
     | TNull(_) -> [] (* TODO *)
-    | TObjGen (x, thistype) ->
-        ["shared_ptr <" ^ x ^ ">(new " ^ x ^ "())"] (* TODO *)
+    | TObjGen (typename, _) ->
+        begin
+        match typename with
+        | Class x -> ["shared_ptr <" ^ x ^ ">(new " ^ x ^ "())"]
+        | Array x-> [type_to_code_string typename ^ "(new " ^ (new_type_to_code_string typename) ^ "())"]
+        | _ -> failwith ("not support for other TObjgen now")
+        end
     | TObjid(_) -> [] (* TODO *)
     | TMAssign ((varname, mname, expr), ty)->
         begin

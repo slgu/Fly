@@ -26,7 +26,7 @@ type texpr =
   | TChanbinop of (string * string) * typ
   | TFly of (string * texpr list) * typ
   | TFlyo of (string * string * texpr list) * typ
-  | TObjGen of string * typ
+  | TObjGen of typ * typ
   | TObjid of (string * string) * typ
 
 let get_expr_type_info tepr = match tepr with
