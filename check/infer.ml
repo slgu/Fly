@@ -206,9 +206,19 @@ let check_non_empty = function
 let check_type_in_arr this_type check_type_list =
     List.exists (fun item -> this_type = item) check_type_list
 
-let built_in_str_type =
-    [("int", Int);("bool", Bool);("string", String);
-     ("float", Float)]
+let rec check_valid_type thistype = match thistype with
+    | Class x ->
+        begin
+        if check_build_in_class x then true
+        else try
+            let _ = find_class x
+            in true
+        with _ -> false
+        end
+    | Array x -> check_valid_type x
+    | Map (x, y) -> check_valid_type x && check_valid_type y
+    | Set x -> check_valid_type x
+    | _ -> true
 
 (*check no null*)
 (* we don't permit type null to be get evaluated*)
@@ -516,12 +526,18 @@ let rec infer_func fdecl hash_key type_list level_env =
             (* check build in class first*)
             let if_build_in_class = check_build_in_class x
             in if if_build_in_class then
-                TObjGen (x, Class x)
+                TObjGen (Class x, Class x)
             else
                 let cdecl = find_class x
-                in TObjGen (x, Class (get_class_name cdecl))
-        | _ -> (*TODO array gen*)
-            failwith ("no support for map array gen")
+                in TObjGen (Class x, Class (get_class_name cdecl))
+        | Array x ->
+            (*check class name exist *)
+            if check_valid_type x then
+                TObjGen (typename, typename)
+            else
+                failwith ("not valid type name")
+        | _ ->
+            failwith ("no support for map gen")
         end
         | Objid (x, y) ->
             let ctype = ref_search_id x
@@ -581,15 +597,15 @@ let rec infer_func fdecl hash_key type_list level_env =
         (*Haha OBJ CALL!*)
         | ObjCall (varname, fname, expr_list) ->
             (* find in bindings*)
+            (*get expr type*)
+            let texpr_list = List.map infer_expr expr_list
+            in let expr_types = List.map get_expr_type_info texpr_list
+            in
             let ftype = ref_search_id varname
             in (*check class variable*)
                 begin
                 match ftype with
                 | Some (Class cname) ->
-                    (*get expr type*)
-                    let texpr_list = List.map infer_expr expr_list
-                    in let expr_types = List.map get_expr_type_info texpr_list
-                    in
                     (*check build in_class call*)
                     if check_build_in_class cname then
                         let match_tfdecl = match_build_in_objcall cname fname expr_types
@@ -616,10 +632,19 @@ let rec infer_func fdecl hash_key type_list level_env =
                         end
                     end
                 | None -> failwith ("var used without defined: " ^ varname)
+                | Some (Array x) ->
+                    (*wow support for push array now*)
+                    begin match fname with
+                    | "push"->
+                        if List.length expr_list = 1 && expr_types = [x] then
+                            TObjCall ((varname, "push_back", texpr_list), Void)
+                        else
+                        failwith ("push with not 1 parameters or different types")
+                    | _ -> failwith ("no support for array operation" ^ fname)
+                    end
                 | _ -> failwith ("not class obj can not objcall: " ^ varname)
                 end
         (* TODO
-        | Func (lname, rname, expr) ->
         | ListComprehen (f_expr, varname, s_expr) -> *)
         | _ -> TLiteral 142857
     in
@@ -692,7 +717,6 @@ let rec infer_func fdecl hash_key type_list level_env =
         | _ -> TExpr (TLiteral 0)) stmt_list
         (*sequencely infer each stmt with level env *)
         in (*recover*)
-        print_endline "fuck";
         level_env := saved_env;
         let tstmt_lists = List.map infer_stmt stmt_list
         in let t_param_list = List.map2 (fun item1 item2 -> (item1, item2)) param_list type_list

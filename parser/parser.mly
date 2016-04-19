@@ -104,6 +104,11 @@ typedef:
                 | [x;y] -> Map (x,y)
                 | _ -> failwith ("map just two parameter")
                 end
+        | "Array" -> begin
+               match $3 with
+               |[x] -> Array x
+               | _ -> failwith ("array just with one parameter")
+               end
         | _ -> failwith ("not suppport template except set map")
     }
 cdecls:
