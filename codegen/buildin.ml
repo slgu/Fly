@@ -6,6 +6,10 @@ open Sast
 let build_in_code =
 [
 "
+int len(string a) {
+    return a.length();
+}
+
 void print(int a) {
 	cout << a << endl;
 }
@@ -43,6 +47,14 @@ void _exit(int exit_code){
 }
 "
 ]
+
+let len = {
+	ttkey = "";
+	tfname = "len";
+	tformals = [("a", String)];
+	tbody = [];
+	tret = Int;
+}
 
 let int_to_float = {
 	ttkey = "";
@@ -134,7 +146,8 @@ let build_in_func =
 	sleep_func;
 	print_str;
 	print_int;
-	print_float]
+	print_float;
+    len]
 
 
 
@@ -160,6 +173,14 @@ let rec check_build_in_name fname =
 (*string to_string(set a ){} *)
 
 (* The following defines built-in class and their member functions *)
+
+let connection_is_alive = {
+    ttkey = "";
+    tfname = "is_alive";
+    tformals = [];
+    tbody = [];
+    tret = Bool;
+}
 
 let connection_recv = {
     ttkey = "";
@@ -188,7 +209,7 @@ let connection_close = {
 let connection = {
     tcname = "connection";
     member_binds = [];
-    t_func_decls = [connection_recv; connection_close; connection_send];
+    t_func_decls = [connection_recv; connection_close; connection_send; connection_is_alive];
 }
 
 let server_listen = {
@@ -213,8 +234,22 @@ let server = {
     t_func_decls = [server_listen; server_accept];
 }
 
+let client_connect = {
+    ttkey = "";
+    tfname = "connect";
+    tformals = [("server_ip", String);("port", Int)];
+    tbody = [];
+    tret = Class("connection");
+}
+
+let client = {
+    tcname = "client";
+    member_binds = [];
+    t_func_decls = [client_connect];
+}
+
 let build_in_class =
-    [server; connection]
+    [server; connection; client]
 
 let check_build_in_class cname =
 	List.exists (fun item -> match item with
@@ -271,16 +306,23 @@ class connection {
 private:
     int c_sock = -1;
     FILE *c_fp = NULL;
+    bool alive = true;
 public:
     connection(int c): c_sock(c) {};
     string recv();
     bool send(string s);
     void close();
+    bool is_alive();
 };
+
+bool connection::is_alive() {
+    return alive;
+}
 
 bool connection::send(string msg) {
     if (c_sock < 0) {
         cout << \"connection::send wrong socket \" << c_sock << endl;
+        alive = false;
         return false;
     }
 
@@ -289,6 +331,7 @@ bool connection::send(string msg) {
     int len = msg.length();
     if (::send(c_sock, msg.c_str(), len, 0) != len) {
         cout << \"connection::send fail \" << endl;
+        alive = false;
         return false;
     }
 
@@ -309,12 +352,17 @@ string connection::recv() {
     }
 
     if (c_fp == NULL) {
+        alive = false;
         return rmsg;
     }
 
-    fgets(requestLine, sizeof(requestLine), c_fp);
+    if (!fgets(requestLine, sizeof(requestLine), c_fp)) {
+        alive = false;
+        return rmsg;
+    }
 
     rmsg = string(requestLine);
+    rmsg.pop_back();
 
     return rmsg;
 }
@@ -379,5 +427,41 @@ shared_ptr<connection> server::accept(void) {
 
     return shared_ptr<connection>(new connection(c_sock));
 }
+
+class client {
+public:
+    shared_ptr<connection> connect(string server_ip, int port) {
+
+        int sockfd;
+        struct sockaddr_in serv_addr; 
+
+        shared_ptr<connection> ret;    
+
+        if ((sockfd = socket(AF_INET, SOCK_STREAM, 0)) < 0)
+        {
+            printf(\"Error : Could not create socket \");
+            return ret;
+        } 
+
+        memset(&serv_addr, '0', sizeof(serv_addr)); 
+        serv_addr.sin_family = AF_INET;
+        serv_addr.sin_port = htons((short)port); 
+
+        if (inet_pton(AF_INET, server_ip.c_str(), &serv_addr.sin_addr)<=0)
+        {
+            printf(\" inet_pton error occured\");
+            return ret;
+        } 
+
+        if ( ::connect(sockfd, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0)
+        {
+            printf(\" Error : Connect Failed \");
+            return ret;
+        } 
+
+        return shared_ptr<connection> (new connection(sockfd));
+    }
+};
+
 
 "]

@@ -85,6 +85,7 @@ string connection::recv() {
     fgets(requestLine, sizeof(requestLine), c_fp);
 
     rmsg = string(requestLine);
+    rmsg.pop_back();
 
     return rmsg;
 }

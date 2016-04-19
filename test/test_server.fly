@@ -1,5 +1,5 @@
 func handle_req(con) {
-    while(true) {
+    while(con.is_alive()) {
         msg = con.recv();
         print(msg);
     };
