@@ -306,9 +306,9 @@ class connection {
 private:
     int c_sock = -1;
     FILE *c_fp = NULL;
-    bool alive = true;
+    bool alive;
 public:
-    connection(int c): c_sock(c) {};
+    connection(int c, bool al): c_sock(c), alive(al) {};
     string recv();
     bool send(string s);
     void close();
@@ -371,6 +371,7 @@ void connection::close() {
     fclose(c_fp);
     c_fp = NULL;
     c_sock = -1;
+    alive = false;
 }
 
 class server {
@@ -425,7 +426,7 @@ shared_ptr<connection> server::accept(void) {
 
     int c_sock = ::accept(serv_sock, (struct sockaddr *)&clntAddr, &clntLen);
 
-    return shared_ptr<connection>(new connection(c_sock));
+    return shared_ptr<connection>(new connection(c_sock, true));
 }
 
 class client {
@@ -435,12 +436,12 @@ public:
         int sockfd;
         struct sockaddr_in serv_addr; 
 
-        shared_ptr<connection> ret;    
+        shared_ptr<connection> fail(new connection(sockfd, false));
 
         if ((sockfd = socket(AF_INET, SOCK_STREAM, 0)) < 0)
         {
             printf(\"Error : Could not create socket \");
-            return ret;
+            return fail;
         } 
 
         memset(&serv_addr, '0', sizeof(serv_addr)); 
@@ -450,16 +451,16 @@ public:
         if (inet_pton(AF_INET, server_ip.c_str(), &serv_addr.sin_addr)<=0)
         {
             printf(\" inet_pton error occured\");
-            return ret;
+            return fail;
         } 
 
         if ( ::connect(sockfd, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0)
         {
             printf(\" Error : Connect Failed \");
-            return ret;
+            return fail;
         } 
 
-        return shared_ptr<connection> (new connection(sockfd));
+        return shared_ptr<connection> (new connection(sockfd, true));
     }
 };
 

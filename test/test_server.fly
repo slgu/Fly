@@ -2,12 +2,14 @@ func handle_req(con) {
     while(con.is_alive()) {
         msg = con.recv();
         print(msg);
+        msg = "pong" + msg;
+        con.send(msg);
     };
 }
 
 func main() {
     a = @server;
-    a.listen(5567);
+    a.listen(5566);
     while(true) {
         con = a.accept();
         fly handle_req(con);

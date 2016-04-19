@@ -2,20 +2,11 @@
 func main() {
     a = @client;
     con = a.connect("127.0.0.1", 5566);
-    con.send("ping");
-    msg = con.recv();
-    print(msg);
+    if (con.is_alive()) {
+        con.send("test test");
+        msg = con.recv();
+        print(msg);
+    };
     return 0;
 }
 
-/*
-    shared_ptr<client> clnt = shared_ptr<client>(new client());
-    shared_ptr<connection> con = clnt->connect("192.168.1.5", 5567);
-    cout << "connected " << endl;
-    if (con != nullptr) {
-        con->send("ping");
-        cout << "sent " << endl;
-        auto str = con->recv();
-        cout << str << endl;
-    }
-*/
