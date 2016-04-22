@@ -33,9 +33,9 @@ def bunnytesting(filename, test_dir):
 	os.system('./Fly < ' + test_dir + '/' + filename + ' > test.cpp')
 
 	#check if there is an a.out file
-	if not ( 'a.out' in os.listdir(test_dir) )
+	if os.path.isfile('a.out'):
 		print filename + ': fail' + '/n'
-	else
+	else:
 		os.system(command4)
 		os.system(command5)
 
