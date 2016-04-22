@@ -235,6 +235,7 @@ let string_to_type s = match s with
     | "String" -> String
     | "Float" -> Float
     | _ -> failwith("this type not support")
+
 (* infer the function result given input params*)
 (*let rec infer fdecl env *)
 (* return a t_func_decl can be inside a class*)
@@ -696,15 +697,38 @@ let rec infer_func fdecl hash_key type_list level_env =
                     TWhile (judge_texpr, tstmt_list)
             | _ -> failwith("judge expr not bool type")
             end
-            (*
         | Foreach (varname, base_expr, stmt_list) ->
             (* easy to change to a TFor stmt*)
             (*TODO*)
             let base_texpr = infer_expr base_expr
-            in let bsae_texpr_type = get_expr_type_info base_texpr
-            in begin match base_texpr_type with
-                |
-                end *)
+            in let base_texpr_type = get_expr_type_info base_texpr
+            in let base_container_name = begin match base_expr with
+                | Id x -> x
+                | _ -> failwith ("not support with dynamic create of container")
+                end
+            in begin match (base_texpr_type:typ) with
+                | Array x ->
+                    let iter_var_name = "i"
+                    in let init_expr = Assign (iter_var_name, Literal 0)
+                    in let stop_expr =
+                        Binop (Id iter_var_name, Less, ObjCall(base_container_name, "size", []))
+                    in let inc_expr =
+                        Assign (iter_var_name, Binop(Id iter_var_name, Add, Literal 1))
+                    in
+                    (*new ref*)
+                    ref_create_env();
+                    let init_texpr = infer_expr init_expr
+                    in let stop_texpr = infer_expr stop_expr
+                    in let inc_texpr = infer_expr inc_expr
+                    in
+                    (*carete varname assign*)
+                    let var_assign_stmt = Expr (Assign (varname, ObjCall(base_container_name, "get_at", [Id iter_var_name])))
+                    in let modify_stmt_list = var_assign_stmt :: stmt_list
+                    in let tstmt_list = List.map infer_stmt modify_stmt_list
+                    in ref_back_env(); (*back env*)
+                        TFor (init_texpr, stop_texpr, inc_texpr, tstmt_list)
+                | _ -> failwith ("not support now")
+            end
         (* TODO complete other cases*)
         | _ -> TBlock []
     in

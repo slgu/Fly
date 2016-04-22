@@ -4,8 +4,9 @@
 6.fly objcall (brian)
 7.integrate build in code (slgu) done
 
-build-in functions:
+s = dispatch f(a, b) ip port
 
+build-in functions:
 format:
     funcname, type_list -> "function code"
 
@@ -16,9 +17,7 @@ format:
     system:
         sleep()
         exit()
-
 CODEGEN:
-
 cp1.We are implicit typing like C++ template.
     Unlike ocaml type variable
 cp2.when set None variable, we need class modification

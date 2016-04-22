@@ -9,5 +9,10 @@ func main() {
     c.push_back(5);
     c.push_back(6);
     print(c.get_at(1));
+    for(d : c) {
+        /* print("this is" + _string(d)); */
+        print("this is");
+        print(d);
+    };
     return 0;
 }

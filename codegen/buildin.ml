@@ -284,21 +284,26 @@ let match_build_in_objcall cname fname type_list =
 (*get the return type, fail if not ok*)
 let get_arr_call_ret (thistype:typ) fname expr_types = match thistype with
     | Array x ->
+        let expr_len = List.length expr_types
+        in
         begin match fname with
         | "push_back" ->
-            let expr_len = List.length expr_types
-            in if expr_len = 1 then
+            if expr_len = 1 then
                 if [x] = expr_types then Void
                 else failwith ("type not consistent: get_arr_call_ret")
             else
                 failwith ("push_back not 1 element: get_arr_call_ret")
         | "get_at" ->
-            let expr_len = List.length expr_types
-            in if expr_len = 1 then
+            if expr_len = 1 then
                 if [Int] = expr_types then x
                 else failwith ("type not consistent: get_arr_call_ret")
             else
-                failwith ("push_back not 1 element: get_arr_call_ret")
+                failwith ("get_at not 1 element: get_arr_call_ret")
+        | "size" ->
+            if expr_len = 0 then
+                Int
+            else
+                failwith("size should 0 element: get_arr_call_ret")
         | _ ->
             failwith ("not support build in array function")
         end
