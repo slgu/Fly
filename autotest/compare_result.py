@@ -27,7 +27,7 @@ print "Done testing!"
 def bunnytesting(test_dir):
 	for filename in test_dir:
 		print "testing file: " + filename + '/n'
-		os.system('make')
+		os.system('make tmp')
 		os.system('./Fly < ' + test_dir + '/' + filename + ' > test.cpp')
 
 		#check if there is an a.out file
