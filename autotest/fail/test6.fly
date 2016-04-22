@@ -1,0 +1,10 @@
+func accept_string(str) {
+    msg = "aa" + str;
+}
+
+func main() {
+    num = 1;
+    accept_string(num);
+    
+    return 0;
+}

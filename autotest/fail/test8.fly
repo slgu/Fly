@@ -1,0 +1,16 @@
+func return_num(num) {
+    sum = 1 + num;
+    return sum;
+}
+
+func accept_string(str) {
+    msg = "a" + str;
+}
+
+func main() {
+    
+    n = return_num(1);
+    accept_string(n);
+    
+    return 0;
+}

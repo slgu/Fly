@@ -1,0 +1,13 @@
+func return_a(x) {
+    return x;
+}
+
+func recv_nothing() {
+    print("hehe");
+}
+
+func main() {
+    s = fly return_a(2);
+    register s recv_nothing();
+    return 0;
+}
