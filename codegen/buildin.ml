@@ -280,6 +280,31 @@ let match_build_in_objcall cname fname type_list =
 	in
 	inner_func build_in_class cname fname type_list
 
+
+(*get the return type, fail if not ok*)
+let get_arr_call_ret (thistype:typ) fname expr_types = match thistype with
+    | Array x ->
+        begin match fname with
+        | "push_back" ->
+            let expr_len = List.length expr_types
+            in if expr_len = 1 then
+                if [x] = expr_types then Void
+                else failwith ("type not consistent: get_arr_call_ret")
+            else
+                failwith ("push_back not 1 element: get_arr_call_ret")
+        | "get_at" ->
+            let expr_len = List.length expr_types
+            in if expr_len = 1 then
+                if [Int] = expr_types then x
+                else failwith ("type not consistent: get_arr_call_ret")
+            else
+                failwith ("push_back not 1 element: get_arr_call_ret")
+        | _ ->
+            failwith ("not support build in array function")
+        end
+    | _ -> failwith ("not array error")
+
+
 let build_in_class_code = ["
 
 template <typename T> class Signal {
@@ -434,7 +459,7 @@ public:
     shared_ptr<connection> connect(string server_ip, int port) {
 
         int sockfd;
-        struct sockaddr_in serv_addr; 
+        struct sockaddr_in serv_addr;
 
         shared_ptr<connection> fail(new connection(sockfd, false));
 
@@ -442,23 +467,23 @@ public:
         {
             printf(\"Error : Could not create socket \");
             return fail;
-        } 
+        }
 
-        memset(&serv_addr, '0', sizeof(serv_addr)); 
+        memset(&serv_addr, '0', sizeof(serv_addr));
         serv_addr.sin_family = AF_INET;
-        serv_addr.sin_port = htons((short)port); 
+        serv_addr.sin_port = htons((short)port);
 
         if (inet_pton(AF_INET, server_ip.c_str(), &serv_addr.sin_addr)<=0)
         {
             printf(\" inet_pton error occured\");
             return fail;
-        } 
+        }
 
         if ( ::connect(sockfd, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0)
         {
             printf(\" Error : Connect Failed \");
             return fail;
-        } 
+        }
 
         return shared_ptr<connection> (new connection(sockfd, true));
     }
