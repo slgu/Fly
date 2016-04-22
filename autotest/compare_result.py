@@ -20,7 +20,6 @@ command5 = './a.out > ' + fly_results #put the results from running fly code int
 
 #test each file in the given directory
 for filename in test_list:
-<<<<<<< HEAD
 	bunnytesting(filename, test_success_dir)
 
 	os.remove('test.cpp')
@@ -48,34 +47,10 @@ def bunnytesting(filename, test_dir):
 		list_answer_results = file_answer_results.read().split()
 
 		if(list_fly_results == list_answer_results):
-			print filename, ': sucess. Correct result'
+			print filename, ': Sucess. Correct result'
 		else:
-			print filename, ': incorrect result'
+			print filename, ': Incorrect result'
 			print '\nfly_results: \n', comma.join(list_fly_results)
 			print '\nanswer: ', comma.join(list_answer_results)
 		print '\n\n'
-=======
-	print filename
-	os.system(command1)
-	os.system(command2 + filename + command3)
-	os.system(command4)
-	os.system(command5)
 
-	file_fly_results = open(fly_results, 'r')
-	list_fly_results = file_fly_results.read().split()
-
-	filename_answer_results = test_answer_dir + '/' + filename
-	file_answer_results = open(filename_answer_results, 'r')
-	list_answer_results = file_answer_results.read().split()
-
-	if(list_fly_results == list_answer_results):
-		print filename, ': correct result'
-	else:
-		print filename, ': incorrect result'
-		print '\nfly_results: \n', comma.join(list_fly_results)
-		print '\nanswer: \n', comma.join(list_answer_results)
-	print '\n'
-
-os.remove('test.cpp')
-os.remove(fly_results)
->>>>>>> 97b0b46e936cc6566ac167975872f54eea75b7ca
