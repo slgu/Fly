@@ -1,0 +1,10 @@
+func accept_num(num) {
+    sum = 1 + num;
+}
+
+func main() {
+    str = "1";
+    accept_num(str);
+    
+    return 0;
+}
