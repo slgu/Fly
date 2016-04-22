@@ -1,0 +1,35 @@
+func main() {
+    a = 3;
+    b = 4;
+    print(a+b);
+
+    for(i=1;i < 3;i=i+1) {
+        print(i);
+    };
+
+    for(i=10;i > 7;i=i-1) {
+        print(i);
+    };
+
+    for(i=0;i < 0;i=i+1) {
+        print("this is not supposed to be printed");
+    };
+
+    for(i=0;i < -1;i=i+1) {
+        print("this is not supposed to be printed");
+    };
+
+    set1 = Set(“a”, “b”, “c”);
+    for (item : set1){
+        print(item);
+	}
+
+	set2 = Set();
+	for (item : set1){
+        print(item);
+	}
+
+    //print("Hello, World");
+
+    return 0;
+}
