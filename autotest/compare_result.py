@@ -19,38 +19,40 @@ command5 = './a.out > ' + fly_results #put the results from running fly code int
 #print comma.join(test_list)
 
 #test each file in the given directory
-for filename in test_list:
-	bunnytesting(filename, test_success_dir)
 
-	os.remove('test.cpp')
-	os.remove(fly_results)
-	os.remove('a.out')
+bunnytesting(test_success_dir)
+bunnytesting(test_fail_dir)	
 print "Done testing!"
 
-def bunnytesting(filename, test_dir):
-	print "testing file: " + filename + '/n'
-	os.system('make')
-	os.system('./Fly < ' + test_dir + '/' + filename + ' > test.cpp')
+def bunnytesting(test_dir):
+	for filename in test_dir:
+		print "testing file: " + filename + '/n'
+		os.system('make')
+		os.system('./Fly < ' + test_dir + '/' + filename + ' > test.cpp')
 
-	#check if there is an a.out file
-	if os.path.isfile('a.out'):
-		print filename + ': fail' + '/n'
-	else:
-		os.system(command4)
-		os.system(command5)
-
-		file_fly_results = open(fly_results, 'r')
-		list_fly_results = file_fly_results.read().split()
-
-		filename_answer_results = test_answer_dir + '/' + filename
-		file_answer_results = open(filename_answer_results, 'r')
-		list_answer_results = file_answer_results.read().split()
-
-		if(list_fly_results == list_answer_results):
-			print filename, ': Sucess. Correct result'
+		#check if there is an a.out file
+		if os.path.isfile('a.out'):
+			print filename + ': fail' + '/n'
 		else:
-			print filename, ': Incorrect result'
-			print '\nfly_results: \n', comma.join(list_fly_results)
-			print '\nanswer: ', comma.join(list_answer_results)
-		print '\n\n'
+			os.system(command4)
+			os.system(command5)
+
+			file_fly_results = open(fly_results, 'r')
+			list_fly_results = file_fly_results.read().split()
+
+			filename_answer_results = test_answer_dir + '/' + filename
+			file_answer_results = open(filename_answer_results, 'r')
+			list_answer_results = file_answer_results.read().split()
+
+			if(list_fly_results == list_answer_results):
+				print filename, ': Sucess. Correct result'
+			else:
+				print filename, ': Incorrect result'
+				print '\nfly_results: \n', comma.join(list_fly_results)
+				print '\nanswer: ', comma.join(list_answer_results)
+			print '\n\n'
+		os.remove('test.cpp')
+		os.remove(fly_results)
+		os.remove('a.out')
+
 
