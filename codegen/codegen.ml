@@ -204,6 +204,10 @@ let rec cat_string_list_with_comma sl =
     let len = (String.length tmp) in
     if len > 0 then (String.sub tmp 0 (len-1)) else tmp
 
+let rec merge_string_list sl = match sl with
+    | [] -> ""
+    | (x::y) -> x ^ (merge_string_list y)
+
 let get_typelist_from_fm fm =
     List.fold_left
     (fun ret (str_, type_) -> ret @ [type_])
@@ -323,7 +327,7 @@ and handle_texpr expr refenv =
             [
             cat_string_list_with_space
             ([fn;"("]@
-            [cat_string_list_with_comma (List.fold_left (fun ret ex -> ret@(handle_texpr ex refenv)) [] texpr_list)]@
+            [cat_string_list_with_comma (List.fold_left (fun ret ex -> ret@([merge_string_list (handle_texpr ex refenv)])) [] texpr_list)]@
             [")"])
             ]
         (* above are built-in functions *)

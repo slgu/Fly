@@ -1,18 +1,13 @@
 func main() {
     a = 3;
     b = 4;
-    for(i=1;i < 10;i=i+1) {
-        print(i);
-    };
     c = @Array<#Int#>;
     c.push_back(3);
     c.push_back(5);
     c.push_back(6);
-    print(c.get_at(1));
+    e = "this is" + _string(123);
     for(d : c) {
-        /* print("this is" + _string(d)); */
-        print("this is");
-        print(d);
+        print("this is" + _string(d));
     };
     return 0;
 }
