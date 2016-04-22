@@ -1,4 +1,7 @@
 func main() {
+    {
+        i = 1;
+    };
     print(i);
     return 0;
 }

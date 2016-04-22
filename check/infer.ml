@@ -633,15 +633,9 @@ let rec infer_func fdecl hash_key type_list level_env =
                     end
                 | None -> failwith ("var used without defined: " ^ varname)
                 | Some (Array x) ->
-                    (*wow support for push array now*)
-                    begin match fname with
-                    | "push"->
-                        if List.length expr_list = 1 && expr_types = [x] then
-                            TObjCall ((varname, "push_back", texpr_list), Void)
-                        else
-                        failwith ("push with not 1 parameters or different types")
-                    | _ -> failwith ("no support for array operation" ^ fname)
-                    end
+                    (*check support array functions*)
+                    let rtype = get_arr_call_ret (Array x) fname expr_types
+                    in TObjCall ((varname, fname, texpr_list), rtype)
                 | _ -> failwith ("not class obj can not objcall: " ^ varname)
                 end
         (* TODO
@@ -702,6 +696,15 @@ let rec infer_func fdecl hash_key type_list level_env =
                     TWhile (judge_texpr, tstmt_list)
             | _ -> failwith("judge expr not bool type")
             end
+            (*
+        | Foreach (varname, base_expr, stmt_list) ->
+            (* easy to change to a TFor stmt*)
+            (*TODO*)
+            let base_texpr = infer_expr base_expr
+            in let bsae_texpr_type = get_expr_type_info base_texpr
+            in begin match base_texpr_type with
+                |
+                end *)
         (* TODO complete other cases*)
         | _ -> TBlock []
     in
@@ -772,6 +775,7 @@ and infer_func_by_name fname type_list =
             in if rtype == Undef then failwith ("no stop recurisve call" ^hash_key)
             else x
         end
+
 (*infer a class member function call*)
 and infer_cfunc_by_name cname fname type_list =
     let hash_key = gen_hash_key fname type_list

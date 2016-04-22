@@ -55,11 +55,11 @@ string connection::recv() {
         }
         c_fp = fdopen(c_sock, "r");
     }
-    
+
     if (c_fp == NULL) {
         return rmsg;
     }
-            
+
     fgets(requestLine, sizeof(requestLine), c_fp);
 
     rmsg = string(requestLine);
@@ -78,31 +78,31 @@ public:
     shared_ptr<connection> connect(string server_ip, short port) {
 
         int sockfd;
-        struct sockaddr_in serv_addr; 
+        struct sockaddr_in serv_addr;
 
-        shared_ptr<connection> ret;    
+        shared_ptr<connection> ret;
 
         if ((sockfd = socket(AF_INET, SOCK_STREAM, 0)) < 0)
         {
             printf("\n Error : Could not create socket \n");
             return ret;
-        } 
+        }
 
-        memset(&serv_addr, '0', sizeof(serv_addr)); 
+        memset(&serv_addr, '0', sizeof(serv_addr));
         serv_addr.sin_family = AF_INET;
-        serv_addr.sin_port = htons(port); 
+        serv_addr.sin_port = htons(port);
 
         if (inet_pton(AF_INET, server_ip.c_str(), &serv_addr.sin_addr)<=0)
         {
             printf("\n inet_pton error occured\n");
             return ret;
-        } 
+        }
 
         if ( ::connect(sockfd, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0)
         {
             printf("\n Error : Connect Failed \n");
             return ret;
-        } 
+        }
 
         return shared_ptr<connection> (new connection(sockfd));
     }

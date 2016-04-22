@@ -5,8 +5,9 @@ func main() {
         print(i);
     };
     c = @Array<#Int#>;
-    c.push(3);
-    c.push(5);
-    c.push(6);
+    c.push_back(3);
+    c.push_back(5);
+    c.push_back(6);
+    print(c.get_at(1));
     return 0;
 }

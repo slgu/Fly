@@ -1,6 +1,5 @@
 func main() {
-    for(i=1;i < 10;i=i+1) {
-        print(b);
-    };
+    a = 1;
+    print(a);
     return 0;
 }

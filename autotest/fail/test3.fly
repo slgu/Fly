@@ -1,0 +1,8 @@
+func return_nothing(x) {
+
+}
+
+func main() {
+    s = fly return_nothing(2);
+    return 0;
+}

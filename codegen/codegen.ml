@@ -364,15 +364,42 @@ and handle_texpr expr refenv =
             end
         )
     | TObjCall ((varname, mfname, texpr_list), ty) ->
-        let fn = varname ^ "->" ^ mfname
-        in
-        [
-            cat_string_list_with_space
-            ([fn;"("]@
-            [cat_string_list_with_comma (List.fold_left (fun ret ex -> ret@(handle_texpr ex refenv)) [] texpr_list)]@
-            [")"])
-        ]
-
+        let res = search_key (!refenv) varname
+        in begin match res with
+        | Some x ->
+            begin match (x:typ) with
+            | Array _ ->
+                let arr_code_gen varname mfname texpr_list =
+                    let newfname =
+                    begin match mfname with
+                    | "get_at" ->
+                        "operator[]"
+                    | _ ->
+                        mfname
+                    end
+                    in
+                    let fn = varname ^ "->" ^ newfname
+                    in
+                    [
+                        cat_string_list_with_space
+                        ([fn;"("]@
+                        [cat_string_list_with_comma (List.fold_left (fun ret ex -> ret@(handle_texpr ex refenv)) [] texpr_list)]@
+                        [")"])
+                    ]
+                in
+                    arr_code_gen varname mfname texpr_list
+            | _ ->
+                let fn = varname ^ "->" ^ mfname
+                in
+                [
+                    cat_string_list_with_space
+                    ([fn;"("]@
+                    [cat_string_list_with_comma (List.fold_left (fun ret ex -> ret@(handle_texpr ex refenv)) [] texpr_list)]@
+                    [")"])
+                ]
+            end
+        | _ -> failwith ("inner error")
+        end
     | TFunc(_) -> [] (* TODO *)
     | TAssign((str, expr), ty) ->
         let res = (search_key (!refenv) str) in
