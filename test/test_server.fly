@@ -1,9 +1,16 @@
+func process(msg) {
+    return "Done: " + msg;
+}
+
+func send_back(con, msg) {
+    con.send(msg);
+}
+
 func handle_req(con) {
     while(con.is_alive()) {
         msg = con.recv();
-        print(msg);
-        msg = "pong" + msg;
-        con.send(msg);
+        s = fly process(msg);
+        register s send_back(con);
     };
 }
 
