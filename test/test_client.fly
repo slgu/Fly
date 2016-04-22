@@ -1,4 +1,3 @@
-
 func main() {
     a = @client;
     con = a.connect("127.0.0.1", 5566);
@@ -9,4 +8,3 @@ func main() {
     };
     return 0;
 }
-

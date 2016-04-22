@@ -41,11 +41,3 @@ for filename in test_list:
 
 os.remove('test.cpp')
 os.remove(fly_results)
-
-
-
-
-
-
-
-
