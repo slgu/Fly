@@ -1,8 +1,8 @@
 import os
 import sys
 
-test_dir = 'test'
-test_answer_dir = 'test_answer'
+test_dir = 'success'
+test_answer_dir = 'success_answer'
 fly_results = 'fly_results.txt'
 comma = ', '
 
