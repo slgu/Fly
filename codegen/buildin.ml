@@ -281,7 +281,7 @@ let match_build_in_objcall cname fname type_list =
 	inner_func build_in_class cname fname type_list
 
 
-(*get the return type, fail if not ok*)
+(*get the return type of array, fail if not ok*)
 let get_arr_call_ret (thistype:typ) fname expr_types = match thistype with
     | Array x ->
         let expr_len = List.length expr_types
@@ -309,6 +309,45 @@ let get_arr_call_ret (thistype:typ) fname expr_types = match thistype with
         end
     | _ -> failwith ("not array error")
 
+(*get the return type of map, fail if not ok*)
+let get_map_call_ret (thistype:typ) fname expr_types = match thistype with
+    | Map (x,y) ->
+        let expr_len = List.length expr_types
+        in
+        begin match fname with
+        | "insert" ->
+            if expr_len = 2 then
+                if [x;y] = expr_types then Void
+                else failwith ("type not consistent: get_map_call_ret")
+            else
+                failwith ("insert not 2 element: get_map_call_ret")
+        | "get" ->
+            if expr_len = 1 then
+                if [x] = expr_types then y
+                else failwith ("type not consistent: get_map_call_ret")
+            else
+                failwith ("get_at not 1 element: get_map_call_ret")
+        | "size" ->
+            if expr_len = 0 then
+                Int
+            else
+                failwith("size should 0 element: get_map_call_ret")
+        | "delete" ->
+            if expr_len = 1 then
+                if [x] = expr_types then Void
+                else failwith ("type not consistent: get_map_call_ret")
+            else
+                failwith("delete should 1 element: get_map_call_ret")
+        | "exist" ->
+            if expr_len = 1 then
+                if [x] = expr_types then Bool
+                else failwith  ("type not consistent: get_map_call_ret")
+            else
+                failwith("exist should be 1 element: get_map_call_ret")
+        | _ ->
+            failwith ("not support build in map function")
+        end
+    | _ -> failwith ("not array error")
 
 let build_in_class_code = ["
 

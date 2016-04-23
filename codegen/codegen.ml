@@ -179,12 +179,14 @@ let rec type_to_code_string = function
     | Signal(x) -> "shared_ptr <Signal<" ^ (type_to_code_string x) ^ ">>"
     | Class x -> "shared_ptr <" ^ x ^ ">"
     | Array x -> "shared_ptr < vector <" ^ (type_to_code_string x) ^ "> >"
+    | Map (x, y) -> "shared_ptr < map <" ^ (type_to_code_string x) ^ "," ^ (type_to_code_string y) ^ "> >"
     | Func (x, type_list) -> "shared_ptr <" ^ (gen_clojure_class_name x type_list) ^ ">"
     | _ -> raise (Failure ("type_to_code_string not yet support this type"))
 
 let rec new_type_to_code_string = function
     | Class x -> x
     | Array x -> "vector <" ^ (type_to_code_string x) ^ ">"
+    | Map (x, y) ->  "map <" ^ (type_to_code_string x) ^ "," ^ (type_to_code_string y) ^ ">"
     | Int -> "int"
     | Bool -> "bool"
     | Void -> "void"
@@ -392,6 +394,45 @@ and handle_texpr expr refenv =
                     ]
                 in
                     arr_code_gen varname mfname texpr_list
+            | Map _ ->
+                let map_code_gen varname mfname texpr_list =
+                    let normal_gen fn =
+                        [
+                        cat_string_list_with_space
+                        ([fn;"("]@
+                        [cat_string_list_with_comma (List.fold_left (fun ret ex -> ret@(handle_texpr ex refenv)) [] texpr_list)]@
+                        [")"])
+                        ]
+                    in
+                    begin match mfname with
+                    | "get" ->
+                        normal_gen (varname ^ "->operator[]")
+                    | "delete" ->
+                        let epr = List.hd texpr_list
+                        in
+                        [varname ^ "->erase(" ^ varname ^ "->find("
+                            ^ (merge_string_list (handle_texpr epr refenv)) ^ "))"]
+                    | "exist" ->
+                        let epr = List.hd texpr_list
+                        in
+                        [varname ^ "->find("
+                            ^ (merge_string_list (handle_texpr epr refenv)) ^ ") != " ^ varname ^ "->end()"]
+                    | "size" ->
+                        (* change to int*)
+                        ["int(" ^ (merge_string_list (normal_gen (varname ^"->size"))) ^ ")"]
+                    | "insert" ->
+                        begin match texpr_list with
+                        | [x;y] ->
+                            let key_code = merge_string_list (handle_texpr x refenv)
+                            in let value_code = merge_string_list (handle_texpr y refenv)
+                            in
+                            [varname ^ "->operator[](" ^ key_code ^ ")=" ^ value_code]
+                        | _ -> failwith ("not support for insert map")
+                        end
+                    | _ -> failwith ("not support map function")
+                    end
+                in
+                    map_code_gen varname mfname texpr_list
             | _ ->
                 let fn = varname ^ "->" ^ mfname
                 in
@@ -445,7 +486,7 @@ and handle_texpr expr refenv =
         begin
         match typename with
         | Class x -> ["shared_ptr <" ^ x ^ ">(new " ^ x ^ "())"]
-        | Array x-> [type_to_code_string typename ^ "(new " ^ (new_type_to_code_string typename) ^ "())"]
+        | Array _ | Map _ -> [type_to_code_string typename ^ "(new " ^ (new_type_to_code_string typename) ^ "())"]
         | _ -> failwith ("not support for other TObjgen now")
         end
     | TObjid(_) -> [] (* TODO *)
@@ -519,6 +560,8 @@ let code_header = ["
     #include <string>
     #include <string.h>     /* for memset() */
     #include <thread>
+    #include <vector>
+    #include <map>
     #include <mutex>
     #include <condition_variable>
     #include <queue>

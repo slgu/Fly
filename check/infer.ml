@@ -537,8 +537,13 @@ let rec infer_func fdecl hash_key type_list level_env =
                 TObjGen (typename, typename)
             else
                 failwith ("not valid type name")
-        | _ ->
-            failwith ("no support for map gen")
+        | Map (x, y) ->
+            (* check type exist*)
+            if check_valid_type x && check_valid_type y
+            then TObjGen (typename, typename)
+            else
+            failwith ("not valid type name")
+        | _ -> failwith ("no support for other gen")
         end
         | Objid (x, y) ->
             let ctype = ref_search_id x
@@ -636,6 +641,10 @@ let rec infer_func fdecl hash_key type_list level_env =
                 | Some (Array x) ->
                     (*check support array functions*)
                     let rtype = get_arr_call_ret (Array x) fname expr_types
+                    in TObjCall ((varname, fname, texpr_list), rtype)
+                | Some (Map (x,y)) ->
+                    (*check support map functions*)
+                    let rtype = get_map_call_ret (Map (x,y)) fname expr_types
                     in TObjCall ((varname, fname, texpr_list), rtype)
                 | _ -> failwith ("not class obj can not objcall: " ^ varname)
                 end
