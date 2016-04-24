@@ -736,6 +736,14 @@ let rec infer_func fdecl hash_key type_list level_env =
                     in let tstmt_list = List.map infer_stmt modify_stmt_list
                     in ref_back_env(); (*back env*)
                         TFor (init_texpr, stop_texpr, inc_texpr, tstmt_list)
+                | Map (x, y) ->
+                    (*now begin support map foreach*)
+                    ref_create_env();
+                    (*add (varname,x) type info*)
+                    ref_update_env varname x;
+                    let tstmt_list = List.map infer_stmt stmt_list
+                    in ref_back_env();
+                        TForeach(varname, base_texpr,tstmt_list)
                 | _ -> failwith ("not support now")
             end
         (* TODO complete other cases*)

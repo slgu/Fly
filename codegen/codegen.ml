@@ -528,7 +528,21 @@ let rec handle_tstmt fkey tstmt_ refenv =
         let tstmtstr = (List.fold_left (fun ret tstmt_ -> ret @ (handle_tstmt fkey tstmt_ refnewenv)) [] tstmtlist) in
         [cat_string_list_with_space (["for ("] @ f1 @ [";"] @ f2 @ [";"] @ f3 @ [")"])] @
         ["{"] @ tstmtstr @ ["}"]
-    | TForeach(_) -> [] (* TODO *)
+    | TForeach (varname, t_base_expr, tstmt_list) ->
+        (*array is changed to TFor, now TForeach is only for the need of map*)
+        (*deal with foreach map which can not be done by the change of the for*)
+        let base_expr_code = handle_texpr t_base_expr refenv
+        in
+        let for_code = "for (auto itr = (" ^ (merge_string_list base_expr_code) ^ ")->begin(); itr != ("
+            ^ (merge_string_list base_expr_code) ^ ")->end(); ++itr){"
+        in let var_type = begin match get_expr_type_info t_base_expr with
+            | Map (x, y) -> x
+            | _ -> failwith ("infer error for tforeach map")
+            end
+        in let assign_var_code = (type_to_code_string var_type) ^ " " ^ varname ^ "=itr->first;"
+        in ignore(update_env !refnewenv varname var_type); (*do a env update*)
+        let tstmtstr =  (List.fold_left (fun ret tstmt_ -> ret @ (handle_tstmt fkey tstmt_ refnewenv)) [] tstmt_list)
+        in [for_code;assign_var_code] @ tstmtstr @ ["}"]
     | TWhile(expr_, tstmtlist) ->
         [cat_string_list_with_space (["while ("] @ (handle_texpr expr_ refnewenv) @ [")"])] @
         ["{"] @
