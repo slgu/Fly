@@ -1,33 +1,10 @@
-class a {
-    who:Int;
-    a:Float;
-    d:Fuck;
-    j:Map<#Int,Int#>;
-    func fuck(aa) {
-        print(aa);
-        return 3;
-    }
-}
-func outerfuck(aa) {
-    return 3;
-}
-func gcd(a, b) {
-    if (b > a) {
-        return gcd(b, a);
-    };
-    if (b == 0) {
-        return a;
-    };
-    return gcd(b, a % b);
+func f(a, b) {
+    return a + b;
 }
 
 
 func main() {
-    aa = gcd(36, 6);
-    bb = gcd(36, 6);
-    c = @a;
-    c.who = 1;
-    dd = outerfuck("asd");
-    dd = c.fuck(aa);
+    a = f(1, 2);
+    c = f(2, 3.3);
     return 0;
 }
