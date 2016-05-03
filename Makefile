@@ -19,25 +19,6 @@ all:
 	ocamlc -I $(ast_dir) -I $(check_dir) -I $(gen_dir) -c $(gen_dir)/codegen.ml
 	ocamlc -I $(parser_dir) -I $(check_dir) -I $(gen_dir) -c fly_testgen.ml
 	ocamlc -o fly $(parser_dir)/scanner.cmo $(parser_dir)/parser.cmo $(ast_dir)/ast.cmo $(ast_dir)/sast.cmo $(debug_dir)/debug.cmo $(check_dir)/util.cmo  $(gen_dir)/buildin.cmo $(check_dir)/env.cmo $(check_dir)/infer.cmo  $(gen_dir)/codegen.cmo fly_testgen.cmo
-tmp:
-	cp $(gen_dir)/buildin.ml $(gen_dir)/buildin_bak.ml
-	cp $(gen_dir)/buildin_tmp.ml $(gen_dir)/buildin.ml
-	ocamllex $(parser_dir)/scanner.mll
-	ocamlyacc -q -v $(parser_dir)/parser.mly
-	ocamlc -c $(ast_dir)/ast.ml
-	ocamlc -I $(ast_dir) -c $(ast_dir)/sast.ml
-	ocamlc -I $(ast_dir) -c $(parser_dir)/parser.mli
-	ocamlc -I $(parser_dir) -c $(parser_dir)/scanner.ml
-	ocamlc -I $(ast_dir) -I $(parser_dir) -c $(parser_dir)/parser.ml
-	ocamlc -I $(ast_dir) -c $(check_dir)/util.ml
-	ocamlc -I $(ast_dir) -c $(check_dir)/env.ml
-	ocamlc -I $(ast_dir) -c $(debug_dir)/debug.ml
-	ocamlc -I $(ast_dir) -I $(check_dir) -c $(gen_dir)/buildin.ml
-	ocamlc -I $(gen_dir) -I $(debug_dir) -I $(ast_dir) -I $(check_dir) -c $(check_dir)/infer.ml
-	ocamlc -I $(ast_dir) -I $(check_dir) -I $(gen_dir) -c $(gen_dir)/codegen.ml
-	ocamlc -I $(parser_dir) -I $(check_dir) -I $(gen_dir) -c fly_testgen.ml
-	ocamlc -o fly $(parser_dir)/scanner.cmo $(parser_dir)/parser.cmo $(ast_dir)/ast.cmo $(ast_dir)/sast.cmo $(debug_dir)/debug.cmo $(check_dir)/util.cmo  $(gen_dir)/buildin.cmo $(check_dir)/env.cmo $(check_dir)/infer.cmo  $(gen_dir)/codegen.cmo fly_testgen.cmo
-	cp $(gen_dir)/buildin_bak.ml $(gen_dir)/buildin.ml
 buildin:
 	ocamlc -c $(ast_dir)/ast.ml
 	ocamlc -I $(ast_dir) -c $(ast_dir)/sast.ml
