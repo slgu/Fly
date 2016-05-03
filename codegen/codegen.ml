@@ -168,6 +168,7 @@ let rec type_to_func_string = function
     | Float -> "float"
     | Signal(x) -> "signal_" ^ (type_to_func_string x)
     | Class(x) -> "class_" ^ x
+    | Map(x,y) -> "map_" ^ (type_to_func_string x) ^ "_" ^ (type_to_func_string y)
     | _ -> raise (Failure ("type_to_func_string not yet support this type"))
 
 let rec type_to_code_string = function
@@ -179,14 +180,14 @@ let rec type_to_code_string = function
     | Signal(x) -> "shared_ptr <Signal<" ^ (type_to_code_string x) ^ ">>"
     | Class x -> "shared_ptr <" ^ x ^ ">"
     | Array x -> "shared_ptr < vector <" ^ (type_to_code_string x) ^ "> >"
-    | Map (x, y) -> "shared_ptr < map <" ^ (type_to_code_string x) ^ "," ^ (type_to_code_string y) ^ "> >"
+    | Map (x, y) -> "shared_ptr < flymap <" ^ (type_to_code_string x) ^ "," ^ (type_to_code_string y) ^ "> >"
     | Func (x, type_list) -> "shared_ptr <" ^ (gen_clojure_class_name x type_list) ^ ">"
     | _ -> raise (Failure ("type_to_code_string not yet support this type"))
 
 let rec new_type_to_code_string = function
     | Class x -> x
     | Array x -> "vector <" ^ (type_to_code_string x) ^ ">"
-    | Map (x, y) ->  "map <" ^ (type_to_code_string x) ^ "," ^ (type_to_code_string y) ^ ">"
+    | Map (x, y) ->  "flymap <" ^ (type_to_code_string x) ^ "," ^ (type_to_code_string y) ^ ">"
     | Int -> "int"
     | Bool -> "bool"
     | Void -> "void"
@@ -410,8 +411,8 @@ and handle_texpr expr refenv =
                     | "delete" ->
                         let epr = List.hd texpr_list
                         in
-                        [varname ^ "->erase(" ^ varname ^ "->find("
-                            ^ (merge_string_list (handle_texpr epr refenv)) ^ "))"]
+                        [varname ^ "->erase(" 
+                            ^ (merge_string_list (handle_texpr epr refenv)) ^ ")"]
                     | "exist" ->
                         let epr = List.hd texpr_list
                         in
@@ -426,7 +427,7 @@ and handle_texpr expr refenv =
                             let key_code = merge_string_list (handle_texpr x refenv)
                             in let value_code = merge_string_list (handle_texpr y refenv)
                             in
-                            [varname ^ "->operator[](" ^ key_code ^ ")=" ^ value_code]
+                            [varname ^ "->insert(" ^ key_code ^ "," ^ value_code ^ ")"]
                         | _ -> failwith ("not support for insert map")
                         end
                     | _ -> failwith ("not support map function")
@@ -542,7 +543,9 @@ let rec handle_tstmt fkey tstmt_ refenv =
         in let assign_var_code = (type_to_code_string var_type) ^ " " ^ varname ^ "=itr->first;"
         in ignore(update_env !refnewenv varname var_type); (*do a env update*)
         let tstmtstr =  (List.fold_left (fun ret tstmt_ -> ret @ (handle_tstmt fkey tstmt_ refnewenv)) [] tstmt_list)
-        in [for_code;assign_var_code] @ tstmtstr @ ["}"]
+        in
+        let lock = "std::unique_lock<std::recursive_mutex> lk(" ^ merge_string_list base_expr_code ^ "->m_mutex);"
+        in ["{";lock;for_code;assign_var_code] @ tstmtstr @ ["}"] @ ["}"]
     | TWhile(expr_, tstmtlist) ->
         [cat_string_list_with_space (["while ("] @ (handle_texpr expr_ refnewenv) @ [")"])] @
         ["{"] @

@@ -1,0 +1,33 @@
+func insert_alot (c) {
+    for(i = 0; i < 100; i = i+1) {
+        c.insert(_string(i), i);
+    };
+}
+
+func print_all (c) {
+    for(k:c) {
+        print(k + " " + _string(c.get(k)));
+    };
+}
+
+func main() {
+    c = @Map<#String, Int#>;
+
+    insert_alot(c);
+
+    /* 10 threads */
+    fly print_all(c);
+    fly print_all(c);
+    fly print_all(c);
+    fly print_all(c);
+    fly print_all(c);
+    fly print_all(c);
+    fly print_all(c);
+    fly print_all(c);
+    fly print_all(c);
+    fly print_all(c);
+
+    sleep(3);
+
+    return 0;
+}

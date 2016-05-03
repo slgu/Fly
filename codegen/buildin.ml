@@ -371,6 +371,47 @@ template <typename T> class Signal {
         }
 };
 
+template<class K, class V>
+class flymap
+{
+    std::map<K,V> m;
+public:
+    std::recursive_mutex m_mutex;
+
+    int size() {
+        std::unique_lock<std::recursive_mutex> lk(m_mutex);
+        return m.size();
+    }
+
+    V& operator[] (const K& k) {
+        std::unique_lock<std::recursive_mutex> lk(m_mutex);
+        return m[k];
+    }
+
+    void erase (const K& k) {
+        std::unique_lock<std::recursive_mutex> lk(m_mutex);
+        m.erase(k);
+    }
+
+    typename std::map<K,V>::iterator find (const K& k) {
+        std::unique_lock<std::recursive_mutex> lk(m_mutex);
+        return m.find(k);
+    }
+
+    typename std::map<K,V>::iterator end (void) {
+        return m.end();
+    }
+
+    typename std::map<K,V>::iterator begin (void) {
+        return m.begin();
+    }
+
+    void insert (const K& k, const V& v) {
+        std::unique_lock<std::recursive_mutex> lk(m_mutex);
+        m.insert ( std::pair<K,V>(k,v) );
+    }
+};
+
 class connection {
 private:
     int c_sock = -1;
