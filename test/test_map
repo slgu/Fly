@@ -9,12 +9,12 @@ func main() {
     c.insert("sa", 6123123);
     if (c.exist("sa")) {
         print("fuck");
-    };
+    }
     f = c.get("as");
     print(f);
     print(c.size());
     for(k:c) {
         print(k + " " + _string(c.get(k)));
-    };
+    }
     return 0;
 }

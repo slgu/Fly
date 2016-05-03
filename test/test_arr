@@ -8,6 +8,6 @@ func main() {
     e = "this is" + _string(123);
     for(d : c) {
         print("this is" + _string(d));
-    };
+    }
     return 0;
 }

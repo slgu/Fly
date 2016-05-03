@@ -72,7 +72,7 @@ func main() {
     s = fly gen2("Fly: gen2", "Hello");
     for (i = 1; i < 10; i = i+1) {
         register s recv_more("World", i, 0);
-    };
+    }
 
     /* calling recv in sync fashion */
     recv2("Sync: recv2");
@@ -81,7 +81,7 @@ func main() {
     fly no_return_gen("Fly: no_return_gen","Hello World");
 
     while(true) {
-    };
+    }
 
     return 0;
 }

@@ -141,23 +141,26 @@ stmt_list: /*split otherwise r/r conflict */
     /*nothing*/ {[]} /*cause 60 conflict here*/
     | stmt_true_list {$1}
 
+ctrlblock:
+    FOR LPAREN expr SEMI expr SEMI expr RPAREN LBRACE stmt_list RBRACE
+       { For($3, $5, $7, $10) }
+    | WHILE LPAREN expr RPAREN LBRACE stmt_list RBRACE { While($3, $6) }
+    | LBRACE stmt_list RBRACE {Block($2)}
+    /*for test without else*/
+    | IF LPAREN expr RPAREN LBRACE stmt_list RBRACE {If ($3, $6, [])}
+    | IF LPAREN expr RPAREN LBRACE stmt_list RBRACE ELSE LBRACE stmt_list RBRACE {If ($3, $6, $10)}
+    /*for each*/
+    | FOR LPAREN ID COLON expr RPAREN LBRACE stmt_list RBRACE {Foreach($3, $5, $8)}
 
 stmt_true_list:
     stmt SEMI {[$1]}
     | stmt SEMI stmt_true_list {$1 :: $3}
+    | ctrlblock {[$1]}
+    | ctrlblock stmt_true_list {$1 :: $2}
 
 stmt:
     expr {Expr($1)}
-    | LBRACE stmt_list RBRACE {Block($2)}
     | RETURN expr {Return($2)}
-    /*for test without else*/
-    | IF LPAREN expr RPAREN LBRACE stmt_list RBRACE {If ($3, $6, [])}
-    | IF LPAREN expr RPAREN LBRACE stmt_list RBRACE ELSE LBRACE stmt_list RBRACE {If ($3, $6, $10)}
-    | FOR LPAREN expr SEMI expr SEMI expr RPAREN LBRACE stmt_list RBRACE
-       { For($3, $5, $7, $10) }
-    | WHILE LPAREN expr RPAREN LBRACE stmt_list RBRACE { While($3, $6) }
-    /*for each*/
-    | FOR LPAREN ID COLON expr RPAREN LBRACE stmt_list RBRACE {Foreach($3, $5, $8)}
 
 expr_list:
     /* nothing */ {[]}

@@ -4,6 +4,24 @@ func main() {
     print(a+b);
     for(i=1;i < 10;i=i+1) {
         print(i);
-    };
+    }
+
+    while(a > 0) {
+        print(a);
+        a = a-1;
+    }
+
+    {
+        aaa = 1;
+        tt = false;
+        if (aaa == 1 ) {
+            print("good");
+        }
+        if (aaa == 1 && tt) {
+            print("good2");
+        }else {
+            print("good3");
+        }
+    }
     return 0;
 }

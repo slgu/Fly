@@ -5,11 +5,11 @@ func main() {
     for( i = 1; i < 11; i = i+1) {
         s = fly say_hello(", World", i, 2, 3);
         register s recv_hello(i);
-    };
+    }
 
     while(true) {
 
-    };
+    }
 
     return 0;
 }

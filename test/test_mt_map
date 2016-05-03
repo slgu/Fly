@@ -1,14 +1,14 @@
 func insert_alot (c, idx) {
     for(i = 0; i < 100; i = i+1) {
         c.insert(_string(i), i);
-    };
+    }
     print(_string(idx) + " insertion is done");
 }
 
 func delete_alot (c, idx) {
     for(i = 0; i < 100; i = i+1) {
         c.delete(_string(i));
-    };
+    }
     print(_string(idx) + " deletion is done");
 }
 
@@ -36,7 +36,7 @@ func main() {
     for(k:c) {
 
         print(k + " " + _string(c.get(k)));
-    };
+    }
 
     return 0;
 }

@@ -5,6 +5,6 @@ func main() {
         con.send("test test");
         msg = con.recv();
         print(msg);
-    };
+    }
     return 0;
 }
