@@ -9,7 +9,7 @@ func main() {
 		temp = a + b;
 		a = b;
 		b = temp;
-	};
+	}
 	
 	return 0;
 }
