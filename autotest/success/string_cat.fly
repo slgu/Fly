@@ -1,0 +1,13 @@
+
+func main() {
+
+    say_hello(", World");
+
+    return 0;
+}
+
+func say_hello(str) {
+    i = -2;
+    msg = "Hello" + str + _string(i);
+    print(msg);
+}

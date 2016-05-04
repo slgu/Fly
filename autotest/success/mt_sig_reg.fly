@@ -1,0 +1,20 @@
+func main() {
+
+    for( i = 1; i < 11; i = i+1) {
+        s = fly say_hello("Hello");
+        register s recv_hello(i);
+    }
+
+    sleep(1);
+
+    return 0;
+}
+
+func say_hello(str) {
+    msg = "Hi " + str;
+    return msg;
+}
+
+func recv_hello(idx, msg) {
+    print(msg + " World");
+}

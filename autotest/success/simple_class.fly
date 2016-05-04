@@ -1,0 +1,63 @@
+class dog {
+    name:String;
+    age:Int;
+    owner:String;
+
+    func bark(to) {
+        msg = "Hi " + to + " my name is" + name;
+        print(msg);
+    }
+
+    func play() {
+        age = -10;
+        ans = age + 100;
+        print(ans);
+    }
+
+    func set_age(a) {
+        age = a;
+    }
+
+    func get_older() {
+        age = age + 5;
+    }
+
+    func say_age() {
+        print("I'm " + _string(age) + " years old");
+    }
+}
+
+class cat {
+    name:String;
+    age:Int;
+    owner:String;
+    another_dog:dog;
+    func meow(to) {
+        msg = "Hi " + to + " my name is " + name;
+        print(msg);
+    }
+
+    func play() {
+        ans = age + 100;
+        print(ans);
+    }
+}
+
+func main() {
+    a = @dog;
+    a.age = 12;
+    a.name = "gsl";
+    a.bark("slgu");
+    a.play();
+    a.say_age();
+    a.get_older();
+    a.say_age();
+    a.set_age(55);
+    a.say_age();
+
+    c = @cat;
+    c.name = "kitty";
+    c.meow("hehehe");
+
+    return 0;
+}

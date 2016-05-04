@@ -1,0 +1,13 @@
+
+func main() {
+    a = 3;
+    b = 4;
+
+    print(a+b);
+
+    print("Hello, World");
+
+    print("Hello, World" + _string(a+b));
+
+    return 0;
+}

@@ -1,0 +1,22 @@
+
+func main() {
+
+    s = fly say_hello(", World", 1, 999, -900);
+
+    register s recv_hello();
+
+    sleep(1);
+
+    return 0;
+}
+
+func say_hello(str, a, b, c) {
+    msg = "Hello " + str;
+    sum = a+b+c;
+    return msg + _string(sum);
+}
+
+func recv_hello(msg_in) {
+    msg = "Got it " + msg_in;
+    print(msg);
+}
