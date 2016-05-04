@@ -288,9 +288,7 @@ let rec handle_fly_expr signame expr refenv =
             let expr_types_list = List.map get_expr_type_info texpr_list in
             let nfn = (List.fold_left (fun ret et -> ret ^ "_" ^ (type_to_func_string et)) fn expr_types_list)
                 ^ "_" ^ (type_to_func_string st) in
-            ignore(print_string("start\n"));
             let param = [cat_string_list_with_comma (List.fold_left (fun ret ex -> ret@(handle_texpr ex refenv)) [] texpr_list)] in
-            ignore(print_string("end\n"));
             let param2 =
             (
                 match param with
