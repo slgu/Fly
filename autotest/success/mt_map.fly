@@ -1,0 +1,39 @@
+func insert_alot (c, idx) {
+    for(i = 0; i < 100; i = i+1) {
+        c.insert(_string(i), i);
+    }
+}
+
+func delete_alot (c, idx) {
+    for(i = 0; i < 100; i = i+1) {
+        c.delete(_string(i));
+    }
+}
+
+func main() {
+    c = @Map<#String, Int#>;
+
+    fly insert_alot(c, 1);
+    fly insert_alot(c, 2);
+    fly insert_alot(c, 3);
+    fly insert_alot(c, 4);
+    fly insert_alot(c, 5);
+
+    sleep(1);
+
+    fly delete_alot(c, 1);
+    fly delete_alot(c, 2);
+    fly delete_alot(c, 3);
+    fly delete_alot(c, 4);
+    fly delete_alot(c, 5);
+
+    sleep(1);
+
+    print("size = " + _string(c.size()));
+
+    for(k:c) {
+        print(k + " " + _string(c.get(k)));
+    }
+
+    return 0;
+}

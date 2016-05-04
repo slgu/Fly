@@ -1,0 +1,28 @@
+func insert_alot (c, idx) {
+    for(i = 0; i < 100; i = i+1) {
+        c.insert(_string(i), i);
+    }
+}
+
+func print_alot(c) {
+    for(k:c) {
+        print(k + " " + _string(c.get(k)));
+    }
+}
+
+func main() {
+    c = @Map<#String, Int#>;
+
+    insert_alot(c, 1);
+
+    fly print_alot(c);
+    fly print_alot(c);
+    fly print_alot(c);
+    fly print_alot(c);
+    fly print_alot(c);
+    fly print_alot(c);
+
+    sleep(2);
+
+    return 0;
+}

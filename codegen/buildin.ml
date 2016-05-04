@@ -414,7 +414,7 @@ public:
 
     void insert (const K& k, const V& v) {
         std::unique_lock<std::recursive_mutex> lk(m_mutex);
-        m.insert ( std::pair<K,V>(k,v) );
+        m[k] = v;
     }
 };
 

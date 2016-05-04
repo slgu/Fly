@@ -1,0 +1,12 @@
+func main() {
+    a = 3;
+    b = 4;
+
+    c = (x -> x + a);
+
+    d = c(3);
+
+    print(d);
+
+    return 0;
+}

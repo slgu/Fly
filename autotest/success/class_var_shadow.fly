@@ -1,0 +1,32 @@
+class dog {
+    name:String;
+    age:Int;
+    owner:String;
+
+    func set_age(age) {
+        age = age;
+    }
+
+    func get_older() {
+        age = age + 5;
+    }
+
+    func say_age() {
+        print("I'm " + _string(age) + " years old");
+    }
+}
+
+func main() {
+    a = @dog;
+
+    a.age = 12;
+
+    a.say_age();
+    a.set_age(55);
+    a.say_age();
+    a.set_age(5);
+    a.say_age();
+
+
+    return 0;
+}

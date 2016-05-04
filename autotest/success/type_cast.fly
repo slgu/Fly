@@ -1,0 +1,11 @@
+func main() {
+    a = "asd" + _string(1);
+    b = 1.22 + _float("123.1");
+    c = 1 + _int("123.1");
+    d = 1 + _int("-123");
+    print(a);
+    print(b);
+    print(c);
+    print(d);
+    return 0;
+}

@@ -1,0 +1,24 @@
+func main() {
+    a = 3;
+    b = 4;
+    c = @Map<#String, Int#>;
+    d = c.size();
+    c.insert("as", 614223);
+    c.insert("assad", 1236123);
+    c.insert("assad", 6121233);
+    c.insert("sa", 6123123);
+    if (c.exist("sa")) {
+        print("Good");
+    }
+    c.delete("sa");
+    if (!c.exist("sa")) {
+        print("Good");
+    }
+    f = c.get("as");
+    print(f);
+    print(c.size());
+    for(k:c) {
+        print(k + " " + _string(c.get(k)));
+    }
+    return 0;
+}

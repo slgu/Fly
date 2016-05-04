@@ -59,7 +59,7 @@ def bunnytesting(test_dir, ans_dir, test_list):
             print bcolors.FAIL + 'Compile failure: ' + cmd_flyc + bcolors.ENDC
             fail_cnt += 1
             continue
-        cmd_gpp = 'g++ -pthread -o test_build -std=c++11 tmp.cc > /dev/null 2>&1'
+        cmd_gpp = 'rm -f test_build; g++ -pthread -o test_build -std=c++11 tmp.cc > /dev/null 2>&1'
         os.system(cmd_gpp)
         if not os.path.isfile('test_build'):
             print bcolors.FAIL + 'Compile failure: ' + cmd_gpp + bcolors.ENDC

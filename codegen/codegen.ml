@@ -416,8 +416,8 @@ and handle_texpr expr refenv =
                     | "exist" ->
                         let epr = List.hd texpr_list
                         in
-                        [varname ^ "->find("
-                            ^ (merge_string_list (handle_texpr epr refenv)) ^ ") != " ^ varname ^ "->end()"]
+                        ["( " ^ varname ^ "->find("
+                            ^ (merge_string_list (handle_texpr epr refenv)) ^ ") != " ^ varname ^ "->end() )"]
                     | "size" ->
                         (* change to int*)
                         ["int(" ^ (merge_string_list (normal_gen (varname ^"->size"))) ^ ")"]

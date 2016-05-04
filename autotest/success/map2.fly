@@ -1,0 +1,43 @@
+func main() {
+    a = 3;
+    b = 4;
+    c = @Map<#String, Int#>;
+    d = c.size();
+
+    c.insert("a", a);
+    c.insert("b", b);
+
+    if (c.exist("a")) {
+        print("exit");
+    }
+
+    c.delete("a");
+
+    if (c.exist("a")) {
+        print("exit");
+    } else {
+        print("not exit");
+    }
+
+    c.delete("a");
+
+    if (c.exist("a")) {
+        print("exit");
+    } else {
+        print("not exit");
+    }
+
+    f = c.get("a");
+    print(f);
+
+    f = c.get("b");
+    print(f);
+
+    print(c.size());
+
+    for(k:c) {
+        print(k + " " + _string(c.get(k)));
+    }
+
+    return 0;
+}
