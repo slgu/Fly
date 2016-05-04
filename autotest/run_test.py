@@ -15,6 +15,7 @@ class bcolors:
     UNDERLINE = '\033[4m'
 
 def bunnytesting_fail(test_dir, ans_dir, test_list):
+    print bcolors.HEADER + 'Testing failure cases' + bcolors.ENDC
     global ok_cnt
     global fail_cnt
     counter = 0
@@ -44,6 +45,7 @@ def bunnytesting_fail(test_dir, ans_dir, test_list):
             continue
 
 def bunnytesting(test_dir, ans_dir, test_list):
+    print bcolors.HEADER + 'Testing success cases' + bcolors.ENDC
     global ok_cnt
     global fail_cnt
     counter = 0
@@ -96,8 +98,8 @@ if __name__ == "__main__":
         print "Compile Failed"
         sys.exit(0)
 
-    bunnytesting(test_success_dir, test_success_answer_dir, test_success_list)
     bunnytesting_fail(test_fail_dir, test_fail_answer_dir, test_fail_list)
+    bunnytesting(test_success_dir, test_success_answer_dir, test_success_list)
 
     print bcolors.OKBLUE + "Done testing!" + bcolors.ENDC
     print bcolors.OKGREEN + 'Passed: ' + str(ok_cnt) + bcolors.ENDC

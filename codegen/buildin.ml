@@ -11,13 +11,19 @@ int len(string a) {
 }
 
 void print(int a) {
-	cout << a << endl;
+    std::stringstream stream;
+    stream << a << endl;
+	cout << stream.str();
 }
 void print(string a) {
-	cout << a << endl;
+    std::stringstream stream;
+    stream << a << endl;
+	cout << stream.str();
 }
 void print(float a) {
-	cout << a << endl;
+    std::stringstream stream;
+    stream << a << endl;
+	cout << stream.str();
 }
 float _float(int a){
 	return float(a);
