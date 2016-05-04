@@ -19,6 +19,10 @@ type typ =
     | Lfunc of string * typ list (*lambda function along with some type clojure*)
     (*for built-in defned type*)
 
+let uop_to_string = function
+    | Neg -> "-"
+    | Not -> "!"
+
 let op_to_string = function
     | Add -> "+"
     | Mod -> "%"
