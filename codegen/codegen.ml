@@ -177,6 +177,7 @@ let rec type_to_code_string = function
     | Void -> "void"
     | String -> "string"
     | Float -> "float"
+    | Signal(Class(x)) -> "shared_ptr <Signal<" ^ x ^ ">>"
     | Signal(x) -> "shared_ptr <Signal<" ^ (type_to_code_string x) ^ ">>"
     | Class x -> "shared_ptr <" ^ x ^ ">"
     | Array x -> "shared_ptr < vector <" ^ (type_to_code_string x) ^ "> >"
@@ -243,11 +244,14 @@ let handle_fd_fly fd refenv =
         let param = cat_string_list_with_comma (List.map (fun (n,_) -> n) fm) in
         let getvar = fname ^ "_var" in
         let body =
-            if rt = Void then
+            match rt with
+            | Void -> ["{"] @ [name ^ "(" ^ param ^ ");"] @ ["}"]
+            | Class x -> 
                 ["{"] @
-                [name ^ "(" ^ param ^ ");"] @
+                [(type_to_code_string rt) ^ " " ^ getvar ^ " = " ^ name ^ "(" ^ param ^ ");"] @
+                [sigvar ^ "->notify(" ^ getvar ^ ");"] @
                 ["}"]
-            else
+            | _ -> 
                 ["{"] @
                 [(type_to_code_string rt) ^ " " ^ getvar ^ " = " ^ name ^ "(" ^ param ^ ");"] @
                 [sigvar ^ "->notify(shared_ptr<" ^ rtstr ^ ">(new " ^ rtstr ^ "(" ^ getvar ^ ")));"] @
@@ -274,10 +278,19 @@ let handle_fd_register fd refenv =
                     tlist in
         let fmstr = handle_fm nfm refenv in
         let param = cat_string_list_with_comma (List.map (fun (n,_) -> n) fm) in
-        let body = ["{"] @
-            [(type_to_code_string sigty) ^ " " ^ getvar ^ " = *" ^ sigvar ^ "->wait();"] @
-            [name ^ "(" ^ param ^ ");"] @
-            ["}"] in
+        let body = 
+            match sigty with
+            | Class x ->
+                ["{"] @
+                [(type_to_code_string sigty) ^ " " ^ getvar ^ " = " ^ sigvar ^ "->wait();"] @
+                [name ^ "(" ^ param ^ ");"] @
+                ["}"] 
+            | _ -> 
+                ["{"] @
+                [(type_to_code_string sigty) ^ " " ^ getvar ^ " = *" ^ sigvar ^ "->wait();"] @
+                [name ^ "(" ^ param ^ ");"] @
+                ["}"] 
+            in
         [rtstr] @ [fname] @ [fmstr] @ body
 
 (* take signal name and fly call, return a string list *)
@@ -461,7 +474,14 @@ and handle_texpr expr refenv =
                 | Signal(x) ->
                     (* flying a no return function is not allowed *)
                     ignore(if x = Void then raise (Failure ("Function should return something to signal")));
-                    [decl_type_code ^ " " ^ str ^ " = " ^ type_code ^ "(new Signal<" ^ (type_to_code_string x) ^ ">());";] @ handle_fly_expr str expr refenv
+                    (
+                    let type_str = 
+                        match x with
+                        | Class(class_type) -> class_type
+                        | _ -> type_to_code_string x
+                    in
+                    [decl_type_code ^ " " ^ str ^ " = " ^ type_code ^ "(new Signal<" ^ (type_str) ^ ">());";] @ handle_fly_expr str expr refenv
+                    )
                 (* normal *)
                 | _ -> [decl_type_code ^ " " ^ str ^ " = "] @ handle_texpr expr refenv
             )
@@ -475,6 +495,7 @@ and handle_texpr expr refenv =
     | TFly((fn, texpr_list),st) ->
         let type_str =
         match st with
+            | Signal(Class(tstr)) -> tstr
             | Signal(t) -> type_to_code_string t
             | _ -> raise (Failure ("Fly type error"))
         in
@@ -492,7 +513,7 @@ and handle_texpr expr refenv =
         | Array _ | Map _ -> [type_to_code_string typename ^ "(new " ^ (new_type_to_code_string typename) ^ "())"]
         | _ -> failwith ("not support for other TObjgen now")
         end
-    | TObjid(_) -> [] (* TODO *)
+    | TObjid((objname, objid), _) -> [objname ^ "->" ^ objid]
     | TMAssign ((varname, mname, expr), ty)->
         begin
             match ty with
@@ -838,9 +859,9 @@ let handle_class_forward tcdecl = match tcdecl with
 (* take ht of string->class_decl and return string list *)
 let build_class_from_ht cht =
     (*first generate forward decl*)
-    let code_v1 = Hashtbl.fold (fun k v code -> code @ (handle_class_forward v)) cht []
-    in let code_v2 = Hashtbl.fold (fun k v code -> code @ (handle_class_refer v)) cht code_v1
-    in Hashtbl.fold (fun k v code -> code @ (handle_class_def v)) cht code_v2
+    let code_fw = Hashtbl.fold (fun k v code -> code @ (handle_class_forward v)) cht []
+    in let code_v2 = Hashtbl.fold (fun k v code -> code @ (handle_class_refer v)) cht code_fw
+    in (code_fw, Hashtbl.fold (fun k v code -> code @ (handle_class_def v)) cht code_v2)
 
 let build_clojure_class clojure_classes =
     (*first generate forward decl*)
@@ -853,6 +874,6 @@ let codegen fht cht clojure_calls func_binds t_func_binds =
     let clojure_classes = gen_clojure_classes clojure_calls func_binds t_func_binds in
     let (clojure_class_forwards, clojure_class_refers, clojure_class_defs)= build_clojure_class clojure_classes in
     let (forward_codelist, func_codelist) = build_func_from_ht fht in
-    let class_codelist = build_class_from_ht cht in
-    let buffer = code_header @ build_in_code @ build_in_class_code @ clojure_class_forwards @ forward_codelist @ clojure_class_refers @ clojure_class_defs @ class_codelist @ func_codelist in
+    let (class_fw, class_def) = build_class_from_ht cht in
+    let buffer = code_header @ build_in_code @ build_in_class_code @ clojure_class_forwards @ class_fw @ forward_codelist @ clojure_class_refers @ clojure_class_defs @ class_def @ func_codelist in
     List.fold_left (fun ret ele -> ret ^ ele ^ "\n") "" buffer

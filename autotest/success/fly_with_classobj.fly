@@ -1,0 +1,35 @@
+class cat {
+    name:String;
+    age:Int;
+    func say_sth() {
+        print("I'm " + _string(age) + " years old");
+    }
+    func play_with(c) {
+        print(name + " plays with " + c.name);
+    }
+}
+
+func gen_cat (another_cat) {
+    c = @cat;
+    c.name = "Matt";
+    c.age = another_cat.age - 1;
+    return c;
+}
+
+func act_cat(cat1, cat2) {
+    cat1.say_sth();
+    cat2.say_sth();
+    cat1.play_with(cat2);
+}
+
+func main () {
+    cat1 = @cat;
+    cat1.age = 12;
+    cat1.name = "Mark";
+
+    s = fly gen_cat(cat1);
+    register s act_cat(cat1);
+
+    sleep(1);
+    return 0;
+}
