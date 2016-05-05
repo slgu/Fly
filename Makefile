@@ -17,8 +17,8 @@ all:
 	ocamlc -I $(ast_dir) -I $(check_dir) -c $(gen_dir)/buildin.ml
 	ocamlc -I $(gen_dir) -I $(debug_dir) -I $(ast_dir) -I $(check_dir) -c $(check_dir)/infer.ml
 	ocamlc -I $(ast_dir) -I $(check_dir) -I $(gen_dir) -c $(gen_dir)/codegen.ml
-	ocamlc -I $(parser_dir) -I $(check_dir) -I $(gen_dir) -c fly_testgen.ml
-	ocamlc -o fly $(parser_dir)/scanner.cmo $(parser_dir)/parser.cmo $(ast_dir)/ast.cmo $(ast_dir)/sast.cmo $(debug_dir)/debug.cmo $(check_dir)/util.cmo  $(gen_dir)/buildin.cmo $(check_dir)/env.cmo $(check_dir)/infer.cmo  $(gen_dir)/codegen.cmo fly_testgen.cmo
+	ocamlc -I $(parser_dir) -I $(check_dir) -I $(gen_dir) -c fly_gen.ml
+	ocamlc -o fly $(parser_dir)/scanner.cmo $(parser_dir)/parser.cmo $(ast_dir)/ast.cmo $(ast_dir)/sast.cmo $(debug_dir)/debug.cmo $(check_dir)/util.cmo  $(gen_dir)/buildin.cmo $(check_dir)/env.cmo $(check_dir)/infer.cmo  $(gen_dir)/codegen.cmo fly_gen.cmo
 buildin:
 	ocamlc -c $(ast_dir)/ast.ml
 	ocamlc -I $(ast_dir) -c $(ast_dir)/sast.ml
@@ -51,8 +51,8 @@ gen:
 	ocamlc -I $(ast_dir) -I $(check_dir) -c $(gen_dir)/buildin.ml
 	ocamlc -I $(gen_dir) -I $(debug_dir) -I $(ast_dir) -I $(check_dir) -c $(check_dir)/infer.ml
 	ocamlc -I $(ast_dir) -I $(check_dir) -I $(gen_dir) -c $(gen_dir)/codegen.ml
-	ocamlc -I $(parser_dir) -I $(check_dir) -I $(gen_dir) -c fly_testgen.ml
-	ocamlc -o fly $(parser_dir)/scanner.cmo $(parser_dir)/parser.cmo $(ast_dir)/ast.cmo $(ast_dir)/sast.cmo $(debug_dir)/debug.cmo $(check_dir)/util.cmo  $(gen_dir)/buildin.cmo $(check_dir)/env.cmo $(check_dir)/infer.cmo  $(gen_dir)/codegen.cmo fly_testgen.cmo
+	ocamlc -I $(parser_dir) -I $(check_dir) -I $(gen_dir) -c fly_gen.ml
+	ocamlc -o fly $(parser_dir)/scanner.cmo $(parser_dir)/parser.cmo $(ast_dir)/ast.cmo $(ast_dir)/sast.cmo $(debug_dir)/debug.cmo $(check_dir)/util.cmo  $(gen_dir)/buildin.cmo $(check_dir)/env.cmo $(check_dir)/infer.cmo  $(gen_dir)/codegen.cmo fly_gen.cmo
 	cat ${input} | ./fly
 	g++ -pthread -std=c++11 tmp.cc
 	./a.out

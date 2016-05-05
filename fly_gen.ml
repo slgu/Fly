@@ -7,6 +7,5 @@ let _ =
     let (fht,cht, clojure_calls, func_binds, t_func_binds) = infer_check ast in
     let code = codegen fht cht clojure_calls func_binds t_func_binds in
     let oc = open_out "tmp.cc" in
-    ignore(print_string code);
     ignore(output oc code 0 (String.length code));
     close_out oc

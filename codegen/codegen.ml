@@ -319,7 +319,9 @@ and handle_texpr expr refenv =
     | TArray(_) -> [] (* TODO *)
     | TString(str) -> [str]
     | TBinop((texpr1, op, texpr2), _) ->
-        ["("] @ (handle_texpr texpr1 refenv) @ [op_to_string op] @ (handle_texpr texpr2 refenv) @ [")"]
+        [cat_string_list_with_space
+            (["("] @ (handle_texpr texpr1 refenv) @ [op_to_string op] @ (handle_texpr texpr2 refenv) @ [")"])
+        ]
     | TUnop((uop, texpr), _) -> [cat_string_list_with_space (["("] @ [uop_to_string uop] @ (handle_texpr texpr refenv) @ [")"])]
     | TCall ((fn, texpr_list), t) ->
         (
