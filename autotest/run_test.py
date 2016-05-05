@@ -104,4 +104,3 @@ if __name__ == "__main__":
     print bcolors.HEADER + "Done testing!" + bcolors.ENDC
     print bcolors.OKGREEN + 'Passed: ' + str(ok_cnt) + bcolors.ENDC
     print bcolors.FAIL + 'Failed: ' + str(fail_cnt) + bcolors.ENDC
-

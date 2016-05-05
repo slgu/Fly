@@ -648,6 +648,8 @@ let rec infer_func fdecl hash_key type_list level_env =
                     in TObjCall ((varname, fname, texpr_list), rtype)
                 | _ -> failwith ("not class obj can not objcall: " ^ varname)
                 end
+        | Changen thistype ->
+            TChangen(thistype, Chan thistype)
         (* TODO
         | ListComprehen (f_expr, varname, s_expr) -> *)
         | _ -> TLiteral 142857
@@ -746,8 +748,6 @@ let rec infer_func fdecl hash_key type_list level_env =
                         TForeach(varname, base_texpr,tstmt_list)
                 | _ -> failwith ("not support now")
             end
-        (* TODO complete other cases*)
-        | _ -> TBlock []
     in
     match fdecl with
     | {body = stmt_list;formals = param_list;fname = func_name} ->
