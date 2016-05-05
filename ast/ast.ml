@@ -90,7 +90,7 @@ type expr =
   | Exec of string
   | Dispatch of string * expr list * string * string
   | Register of string * string * expr list
-  | Chan of expr(*chan of a type*)
+  | Changen of typ(*chan of a type*)
   | Chanunop of string
   | Chanbinop of string * string
   | Fly of string * expr list

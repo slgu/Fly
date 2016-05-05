@@ -171,20 +171,21 @@ let rec type_to_func_string = function
     | Map(x,y) -> "map_" ^ (type_to_func_string x) ^ "_" ^ (type_to_func_string y)
     | _ -> raise (Failure ("type_to_func_string not yet support this type"))
 
-let rec type_to_code_string = function
+let rec type_to_code_string x = begin match x with
     | Int -> "int"
     | Bool -> "bool"
     | Void -> "void"
     | String -> "string"
     | Float -> "float"
-    | Signal(x) -> "shared_ptr <Signal<" ^ (type_to_code_string x) ^ ">>"
+    | Signal(x) -> "shared_ptr <Signal<" ^ (new_type_to_code_string x) ^ ">>"
     | Class x -> "shared_ptr <" ^ x ^ ">"
     | Array x -> "shared_ptr < vector <" ^ (type_to_code_string x) ^ "> >"
     | Map (x, y) -> "shared_ptr < flymap <" ^ (type_to_code_string x) ^ "," ^ (type_to_code_string y) ^ "> >"
+    | Chan x -> "shared_ptr <Chan<" ^ (new_type_to_code_string x) ^ ">>"
     | Func (x, type_list) -> "shared_ptr <" ^ (gen_clojure_class_name x type_list) ^ ">"
     | _ -> raise (Failure ("type_to_code_string not yet support this type"))
-
-let rec new_type_to_code_string = function
+    end
+and new_type_to_code_string x = begin match x with
     | Class x -> x
     | Array x -> "vector <" ^ (type_to_code_string x) ^ ">"
     | Map (x, y) ->  "flymap <" ^ (type_to_code_string x) ^ "," ^ (type_to_code_string y) ^ ">"
@@ -194,6 +195,7 @@ let rec new_type_to_code_string = function
     | String -> "string"
     | Float -> "float"
     | x -> print_endline (type_to_string x);failwith ("not support for other new_type_to_code_string")
+    end
 
 (* take a string list and concatenate them with interleaving space into a single string *)
 let rec cat_string_list_with_space sl =
@@ -413,7 +415,7 @@ and handle_texpr expr refenv =
                     | "delete" ->
                         let epr = List.hd texpr_list
                         in
-                        [varname ^ "->erase(" 
+                        [varname ^ "->erase("
                             ^ (merge_string_list (handle_texpr epr refenv)) ^ ")"]
                     | "exist" ->
                         let epr = List.hd texpr_list
@@ -469,7 +471,9 @@ and handle_texpr expr refenv =
     | TListComprehen(_) -> [] (* TODO *)
     | TExec(_) -> [] (* TODO *)
     | TDispatch(_) -> [] (* TODO *)
-    | TChan(_) -> [] (* TODO *)
+    | TChangen(containtype, x) ->
+        let containname = new_type_to_code_string containtype
+        in ["shared_ptr < Chan <" ^ containname ^ "> >(new Chan < " ^ containname ^ " >())"]
     | TChanbinop(_) -> [] (* TODO *)
     | TChanunop(_) -> [] (* TODO *)
     | TFly((fn, texpr_list),st) ->
@@ -635,7 +639,7 @@ let rec texp_helper texp_ =
     (* TDispatch of (string * texpr list * string * string) * typ TODO *)
     | TDispatch (_) -> []
     (* TChan of texpr * typ TODO *)
-    | TChan (_) -> []
+    | TChangen(_) -> []
     (* TChanunop of string * typ TODO *)
     | TChanunop (_) -> []
     (* TChanbinop of (string * string) * typ TODO *)

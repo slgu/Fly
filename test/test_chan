@@ -1,0 +1,4 @@
+func main() {
+    c = chan(Array<#Int#>);
+    return 0;
+}

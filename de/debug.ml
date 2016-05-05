@@ -47,7 +47,6 @@ let rec debug_expr = function
     | Exec(a) -> "exec: " ^ a
     | Dispatch(a, exprs, b, c) -> "dispatch: " ^ a ^ " " ^ (List.fold_left (fun str item -> str ^ "," ^ (debug_expr item)) "" exprs) ^ " " ^ b ^ " " ^ c
     | Register (a, b, exprs) -> "register: " ^ a ^ " " ^ b  ^ " " ^ ( List.fold_left (fun str item -> str ^ "," ^ item) "" (List.map debug_expr exprs))
-    | Chan (a) -> "chan: " ^ debug_expr a
     | Chanunop (a) -> "chaunop: " ^ a
     | Chanbinop (a, b) -> "chanbinop: " ^ a ^ " " ^ b
     | Fly (a, exprs) -> "fly: " ^ a ^ " " ^ ( List.fold_left (fun str item -> str ^ "," ^ item) "" (List.map debug_expr exprs)  )
@@ -95,7 +94,6 @@ let rec debug_texpr = function
     | TExec (a, this_type) -> "exec: " ^ a ^ "_withtype_" ^ type_to_string this_type
     | TDispatch (args, this_type) -> (fun (a, exprs, b, c) -> "dispatch: " ^ a ^ (List.fold_left (fun str item -> str ^ "," ^ (debug_texpr item)) "" exprs) ) args ^ "_withtype_" ^ type_to_string this_type
     | TRegister (args, this_type) -> (fun (a, b, exprs) -> "register: " ^ a ^ " " ^ b  ^ " " ^ ( List.fold_left (fun str item -> str ^ "," ^ item) "" (List.map debug_texpr exprs)) ) args ^ "_withtype_" ^ type_to_string this_type
-    | TChan (a, this_type) -> "chan: " ^ debug_texpr a ^ "_withtype_" ^ type_to_string this_type
     | TChanunop (a, this_type) -> "chaunop: " ^ a ^ "_withtype_" ^ type_to_string this_type
     | TChanbinop (args, this_type) -> (fun (a, b) -> "chanbinop: " ^ a ^ " " ^ b ) args ^ "_withtype_" ^ type_to_string this_type
     | TFly (args, this_type) -> (fun (a, exprs) -> "fly: " ^ a ^ " " ^ ( List.fold_left (fun str item -> str ^ "," ^ item)  "" (List.map debug_texpr exprs)) ) args ^ "_withtype_" ^ type_to_string this_type

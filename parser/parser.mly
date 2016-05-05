@@ -278,7 +278,7 @@ expr:
     | exec {$1}
 
 chan_decls:
-    CHAN LPAREN expr RPAREN {Chan($3)}
+    CHAN LPAREN typedef RPAREN {Changen($3)}
 
 chan_op:
     LARROW ID {Chanunop($2)}

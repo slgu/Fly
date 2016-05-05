@@ -21,7 +21,7 @@ type texpr =
   | TExec of string * typ
   | TDispatch of (string * texpr list * string * string) * typ
   | TRegister of (string * string * texpr list) * typ
-  | TChan of texpr * typ
+  | TChangen of typ * typ
   | TChanunop of string * typ
   | TChanbinop of (string * string) * typ
   | TFly of (string * texpr list) * typ
@@ -49,7 +49,7 @@ let get_expr_type_info tepr = match tepr with
     | TExec (_, x) -> x
     | TDispatch (_, x) -> x
     | TRegister (_, x) -> x
-    | TChan (_, x) -> x
+    | TChangen (_, x) -> x
     | TChanunop (_, x) -> x
     | TChanbinop (_, x) -> x
     | TFly (_, x) -> x

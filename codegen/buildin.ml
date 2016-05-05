@@ -377,6 +377,29 @@ template <typename T> class Signal {
         }
 };
 
+template <typename T> class Chan {
+private:
+    mutable std::mutex mut;
+    std::queue <std::shared_ptr <T>> data_queue;
+    std::condition_variable data_cond;
+public:
+    Chan(){
+
+    }
+    std::shared_ptr <T> wait_and_pop() {
+        std::unique_lock <std::mutex> lk(mut);
+        data_cond.wait(lk, [this]{return !data_queue.empty();});
+        std::shared_ptr <T> res = data_queue.front();
+        data_queue.pop();
+        return res;
+    }
+    void push(std::shared_ptr <T> tmp) {
+        std::lock_guard <std::mutex> lk(mut);
+        data_queue.push(tmp);
+        data_cond.notify_one();
+    }
+};
+
 template<class K, class V>
 class flymap
 {
