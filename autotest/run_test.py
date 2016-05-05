@@ -101,7 +101,7 @@ if __name__ == "__main__":
     bunnytesting_fail(test_fail_dir, test_fail_answer_dir, test_fail_list)
     bunnytesting(test_success_dir, test_success_answer_dir, test_success_list)
 
-    print bcolors.OKBLUE + "Done testing!" + bcolors.ENDC
+    print bcolors.HEADER + "Done testing!" + bcolors.ENDC
     print bcolors.OKGREEN + 'Passed: ' + str(ok_cnt) + bcolors.ENDC
-    print bcolors.WARNING + 'Failed: ' + str(fail_cnt) + bcolors.ENDC
+    print bcolors.FAIL + 'Failed: ' + str(fail_cnt) + bcolors.ENDC
 
