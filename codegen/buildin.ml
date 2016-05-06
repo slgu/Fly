@@ -10,10 +10,18 @@ int len(string a) {
     return a.length();
 }
 
+void print(bool a) {
+    std::stringstream stream;
+    stream << a << endl;
+	cout << stream.str();
+}
 void print(int a) {
     std::stringstream stream;
     stream << a << endl;
 	cout << stream.str();
+}
+void print(size_t a) {
+    print((int)a);
 }
 void print(string a) {
     std::stringstream stream;
@@ -76,6 +84,14 @@ let string_to_float = {
 	tformals = [("string", String)];
 	tbody = [];
 	tret = Float;
+}
+
+let print_bool = {
+	ttkey = "";
+	tfname = "print";
+	tformals = [("bool", Bool)];
+	tbody = [];
+	tret = Void;
 }
 
 let print_float = {
@@ -153,6 +169,7 @@ let build_in_func =
 	print_str;
 	print_int;
 	print_float;
+	print_bool;
     len]
 
 
