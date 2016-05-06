@@ -167,7 +167,9 @@ let rec type_to_func_string = function
     | String -> "string"
     | Float -> "float"
     | Signal(x) -> "signal_" ^ (type_to_func_string x)
+    | Chan(x) -> "chan_" ^ (type_to_func_string x)
     | Class(x) -> "class_" ^ x
+    | Array(x) -> "array_" ^ (type_to_func_string x)
     | Map(x,y) -> "map_" ^ (type_to_func_string x) ^ "_" ^ (type_to_func_string y)
     | _ -> raise (Failure ("type_to_func_string not yet support this type"))
 
@@ -474,8 +476,21 @@ and handle_texpr expr refenv =
     | TChangen(containtype, x) ->
         let containname = new_type_to_code_string containtype
         in ["shared_ptr < Chan <" ^ containname ^ "> >(new Chan < " ^ containname ^ " >())"]
-    | TChanbinop(_) -> [] (* TODO *)
-    | TChanunop(_) -> [] (* TODO *)
+    | TChanbinop((x, y), containtype) ->
+        (* according to different type wrap or unwrap shared_ptr*)
+        begin match containtype with
+        | Int | String | Float ->
+            let res = search_key (!refenv) x
+            in begin match res with
+            | Some (Chan (a)) -> (* push*)
+                [x ^ "->push(" ^ y ^ ")"]
+            | Some (a) ->
+                []
+            end
+        | _ -> failwith ("todo other chanbinop")
+        end
+    | TChanunop(x, containtype) ->
+        [x ^ "->wait_and_pop()"] (* TODO *)
     | TFly((fn, texpr_list),st) ->
         let type_str =
         match st with
