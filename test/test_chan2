@@ -1,0 +1,36 @@
+class dog {
+    name:String;
+    age:Int;
+    owner:String;
+
+    func bark(to) {
+        msg = "Hi " + to + " my name is" + name;
+        print(msg);
+    }
+
+    func play() {
+        age = 10;
+        ans = age + 100;
+        print(ans);
+    }
+}
+
+
+func push(a, c) {
+    c <- a;
+}
+
+func pop(c) {
+    a <- c;
+    print(a.name);
+}
+
+func main() {
+    c = chan(dog);
+    a = @dog;
+    a.name = "123";
+    fly push(a, c);
+    fly pop(c);
+    sleep(3);
+    return 0;
+}

@@ -1,5 +1,4 @@
 1.socket library and distribute keyword (brian)
-2.implement chan.cpp (slgu)
 3.implement string build in (slgu)
 4.fly objcall (brian)
 5.need to fix overloading by name problem() (slgu)

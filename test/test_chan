@@ -1,4 +1,21 @@
+func push(c) {
+    for(i = 1; i < 10; i = i + 1) {
+        c <- i;
+    }
+    i = -1;
+    c <- i;
+}
+func pop(c) {
+    a = 1;
+    while (true) {
+        a <- c;
+        print(a);
+    }
+}
 func main() {
-    c = chan(Array<#Int#>);
+    c = chan(Int);
+    fly push(c);
+    fly pop(c);
+    sleep(3);
     return 0;
 }

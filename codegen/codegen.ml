@@ -250,12 +250,12 @@ let handle_fd_fly fd refenv =
         let body =
             match rt with
             | Void -> ["{"] @ [name ^ "(" ^ param ^ ");"] @ ["}"]
-            | Class x -> 
+            | Class x ->
                 ["{"] @
                 [(type_to_code_string rt) ^ " " ^ getvar ^ " = " ^ name ^ "(" ^ param ^ ");"] @
                 [sigvar ^ "->notify(" ^ getvar ^ ");"] @
                 ["}"]
-            | _ -> 
+            | _ ->
                 ["{"] @
                 [(type_to_code_string rt) ^ " " ^ getvar ^ " = " ^ name ^ "(" ^ param ^ ");"] @
                 [sigvar ^ "->notify(shared_ptr<" ^ rtstr ^ ">(new " ^ rtstr ^ "(" ^ getvar ^ ")));"] @
@@ -282,18 +282,18 @@ let handle_fd_register fd refenv =
                     tlist in
         let fmstr = handle_fm nfm refenv in
         let param = cat_string_list_with_comma (List.map (fun (n,_) -> n) fm) in
-        let body = 
+        let body =
             match sigty with
             | Class x ->
                 ["{"] @
                 [(type_to_code_string sigty) ^ " " ^ getvar ^ " = " ^ sigvar ^ "->wait();"] @
                 [name ^ "(" ^ param ^ ");"] @
-                ["}"] 
-            | _ -> 
+                ["}"]
+            | _ ->
                 ["{"] @
                 [(type_to_code_string sigty) ^ " " ^ getvar ^ " = *" ^ sigvar ^ "->wait();"] @
                 [name ^ "(" ^ param ^ ");"] @
-                ["}"] 
+                ["}"]
             in
         [rtstr] @ [fname] @ [fmstr] @ body
 
@@ -479,7 +479,7 @@ and handle_texpr expr refenv =
                     (* flying a no return function is not allowed *)
                     ignore(if x = Void then raise (Failure ("Function should return something to signal")));
                     (
-                    let type_str = 
+                    let type_str =
                         match x with
                         | Class(class_type) -> class_type
                         | _ -> type_to_code_string x
@@ -500,14 +500,31 @@ and handle_texpr expr refenv =
         (* according to different type wrap or unwrap shared_ptr*)
         begin match containtype with
         | Int | String | Float ->
-            let res = search_key (!refenv) x
+            let res = search_key (!refenv) y
             in begin match res with
             | Some (Chan (a)) -> (* push*)
-                [x ^ "->push(" ^ y ^ ")"]
+                let checkx = search_key (!refenv) x
+                in if checkx = None then
+                [(type_to_code_string containtype) ^ " " ^ x ^ "=*(" ^ y ^ "->wait_and_pop())"]
+                else
+                [x ^ "=*(" ^ y ^ "->wait_and_pop())"]
             | Some (a) ->
-                []
+                [x ^ "->push(make_shared<" ^ (type_to_code_string a) ^ ">(" ^ y ^ "))"]
+            | None -> failwith ("conflict binop")
             end
-        | _ -> failwith ("todo other chanbinop")
+        | Class (c) ->
+            let res = search_key (!refenv) y
+            in begin match res with
+            | Some (Chan (a)) -> (* push*)
+                let checkx = search_key (!refenv) x
+                in if checkx = None then
+                [(type_to_code_string containtype) ^ " " ^ x ^ "=" ^ y ^ "->wait_and_pop()"]
+                else
+                [x ^ "=" ^ y ^ "->wait_and_pop()"]
+            | Some (a) ->
+                [x ^ "->push(" ^ y ^ ")"]
+            | None -> failwith ("conflict binop")
+            end
         end
     | TChanunop(x, containtype) ->
         [x ^ "->wait_and_pop()"] (* TODO *)

@@ -650,6 +650,32 @@ let rec infer_func fdecl hash_key type_list level_env =
                 end
         | Changen thistype ->
             TChangen(thistype, Chan thistype)
+        | Chanunop x ->
+            let ctype = ref_search_id x
+            in begin match ctype with
+            | Some (Chan containtype) -> TChanunop(x, containtype)
+            | None -> failwith("obj usage with out def")
+            | _ -> failwith ("<- not suitable for non-chan obj")
+            end
+        | Chanbinop (x, y) ->
+            let ctypex = ref_search_id x and ctypey = ref_search_id y
+            in begin match ctypex, ctypey with
+           | Some(Chan (containtypex)), Some(containtypey) ->
+                if containtypex = containtypey
+                then TChanbinop((x, y), containtypex)
+                else failwith ("type not consistent in Chanbinop")
+            | Some(containtypex), Some(Chan (containtypey)) ->
+                if containtypex = containtypey
+                then TChanbinop((x, y), containtypex)
+                else failwith ("type not consistent in Chanbinop")
+            | None, Some(Chan (containtypey)) ->
+                (*update env*)
+                ref_update_env x containtypey;
+                TChanbinop((x, y), containtypey)
+            | None, _ -> failwith ("obj usage without def")
+            | _, None -> failwith ("obj usage without def")
+            | _ -> failwith("<- not support for non-chan")
+            end
         (* TODO
         | ListComprehen (f_expr, varname, s_expr) -> *)
         | _ -> TLiteral 142857
