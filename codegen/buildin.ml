@@ -6,11 +6,28 @@ open Sast
 let build_in_code =
 [
 "
+bool str_is_int(const string & s)
+{
+   if(s.empty() || ((!isdigit(s[0])) && (s[0] != '-') && (s[0] != '+'))) return false ;
+
+   char * p ;
+   strtol(s.c_str(), &p, 10) ;
+
+   return (*p == 0) ;
+}
+
+shared_ptr<vector<string>> str_split(string s) {
+    stringstream ss(s);
+    istream_iterator<string> begin(ss);
+    istream_iterator<string> end;
+    return shared_ptr<vector<string>>( new vector<string>(begin, end));
+}
+
 int len(string a) {
     return a.length();
 }
 
-void print(bool a) {
+void print_bool(bool a) {
     std::stringstream stream;
     stream << a << endl;
 	cout << stream.str();
@@ -41,7 +58,8 @@ float _float(string a) {
 }
 
 int _int(string a){
-	return stoi(a);
+    char * p;
+    return strtol(a.c_str(), &p, 10);
 }
 
 string _string(int a ){
@@ -61,6 +79,22 @@ void _exit(int exit_code){
 }
 "
 ]
+
+let str_is_int = {
+    ttkey = "";
+    tfname ="str_is_int";
+    tformals = [("a", String)];
+    tbody = [];
+    tret = Bool;
+}
+
+let str_split = {
+    ttkey = "";
+    tfname ="str_split";
+    tformals = [("a", String)];
+    tbody = [];
+    tret = Array(String);
+}
 
 let len = {
 	ttkey = "";
@@ -88,7 +122,7 @@ let string_to_float = {
 
 let print_bool = {
 	ttkey = "";
-	tfname = "print";
+	tfname = "print_bool";
 	tformals = [("bool", Bool)];
 	tbody = [];
 	tret = Void;
@@ -170,6 +204,8 @@ let build_in_func =
 	print_int;
 	print_float;
 	print_bool;
+    str_split;
+    str_is_int;
     len]
 
 
