@@ -94,8 +94,9 @@ func process(msg, m, c) {
         msg = "Done Get All:";
 
         newline = "\n";
-        _f = (nl, x, y, z -> x + nl + y + " " + z);
-        f = _f(newline);
+        arrow = " -> ";
+        _f = (s1, s2, x, y, z -> x + s1 + y + s2 + z);
+        f = _f(newline, arrow);
         
         for(k:m) {
             msg = f(msg, _string(k), m.get(k));
