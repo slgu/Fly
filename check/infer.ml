@@ -646,6 +646,12 @@ let rec infer_func fdecl hash_key type_list level_env =
                     (*check support map functions*)
                     let rtype = get_map_call_ret (Map (x,y)) fname expr_types
                     in TObjCall ((varname, fname, texpr_list), rtype)
+                | Some (Signal (x)) -> (*signal wait*)
+                    begin match fname with
+                    | "wait" -> if List.length expr_list == 0 then TObjCall ((varname, fname, texpr_list), x)
+                        else failwith ("wait must 0 params")
+                    | _ -> failwith ("not support signal option")
+                    end
                 | _ -> failwith ("not class obj can not objcall: " ^ varname)
                 end
         | Changen thistype ->
