@@ -171,7 +171,12 @@ let rec type_to_func_string = function
     | Class(x) -> "class_" ^ x
     | Array(x) -> "array_" ^ (type_to_func_string x)
     | Map(x,y) -> "map_" ^ (type_to_func_string x) ^ "_" ^ (type_to_func_string y)
-    | _ -> raise (Failure ("type_to_func_string not yet support this type"))
+    | Func(_, tlist) -> List.fold_left (fun ret ele -> ret ^ "_" ^ (type_to_func_string ele)) "closure" tlist
+    | Lfunc(_) -> raise (Failure ("type_to_func_string not yet support Lfunc")) (* TODO *)
+    | Set(_) -> raise (Failure ("type_to_func_string not yet support Set")) (* TODO *)
+    | Undef -> raise (Failure ("type_to_func_string not yet support Undef")) (* TODO *)
+    | Cfunc(_) -> raise (Failure ("type_to_func_string not yet support Cfunc")) (* TODO *)
+    | _ -> raise (Failure ("type_to_func_string not yet support this type")) (* TODO *)
 
 let rec type_to_code_string x = begin match x with
     | Int -> "int"
@@ -250,9 +255,8 @@ let handle_fd_fly fd refenv =
         let body =
             match rt with
             | Void -> ["{"] @ [name ^ "(" ^ param ^ ");"] @ ["}"]
-            | Class x ->
-                ["{"] @
-                [(type_to_code_string rt) ^ " " ^ getvar ^ " = " ^ name ^ "(" ^ param ^ ");"] @
+            | Array(_) | Class(_) ->
+                ["{"] @ ["auto " ^ getvar ^ " = " ^ name ^ "(" ^ param ^ ");"] @
                 [sigvar ^ "->notify(" ^ getvar ^ ");"] @
                 ["}"]
             | _ ->
@@ -482,6 +486,7 @@ and handle_texpr expr refenv =
                     let type_str =
                         match x with
                         | Class(class_type) -> class_type
+                        | Array(sometype) -> "vector<" ^ type_to_code_string sometype ^ ">"
                         | _ -> type_to_code_string x
                     in
                     [decl_type_code ^ " " ^ str ^ " = " ^ type_code ^ "(new Signal<" ^ (type_str) ^ ">());";] @ handle_fly_expr str expr refenv
@@ -532,6 +537,7 @@ and handle_texpr expr refenv =
         let type_str =
         match st with
             | Signal(Class(tstr)) -> tstr
+            | Signal(Array(sometype)) -> "vector<" ^ type_to_code_string sometype ^ ">"
             | Signal(t) -> type_to_code_string t
             | _ -> raise (Failure ("Fly type error"))
         in

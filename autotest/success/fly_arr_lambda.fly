@@ -1,0 +1,36 @@
+func gao(f, a, b) {
+    l = a.size();
+    res = @Array<#Int#>;
+    for (i = 0; i < l; i=i+1) {
+        res.push_back(f(a.get_at(i), b.get_at(i)));
+    }
+    return res;
+}
+
+func test(f) {
+    return 0;
+}
+
+func main() {
+    a1 = @Array<#Int#>;
+    a2 = @Array<#Int#>;
+    for (i = 0; i < 10; i=i+1) {
+        a1.push_back(i);
+        a2.push_back(i);
+    }
+
+    c = (x, y -> x * y);
+
+    s = fly gao(c, a1, a2);
+    res1 = s.wait();
+
+    res2 = gao(c, a1,a2);
+
+    for (i = 0; i < res1.size(); i=i+1) {
+        print(res1.get_at(i));
+    }
+    for (i = 0; i < res2.size(); i=i+1) {
+        print(res2.get_at(i));
+    }
+    return 0;
+}
