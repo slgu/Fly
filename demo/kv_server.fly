@@ -86,14 +86,19 @@ func process(msg, m, c) {
         if (!m.exist(key)) {
             return "Done Get: " + cmd.key + " not found";
         } else {
-            return "Done Get: " + cmd.key + " -> " + m.get(_int(cmd.key));
+            return "Done Get: " + cmd.key + " -> " + m.get(key);
         }
     }
 
     if (cmd.cmd_type == 2) {
-        msg = "Done Get All: \n";
+        msg = "Done Get All:";
+
+        newline = "\n";
+        _f = (nl, x, y, z -> x + nl + y + " " + z);
+        f = _f(newline);
+        
         for(k:m) {
-            msg = msg + _string(k) + " " + m.get(k) + "\n";
+            msg = f(msg, _string(k), m.get(k));
         }
         return msg;
     }
@@ -109,7 +114,7 @@ func handle_req(con, m, c) {
     while(true) {
         msg = con.recv();
         if (!con.is_alive()) {
-            return 0;
+            break;
         }
         s = fly process(msg, m, c);
         register s send_back(con);
