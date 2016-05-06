@@ -365,7 +365,6 @@ template <typename T> class Signal {
         shared_ptr <T> wait() {
             std::unique_lock<std::mutex> lk(data_mutex);
             data_cond.wait(lk, [this]{return !this->data_queue.empty();});
-            lk.unlock();
             auto result = data_queue.front();
             data_queue.pop();
             return result;
