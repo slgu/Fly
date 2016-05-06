@@ -184,7 +184,6 @@ let rec type_to_code_string x = begin match x with
     | Void -> "void"
     | String -> "string"
     | Float -> "float"
-    | Signal(Class(x)) -> "shared_ptr <Signal<" ^ x ^ ">>"
     | Signal(x) -> "shared_ptr <Signal<" ^ (new_type_to_code_string x) ^ ">>"
     | Class x -> "shared_ptr <" ^ x ^ ">"
     | Array x -> "shared_ptr < vector <" ^ (type_to_code_string x) ^ "> >"
@@ -202,6 +201,7 @@ and new_type_to_code_string x = begin match x with
     | Void -> "void"
     | String -> "string"
     | Float -> "float"
+    | Chan x -> "Chan<" ^ (new_type_to_code_string x) ^ ">"
     | x -> print_endline (type_to_string x);failwith ("not support for other new_type_to_code_string")
     end
 
@@ -255,7 +255,7 @@ let handle_fd_fly fd refenv =
         let body =
             match rt with
             | Void -> ["{"] @ [name ^ "(" ^ param ^ ");"] @ ["}"]
-            | Array(_) | Class(_) | Map (_) ->
+            | Class (_) | Array (_) | Map (_) | Chan (_) ->
                 ["{"] @ ["auto " ^ getvar ^ " = " ^ name ^ "(" ^ param ^ ");"] @
                 [sigvar ^ "->notify(" ^ getvar ^ ");"] @
                 ["}"]
@@ -288,7 +288,7 @@ let handle_fd_register fd refenv =
         let param = cat_string_list_with_comma (List.map (fun (n,_) -> n) fm) in
         let body =
             match sigty with
-            | Class (_) | Array (_) | Map (_) ->
+            | Class (_) | Array (_) | Map (_) | Chan (_) ->
                 ["{"] @
                 [(type_to_code_string sigty) ^ " " ^ getvar ^ " = " ^ sigvar ^ "->wait();"] @
                 [name ^ "(" ^ param ^ ");"] @
@@ -488,6 +488,7 @@ and handle_texpr expr refenv =
                         | Class(class_type) -> class_type
                         | Array(sometype) -> "vector<" ^ type_to_code_string sometype ^ ">"
                         | Map(t1, t2) -> "flymap<" ^ type_to_code_string t1 ^ "," ^ type_to_code_string t2 ^ ">"
+                        | Chan(sometype) -> "Chan<" ^ type_to_code_string sometype ^ ">"
                         | _ -> type_to_code_string x
                     in
                     [decl_type_code ^ " " ^ str ^ " = " ^ type_code ^ "(new Signal<" ^ (type_str) ^ ">());";] @ handle_fly_expr str expr refenv
@@ -540,6 +541,7 @@ and handle_texpr expr refenv =
             | Signal(Class(tstr)) -> tstr
             | Signal(Array(sometype)) -> "vector<" ^ type_to_code_string sometype ^ ">"
             | Signal(Map(t1,t2)) -> "flymap<" ^ type_to_code_string t1 ^ "," ^ type_to_code_string t2 ^ ">"
+            | Signal(Chan(sometype)) -> "Chan<" ^ type_to_code_string sometype ^ ">"
             | Signal(t) -> type_to_code_string t
             | _ -> raise (Failure ("Fly type error"))
         in
