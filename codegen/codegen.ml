@@ -255,7 +255,7 @@ let handle_fd_fly fd refenv =
         let body =
             match rt with
             | Void -> ["{"] @ [name ^ "(" ^ param ^ ");"] @ ["}"]
-            | Array(_) | Class(_) ->
+            | Array(_) | Class(_) | Map (_) ->
                 ["{"] @ ["auto " ^ getvar ^ " = " ^ name ^ "(" ^ param ^ ");"] @
                 [sigvar ^ "->notify(" ^ getvar ^ ");"] @
                 ["}"]
@@ -288,7 +288,7 @@ let handle_fd_register fd refenv =
         let param = cat_string_list_with_comma (List.map (fun (n,_) -> n) fm) in
         let body =
             match sigty with
-            | Class x ->
+            | Class (_) | Array (_) | Map (_) ->
                 ["{"] @
                 [(type_to_code_string sigty) ^ " " ^ getvar ^ " = " ^ sigvar ^ "->wait();"] @
                 [name ^ "(" ^ param ^ ");"] @
@@ -487,6 +487,7 @@ and handle_texpr expr refenv =
                         match x with
                         | Class(class_type) -> class_type
                         | Array(sometype) -> "vector<" ^ type_to_code_string sometype ^ ">"
+                        | Map(t1, t2) -> "flymap<" ^ type_to_code_string t1 ^ "," ^ type_to_code_string t2 ^ ">"
                         | _ -> type_to_code_string x
                     in
                     [decl_type_code ^ " " ^ str ^ " = " ^ type_code ^ "(new Signal<" ^ (type_str) ^ ">());";] @ handle_fly_expr str expr refenv
@@ -538,6 +539,7 @@ and handle_texpr expr refenv =
         match st with
             | Signal(Class(tstr)) -> tstr
             | Signal(Array(sometype)) -> "vector<" ^ type_to_code_string sometype ^ ">"
+            | Signal(Map(t1,t2)) -> "flymap<" ^ type_to_code_string t1 ^ "," ^ type_to_code_string t2 ^ ">"
             | Signal(t) -> type_to_code_string t
             | _ -> raise (Failure ("Fly type error"))
         in

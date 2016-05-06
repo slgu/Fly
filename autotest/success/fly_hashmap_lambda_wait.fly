@@ -1,0 +1,39 @@
+func merge(f, m1, m2) {
+    res = @Map<#String, Int#>;
+    for(k1:m1) {
+        for(k2:m2) {
+            if (k1 == k2) {
+                res.insert(k1, f(m1.get(k1), m2.get(k2)));
+            }
+        }
+    }
+    return res;
+}
+
+func print_result(res) {
+    for(k:res) {
+        print(k + " -> " + _string(res.get(k)));
+    }
+}
+
+func main() {
+    m1 = @Map<#String, Int#>;
+    m2 = @Map<#String, Int#>;
+    for (i = 0; i < 10; i=i+1) {
+        m1.insert(_string(i), i);
+        m2.insert(_string(i), i*2);
+    }
+    c = (x, y -> x * y);
+
+    /*
+    s = fly merge(c, m1, m2);
+    register s print_result();
+    sleep(1);
+    */
+
+    s = fly merge(c, m1, m2);
+    res = s.wait();
+    print_result(res);
+
+    return 0;
+}

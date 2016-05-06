@@ -341,6 +341,7 @@ let rec infer_func fdecl hash_key type_list level_env =
                     | Float, Float
                     | Float, Int
                     | Int, Float
+                    | String, String
                         -> TBinop ((t_f_expr, bop, t_s_expr), Bool)
                     | _, _ -> failwith ("wrong type binop with each other")
                 end

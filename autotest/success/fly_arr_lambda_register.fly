@@ -1,0 +1,40 @@
+func merge(f, a, b) {
+    l = a.size();
+    res = @Array<#Int#>;
+    for (i = 0; i < l; i=i+1) {
+        res.push_back(f(a.get_at(i), b.get_at(i)));
+    }
+    return res;
+}
+
+func print_result(res) {
+    for (i = 0; i < res.size(); i=i+1) {
+        print(res.get_at(i));
+    }
+}
+
+func main() {
+    a1 = @Array<#Int#>;
+    a2 = @Array<#Int#>;
+    for (i = 0; i < 10; i=i+1) {
+        a1.push_back(i);
+        a2.push_back(i);
+    }
+    c = (x, y -> x * y);
+
+    s = fly merge(c, a1, a2);
+    register s print_result();
+    sleep(1);
+
+
+    /*
+    s = fly gao(c, a1, a2);
+    res = s.wait();
+    res = gao(c, a1,a2);
+    l = res.size();
+    for (i = 0; i < 10; i=i+1) {
+        print(res.get_at(i));
+    }
+    */
+    return 0;
+}
