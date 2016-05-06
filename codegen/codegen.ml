@@ -457,6 +457,19 @@ and handle_texpr expr refenv =
                     end
                 in
                     map_code_gen varname mfname texpr_list
+            | Signal(t) ->
+                let fn = (
+                    match t with
+                    | Class (_) | Array (_) | Map (_) | Chan (_) -> varname ^ "->" ^ mfname
+                    | _ -> "*" ^ varname ^ "->" ^ mfname
+                )
+                in
+                [
+                    cat_string_list_with_space
+                    ([fn;"("]@
+                    [cat_string_list_with_comma (List.fold_left (fun ret ex -> ret@(handle_texpr ex refenv)) [] texpr_list)]@
+                    [")"])
+                ]
             | _ ->
                 let fn = varname ^ "->" ^ mfname
                 in

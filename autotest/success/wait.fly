@@ -1,0 +1,22 @@
+
+func calc(a, b) {
+    return a + b;
+}
+
+func main() {
+    s1 = fly calc(1, 2);
+    s2 = fly calc(3, 4);
+    s3 = fly calc(5, 6);
+    s4 = fly calc(7, 8);
+    s5 = fly calc(9, 10);
+    s6 = fly calc(11, 12);
+    s7 = fly calc(13, 14);
+    s8 = fly calc(15, 16);
+    s9 = fly calc(17, 18);
+
+    ans = s1.wait() + s2.wait() + s3.wait() + s4.wait() + s5.wait() + s6.wait() + s7.wait() + s8.wait() + s9.wait();
+
+    print(ans);
+
+    return 0;
+}

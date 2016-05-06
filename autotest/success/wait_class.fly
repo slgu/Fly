@@ -1,0 +1,25 @@
+class cat {
+    name:String;
+    age:Int;
+}
+
+func grow(n) {
+    c = @cat;
+    sleep(n);
+    c.age = n;
+    return c;
+}
+
+func main() {
+    s1 = fly grow(1);
+    s2 = fly grow(2);
+    s3 = fly grow(3);
+
+    c1 = s1.wait();
+    c2 = s2.wait();
+    c3 = s3.wait();
+
+    print(c1.age + c2.age + c3.age);
+
+    return 0;
+}
