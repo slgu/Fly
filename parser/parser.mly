@@ -12,6 +12,7 @@ open Ast
 %token NULL SCOPE
 %token CHAN FLY REGISTER DISPATCH EXEC
 %token RETURN IF ELSE FOR WHILE
+%token BREAK CONTINUE
 %token LARROW RARROW VERTICAL LMBRACE RMBRACE FUNC
 %token COLON DOT DOLLAR CLASS
 %token <int> LITERAL
@@ -160,6 +161,8 @@ stmt_true_list:
 
 stmt:
     expr {Expr($1)}
+    | BREAK {Break}
+    | CONTINUE {Continue}
     | RETURN expr {Return($2)}
 
 expr_list:

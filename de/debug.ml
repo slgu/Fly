@@ -61,6 +61,7 @@ let rec debug_stmt = function
     | For (a, b, c, stmts) -> "for:" ^ (debug_expr a) ^ " " ^ (debug_expr b) ^ " " ^ (debug_expr c) ^ " " ^ ( List.fold_left (fun acc item -> acc ^ "," ^ item) "" (List.map debug_stmt stmts) )
     | Foreach (a, expr, stmts) -> "for each:" ^ a ^ " " ^ (debug_expr expr) ^ " " ^ ( List.fold_left (fun acc item -> acc ^ "," ^ item) "" (List.map debug_stmt stmts) )
     | While (expr, stmts) -> "while:" ^ (debug_expr expr) ^ " " ^ ( List.fold_left (fun acc item -> acc ^ "," ^ item) "" (List.map debug_stmt stmts) )
+    | Break -> "break"
 
 let debug_fdecl (fdecl : func_decl) = match fdecl with
     | {fname=name; body=stmts; formals=param_list} ->

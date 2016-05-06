@@ -21,7 +21,7 @@ command5 = './a.out > ' + fly_results #put the results from running fly code int
 #test each file in the given directory
 
 bunnytesting(test_success_dir)
-bunnytesting(test_fail_dir)	
+bunnytesting(test_fail_dir)
 print "Done testing!"
 
 def bunnytesting(test_dir):
@@ -54,5 +54,3 @@ def bunnytesting(test_dir):
 		os.remove('test.cpp')
 		os.remove(fly_results)
 		os.remove('a.out')
-
-

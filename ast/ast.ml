@@ -105,6 +105,8 @@ type stmt =
   | For of expr * expr * expr * stmt list
   | Foreach of string * expr * stmt list (*for each*)
   | While of expr * stmt list
+  | Break
+  | Continue
   (*if for while just with list of stmt*)
   (*need to append lambda stmt, lots of built-in keyword stmt,
   like map func list*)

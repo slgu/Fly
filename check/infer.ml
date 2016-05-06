@@ -5,6 +5,7 @@ open Util
 open Debug
 open Env
 open Buildin
+open Checkstruct
 let (func_binds : (string, func_decl) Hashtbl.t) = Hashtbl.create 16
 (*it is the class_binds*)
 let (class_binds : (string, class_decl) Hashtbl.t) = Hashtbl.create 16
@@ -741,6 +742,10 @@ let rec infer_func fdecl hash_key type_list level_env =
                     TWhile (judge_texpr, tstmt_list)
             | _ -> failwith("judge expr not bool type")
             end
+        | Break ->
+            TBreak
+        | Continue ->
+            TContinue
         | Foreach (varname, base_expr, stmt_list) ->
             (* easy to change to a TFor stmt*)
             (*TODO*)
@@ -901,6 +906,8 @@ let debug_ast_cdecl ast = match ast with
 
 (* perform static type checking and inferrence*)
 let infer_check (ast : program) =
+    (*first check continue/break*)
+    br_con_check ast;
     add_build_in_func(); (*first add some build in func name*)
     bind_name ast; (*second bind name*)
     init_tclass();

@@ -2,6 +2,9 @@ func gao(f, a, b) {
     l = a.size();
     res = @Array<#Int#>;
     for (i = 0; i < l; i=i+1) {
+        if (i == 4) {
+            continue;
+        }
         res.push_back(f(a.get_at(i), b.get_at(i)));
     }
     return res;
@@ -20,7 +23,7 @@ func main() {
     */
     res = gao(c, a1,a2);
     l = res.size();
-    for (i = 0; i < 10; i=i+1) {
+    for (i = 0; i < l; i=i+1) {
         print(res.get_at(i));
     }
     return 0;

@@ -66,6 +66,8 @@ type tstmt =
   | TFor of texpr * texpr * texpr * tstmt list
   | TForeach of string * texpr * tstmt list (*for each*)
   | TWhile of texpr * tstmt list
+  | TBreak
+  | TContinue
 
 
 

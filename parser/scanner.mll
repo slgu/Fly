@@ -42,6 +42,8 @@ rule token = parse
 | "::" {SCOPE}
 | "while"  { WHILE }
 | "return" { RETURN }
+| "break" {BREAK}
+| "continue" {CONTINUE}
 | "true"   { TRUE }
 (*add null support*)
 | "null" {NULL}

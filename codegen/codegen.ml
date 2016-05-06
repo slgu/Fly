@@ -633,6 +633,10 @@ let rec handle_tstmt fkey tstmt_ refenv =
         ["{"] @
         (List.fold_left (fun ret tstmt_ -> ret @ (handle_tstmt fkey tstmt_ refnewenv)) [] tstmtlist) @
         ["}"]
+    | TBreak ->
+        ["break;"]
+    | TContinue ->
+        ["continue;"]
 
 (* take tstmt list and return string list *)
 (*对stmt list 产生code*)
@@ -740,6 +744,8 @@ let rec tstmt_helper tstmt_ =
         (texp_helper texpr_) @ (List.fold_left (fun ret tstmt_ -> ret @ (tstmt_helper tstmt_)) [] tstmtlist)
     | TWhile(texpr_, tstmtlist) ->
         (texp_helper texpr_) @ (List.fold_left (fun ret tstmt_ -> ret @ (tstmt_helper tstmt_)) [] tstmtlist)
+    | TBreak -> []
+    | TContinue -> []
 
 
 (* take a function key and return string list, which are the code *)
