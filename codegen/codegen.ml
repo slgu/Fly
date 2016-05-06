@@ -661,6 +661,7 @@ let handle_fdecl fkey fd refenv =
 let code_header = ["
     #include <sstream>
     #include <iostream>
+    #include <iterator>
     #include <string>
     #include <string.h>     /* for memset() */
     #include <thread>
