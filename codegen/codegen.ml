@@ -176,7 +176,6 @@ let rec type_to_func_string = function
     | Set(_) -> raise (Failure ("type_to_func_string not yet support Set")) (* TODO *)
     | Undef -> raise (Failure ("type_to_func_string not yet support Undef")) (* TODO *)
     | Cfunc(_) -> raise (Failure ("type_to_func_string not yet support Cfunc")) (* TODO *)
-    | _ -> raise (Failure ("type_to_func_string not yet support this type")) (* TODO *)
 
 let rec type_to_code_string x = begin match x with
     | Int -> "int"
@@ -545,6 +544,7 @@ and handle_texpr expr refenv =
                 [x ^ "->push(" ^ y ^ ")"]
             | None -> failwith ("conflict binop")
             end
+        | _ -> failwith ("not support for other chan now")
         end
     | TChanunop(x, containtype) ->
         [x ^ "->wait_and_pop()"] (* TODO *)
