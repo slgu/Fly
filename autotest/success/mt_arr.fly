@@ -1,0 +1,48 @@
+func crazy_push(num, a) {
+    for (i = 0; i < num; i = i + 1) {
+        a.push_back(1);
+    }
+    return 0;
+}
+
+func crazy_inc(num, a) {
+    for (i = 0; i < num; i = i + 1) {
+        a.sync();
+        a.set_at(0, a.get_at(0) + 1);
+    }
+    return 0;
+}
+
+func main() {
+    a = @Array<#Int#>;
+
+    s1 = fly crazy_push(100, a);
+    s2 = fly crazy_push(100, a);
+    s3 = fly crazy_push(100, a);
+    s4 = fly crazy_push(100, a);
+    s5 = fly crazy_push(100, a);
+
+    s1.wait();
+    s2.wait();
+    s3.wait();
+    s4.wait();
+    s5.wait();
+
+    print(a.size());
+
+    s6 = fly crazy_inc(100, a);
+    s7 = fly crazy_inc(100, a);
+    s8 = fly crazy_inc(100, a);
+    s9 = fly crazy_inc(100, a);
+    s10 = fly crazy_inc(100, a);
+
+    s6.wait();
+    s7.wait();
+    s8.wait();
+    s9.wait();
+    s10.wait();
+
+    print(a.get_at(0));
+
+    return 0;
+}

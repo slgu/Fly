@@ -185,7 +185,7 @@ let rec type_to_code_string x = begin match x with
     | Float -> "float"
     | Signal(x) -> "shared_ptr <Signal<" ^ (new_type_to_code_string x) ^ ">>"
     | Class x -> "shared_ptr <" ^ x ^ ">"
-    | Array x -> "shared_ptr < vector <" ^ (type_to_code_string x) ^ "> >"
+    | Array x -> "shared_ptr < flyvector <" ^ (type_to_code_string x) ^ "> >"
     | Map (x, y) -> "shared_ptr < flymap <" ^ (type_to_code_string x) ^ "," ^ (type_to_code_string y) ^ "> >"
     | Chan x -> "shared_ptr <Chan<" ^ (new_type_to_code_string x) ^ ">>"
     | Func (x, type_list) -> "shared_ptr <" ^ (gen_clojure_class_name x type_list) ^ ">"
@@ -193,7 +193,7 @@ let rec type_to_code_string x = begin match x with
     end
 and new_type_to_code_string x = begin match x with
     | Class x -> x
-    | Array x -> "vector <" ^ (type_to_code_string x) ^ ">"
+    | Array x -> "flyvector <" ^ (type_to_code_string x) ^ ">"
     | Map (x, y) ->  "flymap <" ^ (type_to_code_string x) ^ "," ^ (type_to_code_string y) ^ ">"
     | Int -> "int"
     | Bool -> "bool"
@@ -398,14 +398,11 @@ and handle_texpr expr refenv =
         | Some x ->
             begin match (x:typ) with
             | Array _ ->
+                if mfname = "sync" then
+                    ["std::unique_lock<std::recursive_mutex> lk(" ^ varname ^ "->v_mutex);"]
+                else
                 let arr_code_gen varname mfname texpr_list =
-                    let newfname =
-                    begin match mfname with
-                    | "get_at" ->
-                        "operator[]"
-                    | _ ->
-                        mfname
-                    end
+                    let newfname = mfname
                     in
                     let fn = varname ^ "->" ^ newfname
                     in
@@ -500,7 +497,7 @@ and handle_texpr expr refenv =
                     let type_str =
                         match x with
                         | Class(class_type) -> class_type
-                        | Array(sometype) -> "vector<" ^ type_to_code_string sometype ^ ">"
+                        | Array(sometype) -> "flyvector<" ^ type_to_code_string sometype ^ ">"
                         | Map(t1, t2) -> "flymap<" ^ type_to_code_string t1 ^ "," ^ type_to_code_string t2 ^ ">"
                         | Chan(sometype) -> "Chan<" ^ type_to_code_string sometype ^ ">"
                         | _ -> type_to_code_string x
@@ -554,7 +551,7 @@ and handle_texpr expr refenv =
         let type_str =
         match st with
             | Signal(Class(tstr)) -> tstr
-            | Signal(Array(sometype)) -> "vector<" ^ type_to_code_string sometype ^ ">"
+            | Signal(Array(sometype)) -> "flyvector<" ^ type_to_code_string sometype ^ ">"
             | Signal(Map(t1,t2)) -> "flymap<" ^ type_to_code_string t1 ^ "," ^ type_to_code_string t2 ^ ">"
             | Signal(Chan(sometype)) -> "Chan<" ^ type_to_code_string sometype ^ ">"
             | Signal(t) -> type_to_code_string t

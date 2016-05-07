@@ -358,11 +358,22 @@ let get_arr_call_ret (thistype:typ) fname expr_types = match thistype with
                 else failwith ("type not consistent: get_arr_call_ret")
             else
                 failwith ("get_at not 1 element: get_arr_call_ret")
+        | "set_at" ->
+            if expr_len = 2 then
+                if [Int;x] = expr_types then Void
+                else failwith ("type not consistent: get_arr_call_ret")
+            else
+                failwith ("get_at not 1 element: get_arr_call_ret")
         | "size" ->
             if expr_len = 0 then
                 Int
             else
                 failwith("size should 0 element: get_arr_call_ret")
+        | "sync" ->
+            if expr_len = 0 then
+                Void
+            else
+                failwith("sync should 0 element: get_arr_call_ret")
         | _ ->
             failwith ("not support build in array function")
         end
@@ -454,6 +465,34 @@ public:
         std::lock_guard <std::mutex> lk(mut);
         data_queue.push(tmp);
         data_cond.notify_one();
+    }
+};
+
+template<class T>
+class flyvector
+{
+    std::vector<T> v;
+public:
+    std::recursive_mutex v_mutex;
+
+    int size() {
+        std::unique_lock<std::recursive_mutex> lk(v_mutex);
+        return v.size();
+    }
+
+    T& get_at (const int& n) {
+        std::unique_lock<std::recursive_mutex> lk(v_mutex);
+        return v[n];
+    }
+
+    void set_at (const int& n, const T& val) {
+        std::unique_lock<std::recursive_mutex> lk(v_mutex);
+        v[n] = val;
+    }
+
+    void push_back (const T& val) {
+        std::unique_lock<std::recursive_mutex> lk(v_mutex);
+        v.push_back(val);
     }
 };
 
