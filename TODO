@@ -1,8 +1,8 @@
 3.implement string build in (slgu)
 4.fly objcall (brian)
-5.need to fix overloading by name problem() (slgu)
+5.need to fix overloading by name problem() (slgu) may not do it
 6.s = dispatch f(a, b) ip port (slgu)
-7.easy optimization, const and if(true) if(false) optimization.
+7.easy optimization, const and if(true) if(false) optimization. (slgu)
 
 
 build-in functions:

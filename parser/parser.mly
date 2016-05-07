@@ -200,7 +200,7 @@ register:
     REGISTER ID ID LPAREN actuals_opt RPAREN {Register($2, $3, $5)}
 
 dispatch:
-    DISPATCH ID LPAREN actuals_opt RPAREN STRING STRING {Dispatch($2, $4, $6, $7)}
+    DISPATCH ID LPAREN actuals_opt RPAREN expr expr {Dispatch($2, $4, $6, $7)}
 
 exec:
     EXEC LPAREN ID RPAREN {Exec($3)}

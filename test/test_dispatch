@@ -1,0 +1,18 @@
+func gao(a, b) {
+    l = a.size();
+    res = @Array<#Int#>;
+    for (i = 0; i < l; i=i+1) {
+        res.push_back(a.get_at(i) * b.get_at(i));
+    }
+    return res;
+}
+func main() {
+    a1 = @Array<#Int#>;
+    a2 = @Array<#Int#>;
+    for (i = 0; i < 10; i=i+1) {
+        a1.push_back(i);
+        a2.push_back(i);
+    }
+    dispatch gao(a, b) "localhost" 5555;
+    return 0;
+}

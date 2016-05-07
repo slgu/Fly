@@ -45,7 +45,7 @@ let rec debug_expr = function
     | Noexpr -> "no expression"
     (*network specified exprs*)
     | Exec(a) -> "exec: " ^ a
-    | Dispatch(a, exprs, b, c) -> "dispatch: " ^ a ^ " " ^ (List.fold_left (fun str item -> str ^ "," ^ (debug_expr item)) "" exprs) ^ " " ^ b ^ " " ^ c
+    | Dispatch(a, exprs, b, c) -> "dispatch: "
     | Register (a, b, exprs) -> "register: " ^ a ^ " " ^ b  ^ " " ^ ( List.fold_left (fun str item -> str ^ "," ^ item) "" (List.map debug_expr exprs))
     | Chanunop (a) -> "chaunop: " ^ a
     | Chanbinop (a, b) -> "chanbinop: " ^ a ^ " " ^ b
@@ -62,6 +62,7 @@ let rec debug_stmt = function
     | Foreach (a, expr, stmts) -> "for each:" ^ a ^ " " ^ (debug_expr expr) ^ " " ^ ( List.fold_left (fun acc item -> acc ^ "," ^ item) "" (List.map debug_stmt stmts) )
     | While (expr, stmts) -> "while:" ^ (debug_expr expr) ^ " " ^ ( List.fold_left (fun acc item -> acc ^ "," ^ item) "" (List.map debug_stmt stmts) )
     | Break -> "break"
+    | Continue -> "continue"
 
 let debug_fdecl (fdecl : func_decl) = match fdecl with
     | {fname=name; body=stmts; formals=param_list} ->
@@ -111,6 +112,8 @@ let rec debug_tstmt = function
     |  TFor (a, b, c, tstmts) -> "for: " ^ (debug_texpr a) ^ " " ^ (debug_texpr b) ^ " " ^ (debug_texpr c) ^ " " ^ ( List.fold_left (fun acc item -> acc ^ "," ^ item) "" (List.map debug_tstmt tstmts) )
     |  TForeach (a, texpr, tstmts) -> "for each: " ^ a ^ " " ^ (debug_texpr texpr) ^ " " ^ ( List.fold_left (fun acc item -> acc ^ "," ^ item) "" (List.map debug_tstmt tstmts) )
     |  TWhile (texpr, tstmts) -> "while: " ^ (debug_texpr texpr) ^ " " ^ ( List.fold_left (fun acc item -> acc ^ "," ^ item) "" (List.map debug_tstmt tstmts) )
+    | TBreak -> "break"
+    | TContinue -> "continue"
 
 (*debug for a typed function call*)
 let debug_t_fdecl (tfdecl: t_func_decl) = match tfdecl with

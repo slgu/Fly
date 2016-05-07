@@ -88,7 +88,7 @@ type expr =
   | Noexpr
   (*below are network specified exprs*)
   | Exec of string
-  | Dispatch of string * expr list * string * string
+  | Dispatch of string * expr list * expr * expr
   | Register of string * string * expr list
   | Changen of typ(*chan of a type*)
   | Chanunop of string

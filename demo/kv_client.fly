@@ -33,4 +33,3 @@ func connect_to_server (name) {
 
     return 0;
 }
-
