@@ -1,0 +1,86 @@
+func main() {
+
+    str1 = "This is one of my favorite classes at Columbia This is one of the very few classes where both theory and application of computer science comes together And the manner in which Professor Edwards teaches this class is incredible Professor Edwards is very organized and well prepared for lectures His slides are very comprehensive and lectures are very clear On the side note he also brings in Stephen Colbert style humors in class which can be quite entertaining at times";
+
+    str2 = "The project is the centerpiece of this class It allows you to build a programming language on your own from scratch This can be a great experience because you are dissecting every component of the building blocks of a modern programming language";
+
+    str3 = "Much has been written about OCaml which is the language used in the project But half way through the semester everyone realizes that due to its very important features like pattern matching and strict type referencing OCaml is simply the best language for building a programming language in a semester long period There is also a huge inventory of past projects done in OCaml in the class website that can be very useful reference Some people who had taken this class with Professors other than Edwards often ran into challenges due to lack of resources and reference materials";
+
+    str4 = "I highly recommend taking this course with Professor Edwards Make sure to find good teammates and make use of past projects as a guide You will end up with a great project and your own programming language The things that are learned in this class such as project management teamwork testing leadership have applications for rest of the CS career";
+
+    str5 = "Edwards is the snarkiest most sarcastic immature professor you will meet in the CS department He tells some really great nerdy jokes and his Facebook wall is hilarious since he belittles all his students publicly on it but I don't recommend taking his class Don't ever email him with an excuse or stupid question since he will publicly shame you name removed though on Facebook";
+
+    str6 = "The project is KILLER In all likelihood you will fail if you don't assemble the Avengers to be your team Make sure you put together a strong team which has time to commit to this project The project is structured such that one person the most responsible or the least busy always ends up doing over 50% of the work We've looked at other groups and previous teams and this is the case through out I think Edwards should take a look at this and somehow fix the project so that it's more fair";
+
+    str7 = "Really interesting content not necessarily taught that well Writing a compiler is an amazing experience and if you start early you should be fine I went in with no functional programming experience and really enjoyed learning OCaml and the functional paradigm I'd definitely recommend the class: at the end you'll have written your own programming language";
+
+    str8 = "Edwards is plain and simple the shit He is quite possibly the most organized professor I have ever seen His website contains every class of PLT he has taught for the most part including old projects slides and documents Furthermore his notes are outstanding In that regard he has basically done all the work for you The material is complex at heart but his notes and his descriptions in class make that material very easy to digest Furthermore it is evident in every shapeand form that he absolutely loves and cares about the material This man is among the nerdiest to ever exist and he definitely knows his stuff inside and out and forwards and backwards and I feel like he was very effectively in conveying this passion in his lectures In addition to learning about making a language you will also learn cool tidbits like C history language history or operational details you might not have known about various languages Edwards is also a total language hipsterand spent the first day of class openly trashing Java C++ and many others he called Perl an abomination Therefore if you are waiting for his endorsement of the cool and underground language you haven't heard of maaaaaan then you will find it with OCaml more on that in a second";
+
+    str9 = "His slides are simple and informative His lecture style is very straightforward: he is one of the most rational and simplistic presenters of complex material I have ever encountered If I had to take PLT I would do so with Edwards He introduces LogiSim which Rubenstein does not I told several of Rubenstein's students about LogiSim and it made their lives much easier";
+
+    str10 = "However I fundamentally disagree that his humor took away from his teaching He is by no means a perfect lecturer He isn't charismatic like Gulati thorough like Vallencourt nor approachable like Blaer However he still kept the lectures interesting and got the material through to the students It definitely could be that PLT which the reviewers below took and fundamentals are fundamentally different in difficulty However if you see yourself having to take Fundamentals with Prof Edwards I would say go for it but be ready for a barrage of quirky humor from your first day";
+
+    s1 = fly connect_to_server(1, str1);
+    s2 = fly connect_to_server(2, str2);
+    s3 = fly connect_to_server(3, str3);
+    s4 = fly connect_to_server(4, str4);
+    s5 = fly connect_to_server(5, str5);
+    s6 = fly connect_to_server(6, str6);
+    s7 = fly connect_to_server(7, str7);
+    s8 = fly connect_to_server(8, str8);
+    s9 = fly connect_to_server(9, str9);
+    s10 = fly connect_to_server(10, str10);
+
+    s1.wait();
+    s2.wait();
+    s3.wait();
+    s4.wait();
+    s5.wait();
+    s6.wait();
+    s7.wait();
+    s8.wait();
+    s9.wait();
+    s10.wait();
+
+    get_all();
+
+    return 0;
+}
+
+func get_all () {
+    cli = @client;
+    con = cli.connect("127.0.0.1", 5566);
+
+    if (con.is_alive()) {
+        con.send("getalls");
+    }
+    
+    while(true) {
+        msg = con.recv();
+        if (!con.is_alive()) {
+            break;
+        }
+        print(msg);
+    }
+}
+
+func connect_to_server (tid, text) {
+    cli = @client;
+    con = cli.connect("127.0.0.1", 5566);
+
+    arr = str_split(text);
+    len = arr.size();
+    i = 0;
+
+    while (con.is_alive() && i < len) {
+
+        con.send("put " + arr.get_at(i));
+        msg = con.recv();
+        print(_string(tid) + " get: " + msg);
+
+        i = i + 1;
+    }
+
+    return 0;
+}
+

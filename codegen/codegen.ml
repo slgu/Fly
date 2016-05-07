@@ -453,6 +453,8 @@ and handle_texpr expr refenv =
                             [varname ^ "->insert(" ^ key_code ^ "," ^ value_code ^ ")"]
                         | _ -> failwith ("not support for insert map")
                         end
+                    | "sync" -> 
+                        ["std::unique_lock<std::recursive_mutex> lk(" ^ varname ^ "->m_mutex);"]
                     | _ -> failwith ("not support map function")
                     end
                 in

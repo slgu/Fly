@@ -403,6 +403,11 @@ let get_map_call_ret (thistype:typ) fname expr_types = match thistype with
                 else failwith  ("type not consistent: get_map_call_ret")
             else
                 failwith("exist should be 1 element: get_map_call_ret")
+        | "sync" ->
+            if expr_len = 0 then
+                Void
+            else
+                failwith("sync should 0 element: get_map_call_ret")
         | _ ->
             failwith ("not support build in map function")
         end
