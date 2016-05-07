@@ -45,7 +45,10 @@ let gen_clojure_class_name funcname type_list =
     funcname ^ (List.fold_left (fun res item -> res ^ "_" ^ (type_to_string item)) "_clojure" type_list)
 
 
+let (dispatch_funcs : (string, string) Hashtbl.t) = Hashtbl.create 16
 
+let gen_dispatch_code () =
+    Hashtbl.fold (fun k v res -> v::res) dispatch_funcs []
 
 let gen_clojure_classes clojure_calls func_binds t_func_binds =
     let find_func name =
@@ -511,7 +514,51 @@ and handle_texpr expr refenv =
         )
     | TListComprehen(_) -> [] (* TODO *)
     | TExec(_) -> [] (* TODO *)
-    | TDispatch(_) -> [] (* TODO *)
+    | TDispatch ((fname, texpr_list, ip, port), rtype) ->
+        let texpr_types = List.map get_expr_type_info texpr_list
+        in let key = gen_hash_key fname texpr_types
+        in begin match (find_hash t_func_binds key) with
+        | None -> failwith ("conflict with infer tdispatch")
+        | Some (tfdecl) ->
+            let code_str = merge_string_list (handle_fdecl key tfdecl (ref (init_level_env())))
+            in let wrap_dispatch_name = "_dispatch_" ^ key
+            in
+            let merge_texpr_list = texpr_list @ [ip;port]
+            in
+            let call_stmt =
+            [
+            cat_string_list_with_space
+            ([wrap_dispatch_name;"("]@
+            [cat_string_list_with_comma (List.fold_left (fun ret ex -> ret@(handle_texpr ex refenv)) [] merge_texpr_list)]@
+            [")"])
+            ]
+            in
+            match (find_hash dispatch_funcs wrap_dispatch_name) with
+            | None ->
+                let inner_names = ["_dispatch_a";"_dispatch_b";"_dispatch_c";"_dispatch_d";"_dispatch_e";"_dispatch_f"]
+                in let split_type = "string split_type = \"\\x01\";\n"
+                in let split_var = "string split_var = \"\\x02\";\n"
+                in let code_str_assign = "string code_string=\"" ^ fname ^ "\\x01" ^ code_str ^ "\";"
+                in let varname_type_list = zip inner_names texpr_types
+                in let encoding_assign = List.map (fun (varname, thistype) ->
+                    let assign_stmt = "string _str" ^ varname  ^ " = string(\""  ^ (type_to_code_string thistype) ^ "\")+split_type+_string("^ varname ^ ");\n"
+                    in assign_stmt )
+                varname_type_list
+                in let all_str = "code_string"::(List.map (fun (varname, _) -> "_str" ^ varname) varname_type_list)
+                in let join_by_split = List.rev (List.fold_left (fun res item -> item::"split_var"::res) [] all_str)
+                in let packet_assign = "string _packet = " ^ (list_join join_by_split "+" ) ^ ";"
+                in let var_defs = (List.map (fun (varname, thistype) -> (type_to_code_string thistype) ^ " " ^ varname) varname_type_list) @ ["string ip";"int port"]
+                in let var_defs_str = list_join var_defs ","
+                in let func_def = (type_to_code_string rtype) ^ " " ^ wrap_dispatch_name ^ " (" ^ var_defs_str ^ "){\n"
+                in let tablize_assign = tablize (code_str_assign::split_type::split_var::encoding_assign) @[packet_assign]
+                in let packet_send_conv =
+                    ["shared_ptr <client> _client =  shared_ptr <client>(new client());\n";"shared_ptr <connection> _con =  _client->connect (ip,port);";
+                        "if (_con->is_alive ()  ) {_con->send (_packet);string _msg = _con->recv ();}"]
+                in
+                Hashtbl.add dispatch_funcs wrap_dispatch_name (merge_string_list (func_def::[List.fold_left (fun res item -> res ^ item) "" tablize_assign] @ packet_send_conv @["}"]));
+                call_stmt
+            | Some x -> call_stmt
+        end
     | TChangen(containtype, x) ->
         let containname = new_type_to_code_string containtype
         in ["shared_ptr < Chan <" ^ containname ^ "> >(new Chan < " ^ containname ^ " >())"]
@@ -587,10 +634,7 @@ and handle_texpr expr refenv =
                 let str = varname ^ "->" ^ mname
                 in [str ^ " = "] @ handle_texpr expr refenv
         end
-
-
-(* take one tstmt and return a string list *)
-let rec handle_tstmt fkey tstmt_ refenv =
+and handle_tstmt fkey tstmt_ refenv =
     let refnewenv = ref (append_new_level !refenv) in
     match tstmt_ with
     | TBlock(tstmtlist) ->
@@ -640,14 +684,14 @@ let rec handle_tstmt fkey tstmt_ refenv =
 
 (* take tstmt list and return string list *)
 (*对stmt list 产生code*)
-let handle_body fkey body refenv =
+and handle_body fkey body refenv =
     let refnewenv = ref (append_new_level !refenv) in
     let body_code = List.fold_left (fun ret tstmt_ -> ret @ (handle_tstmt fkey tstmt_ refnewenv)) [] body in
     ["{"] @ body_code @ ["}"]
 
 (* return string list *)
 (* take a function key, declaration and generate the string list *)
-let handle_fdecl fkey fd refenv =
+and handle_fdecl fkey fd refenv =
     let refnewenv = ref (append_new_level !refenv) in
     match fd with
     | {tret=rt; tfname=name; tformals=fm; tbody=body ;_} ->
@@ -941,5 +985,7 @@ let codegen fht cht clojure_calls func_binds t_func_binds =
     let (clojure_class_forwards, clojure_class_refers, clojure_class_defs)= build_clojure_class clojure_classes in
     let (forward_codelist, func_codelist) = build_func_from_ht fht in
     let (class_fw, class_def) = build_class_from_ht cht in
-    let buffer = code_header @ build_in_code @ build_in_class_code @ clojure_class_forwards @ class_fw @ forward_codelist @ clojure_class_refers @ clojure_class_defs @ class_def @ func_codelist in
+    let dispatch_code = gen_dispatch_code()
+    in
+    let buffer = code_header @ build_in_code @ build_in_class_code @ clojure_class_forwards @ class_fw @ forward_codelist @ clojure_class_refers @ clojure_class_defs @ class_def @ dispatch_code @func_codelist in
     List.fold_left (fun ret ele -> ret ^ ele ^ "\n") "" buffer

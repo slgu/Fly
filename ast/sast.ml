@@ -19,7 +19,7 @@ type texpr =
   | TListComprehen of (texpr * string * texpr) * typ (*can iterate a tuple?*)
   (*below are network specified exprs*)
   | TExec of string * typ
-  | TDispatch of (string * texpr list * string * string) * typ
+  | TDispatch of (string * texpr list * texpr * texpr) * typ
   | TRegister of (string * string * texpr list) * typ
   | TChangen of typ * typ
   | TChanunop of string * typ

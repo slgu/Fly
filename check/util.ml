@@ -17,7 +17,7 @@ let next_random_string () =
 
 let gen_hash_key fname type_list =
     fname ^ (List.fold_left
-        (fun str item -> str ^ "@" ^ item) "" (List.map type_to_string type_list))
+        (fun str item -> str ^ "_" ^ item) "" (List.map type_to_string type_list))
 
 let rec explode = function
     "" -> []
@@ -28,7 +28,7 @@ let tablize arr =
 
 let list_join string_arr join_string = match string_arr with
     | (x::y) ->
-        x ^ (List.fold_left (fun res item -> res ^ "," ^ item) "" y)
+        x ^ (List.fold_left (fun res item -> res ^ join_string ^ item) "" y)
     | [] -> ""
 
 let rec zip arr1 arr2 = match arr1, arr2 with

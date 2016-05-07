@@ -200,8 +200,12 @@ register:
     REGISTER ID ID LPAREN actuals_opt RPAREN {Register($2, $3, $5)}
 
 dispatch:
-    DISPATCH ID LPAREN actuals_opt RPAREN expr expr {Dispatch($2, $4, $6, $7)}
-
+    DISPATCH ID LPAREN actuals_opt RPAREN {
+        let arr = List.rev $4
+        in match arr with
+        | x::y::z -> Dispatch($2, List.rev z, y, x)
+        | _ -> failwith ("dispatch param error")
+        }
 exec:
     EXEC LPAREN ID RPAREN {Exec($3)}
 

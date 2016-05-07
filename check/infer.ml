@@ -684,6 +684,37 @@ let rec infer_func fdecl hash_key type_list level_env =
             | _, None -> failwith ("obj usage without def")
             | _ -> failwith("<- not support for non-chan")
             end
+        | Dispatch (name, expr_list, ip, port) ->
+            (*just support self-defined non-dependent function*)
+            let texpr_list = List.map infer_expr expr_list
+            in let expr_types = List.map get_expr_type_info texpr_list
+            in let ftype = ref_search_id name
+            in let ip_texpr = infer_expr ip
+            in let port_texpr = infer_expr port
+            in let ip_type = get_expr_type_info ip_texpr
+            in let port_type = get_expr_type_info port_texpr
+            in
+                if ip_type = String && port_type = Int
+                then
+                    begin match ftype with
+                    | None ->failwith ("not support for not-defined function")
+                    | Some (Func (fname, arr)) ->
+                        let l = List.length arr
+                        in if l = 0 then
+                            let fdecl = find_func fname
+                            in begin match fdecl with
+                            | {formals = param_list;_}->
+                            let param_len = List.length param_list and true_len = List.length expr_types
+                            in if param_len = true_len then
+                                let rtype = get_func_result (infer_func_by_name fname expr_types)
+                                in TDispatch ((name, texpr_list, ip_texpr, port_texpr), rtype)
+                            else failwith ("args not match in dispatch")
+                            end
+                        else failwith ("not support for clojure dispatch now")
+                    | _ -> failwith ("not a function in dispatch")
+                    end
+                else
+                    failwith ("ip or port type error")
         (* TODO
         | ListComprehen (f_expr, varname, s_expr) -> *)
         | _ -> TLiteral 142857

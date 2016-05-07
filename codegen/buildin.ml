@@ -68,6 +68,9 @@ string _string(int a ){
 string _string(float a ){
 	return to_string(a);
 }
+string _string(string a) {
+    return a;
+}
 
 void _sleep(int seconds){
 	std::chrono::seconds duration(seconds);
