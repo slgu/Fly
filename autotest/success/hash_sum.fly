@@ -1,0 +1,65 @@
+func main () {
+    mymap = @Map<#Int, Int#>;
+    key = 123;
+
+    /* 10 thread is enough to produce inconsistency if no m.sync() */
+    s1 = fly crazy_inc_same_key(mymap, key);
+    s2 = fly crazy_inc_same_key(mymap, key);
+    s3 = fly crazy_inc_same_key(mymap, key);
+    s4 = fly crazy_inc_same_key(mymap, key);
+    s5 = fly crazy_inc_same_key(mymap, key);
+    s6 = fly crazy_inc_same_key(mymap, key);
+    s7 = fly crazy_inc_same_key(mymap, key);
+    s8 = fly crazy_inc_same_key(mymap, key);
+    s9 = fly crazy_inc_same_key(mymap, key);
+    s10 = fly crazy_inc_same_key(mymap, key);
+/*
+    s11 = fly crazy_inc_same_key(mymap, key);
+    s12 = fly crazy_inc_same_key(mymap, key);
+    s13 = fly crazy_inc_same_key(mymap, key);
+    s14 = fly crazy_inc_same_key(mymap, key);
+    s15 = fly crazy_inc_same_key(mymap, key);
+    s16 = fly crazy_inc_same_key(mymap, key);
+    s17 = fly crazy_inc_same_key(mymap, key);
+    s18 = fly crazy_inc_same_key(mymap, key);
+    s19 = fly crazy_inc_same_key(mymap, key);
+    s20 = fly crazy_inc_same_key(mymap, key);
+*/
+
+    s1.wait();
+    s2.wait();
+    s3.wait();
+    s4.wait();
+    s5.wait();
+    s6.wait();
+    s7.wait();
+    s8.wait();
+    s9.wait();
+    s10.wait();
+/*
+    s11.wait();
+    s12.wait();
+    s13.wait();
+    s14.wait();
+    s15.wait();
+    s16.wait();
+    s17.wait();
+    s18.wait();
+    s19.wait();
+    s20.wait();
+*/
+
+    print(mymap.get(key));
+
+    return 0;
+}
+
+func crazy_inc_same_key(m, key) {
+
+    for(i = 0; i < 100; i = i + 1) {
+        m.sync();
+        m.insert(key, m.get(key) + 1);
+    }
+
+    return 0;
+}
