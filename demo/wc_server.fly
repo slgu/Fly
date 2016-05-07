@@ -1,0 +1,190 @@
+/*
+
+Usage:
+    put <key>
+    get <key>
+    getall
+    getalls
+
+*/
+
+class cmd_struct {
+    cmd_type:Int;
+    key:String;
+
+    func set_type(s) {
+        if (s == "put") {
+            cmd_type = 0;
+            return true;
+        }
+        if (s == "get") {
+            cmd_type = 1;
+            return true;
+        }
+        if (s == "getall") {
+            cmd_type = 2;
+            return true;
+        }
+        if (s == "getalls") {
+            cmd_type = 3;
+            return true;
+        }
+        return false;
+    }
+
+    func set_key(k) {
+        key = k;
+        return true;
+    }
+}
+
+func process(msg, m, c) {
+    arr = str_split(msg);
+    if (arr.size() == 0) {
+        return "Wrong Command";
+    }
+
+    cmd = @cmd_struct;
+    if ( ! cmd.set_type(arr.get_at(0)) ) {
+        return "Wrong Command: " + arr.get_at(0) + " is not supported";
+    }
+
+    if (cmd.cmd_type == 0 && arr.size() != 2) {
+        return "Usage: put <key>";
+    }
+
+    if (cmd.cmd_type == 1 && arr.size() != 2) {
+        return "Usage: get <key>";
+    }
+
+    if (cmd.cmd_type == 2 && arr.size() != 1) {
+        return "Usage: getall";
+    }
+
+    if (cmd.cmd_type == 3 && arr.size() != 1) {
+        return "Usage: getalls";
+    }
+
+    if (cmd.cmd_type == 0) {
+        key = arr.get_at(1);
+
+        if ( ! cmd.set_key(key) ) {
+            return "Invalid Key " + key;
+        }
+        c <- cmd;
+        return "Done Put: " + key;
+    }
+
+    if (cmd.cmd_type == 1) {
+        key = arr.get_at(1);
+
+        if ( ! cmd.set_key(key) ) {
+            return "Invalid Key " + key;
+        }
+
+        if (!m.exist(key)) {
+            return "Done Get: " + key + " not found";
+        } else {
+            return "Done Get: " + key + " -> " + _string(m.get(key));
+        }
+    }
+
+    if (cmd.cmd_type == 2) {
+        msg = "Done Get All:";
+
+        newline = "\n";
+        arrow = " -> ";
+        _f = (s1, s2, x, y, z -> x + s1 + y + s2 + z);
+        f = _f(newline, arrow);
+        
+        for(k:m) {
+            msg = f(msg, k, _string(m.get(k)));
+        }
+        return msg;
+    }
+
+    if (cmd.cmd_type == 3) {
+
+        sorted = @Map<#Int, String#>;
+        for(k:m) {
+            count = m.get(k);
+            idx = count * 100;
+            while(sorted.exist(idx)) {
+                idx = idx + 1;
+            }
+            sorted.insert(idx, k);
+        }        
+
+        msg = "Done Get All Sorted:";
+        newline = "\n";
+        arrow = " -> ";
+        _f = (s1, s2, x, y, z -> x + s1 + y + s2 + z);
+        f = _f(newline, arrow);
+ 
+        for(k:sorted) {
+            msg = f(msg, _string(k/100), sorted.get(k));
+        }
+
+        return msg;
+    }
+
+    return "Error";
+}
+
+func send_back(con, msg) {
+    con.send(msg);
+}
+
+func handle_req(con, m, c) {
+    while(true) {
+        msg = con.recv();
+        if (!con.is_alive()) {
+            break;
+        }
+        s = fly process(msg, m, c);
+        register s send_back(con);
+    }
+
+    return 0;
+}
+
+func insert_worker (m, c) {
+    while (true) {
+        cmd <- c;
+        if (cmd.cmd_type == 0) {
+            m.sync();
+            if (m.exist(cmd.key)) {
+                m.insert(cmd.key, m.get(cmd.key) + 1);
+            } else {
+                m.insert(cmd.key, 1);
+            }
+        }
+    }
+    return 0;
+}
+
+func append_msg(a, b) {
+    return b + " " + a;
+}
+
+func main() {
+
+    m = @Map<#String, Int#>;
+    c = chan(cmd_struct);
+
+    for ( i = 0; i < 10; i = i+1) {
+        fly insert_worker(m, c);
+    }
+
+    a = @server;
+    a.listen(5566);
+
+    print("Server is online");
+
+    while(true) {
+        con = a.accept();
+        fly handle_req(con, m, c);
+    }
+
+    return 0;
+}

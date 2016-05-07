@@ -1,0 +1,6 @@
+func main () {
+    a_str = "haha";
+    a_str = 1;
+
+    return 0;
+}

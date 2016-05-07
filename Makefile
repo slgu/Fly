@@ -66,21 +66,6 @@ debug:
 	ocamlc -o debug $(ast_dir)/ast.cmo $(ast_dir)/sast.cmo $(debug_dir)/debug.cmo
 	rm */*.cm*
 bin:
-	ocamllex $(parser_dir)/scanner.mll
-	ocamlyacc -q -v $(parser_dir)/parser.mly
-	ocamlc -c $(ast_dir)/ast.ml
-	ocamlc -I $(ast_dir) -c $(ast_dir)/sast.ml
-	ocamlc -I $(ast_dir) -c $(parser_dir)/parser.mli
-	ocamlc -I $(parser_dir) -c $(parser_dir)/scanner.ml
-	ocamlc -I $(ast_dir) -I $(parser_dir) -c $(parser_dir)/parser.ml
-	ocamlc -I $(ast_dir) -c $(check_dir)/util.ml
-	ocamlc -I $(ast_dir) -c $(check_dir)/env.ml
-	ocamlc -I $(ast_dir) -c $(debug_dir)/debug.ml
-	ocamlc -I $(ast_dir) -I $(check_dir) -c $(gen_dir)/buildin.ml
-	ocamlc -I $(gen_dir) -I $(debug_dir) -I $(ast_dir) -I $(check_dir) -c $(check_dir)/infer.ml
-	ocamlc -I $(ast_dir) -I $(check_dir) -I $(gen_dir) -c $(gen_dir)/codegen.ml
-	ocamlc -I $(parser_dir) -I $(check_dir) -I $(gen_dir) -c fly_gen.ml
-	ocamlc -o fly $(parser_dir)/scanner.cmo $(parser_dir)/parser.cmo $(ast_dir)/ast.cmo $(ast_dir)/sast.cmo $(debug_dir)/debug.cmo $(check_dir)/util.cmo  $(gen_dir)/buildin.cmo $(check_dir)/env.cmo $(check_dir)/infer.cmo  $(gen_dir)/codegen.cmo fly_gen.cmo
 	./fly < $(src)
 	g++ -pthread -o $(bin) -std=c++11 tmp.cc
 debug_clean:
