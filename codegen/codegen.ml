@@ -452,7 +452,7 @@ and handle_texpr expr refenv =
                             [varname ^ "->insert(" ^ key_code ^ "," ^ value_code ^ ")"]
                         | _ -> failwith ("not support for insert map")
                         end
-                    | "sync" -> 
+                    | "sync" ->
                         ["std::unique_lock<std::recursive_mutex> lk(" ^ varname ^ "->m_mutex);"]
                     | _ -> failwith ("not support map function")
                     end
@@ -552,9 +552,15 @@ and handle_texpr expr refenv =
                 in let tablize_assign = tablize (code_str_assign::split_type::split_var::encoding_assign) @[packet_assign]
                 in let packet_send_conv =
                     ["shared_ptr <client> _client =  shared_ptr <client>(new client());\n";"shared_ptr <connection> _con =  _client->connect (ip,port);";
-                        "if (_con->is_alive ()  ) {_con->send (_packet);string _msg = _con->recv ();}"]
+                        "string _msg;\nif (_con->is_alive ()  ) {_con->send (_packet);_msg = _con->recv ();}"]
                 in
-                Hashtbl.add dispatch_funcs wrap_dispatch_name (merge_string_list (func_def::[List.fold_left (fun res item -> res ^ item) "" tablize_assign] @ packet_send_conv @["}"]));
+                let return_stmt = begin match rtype with
+                | Int -> "return _int(_msg);"
+                | Array (Int) -> "return atov(_msg);"
+                | _ -> "just support int vector <int> now"
+                end
+                in
+                Hashtbl.add dispatch_funcs wrap_dispatch_name (merge_string_list (func_def::[List.fold_left (fun res item -> res ^ item) "" tablize_assign] @ packet_send_conv @[return_stmt;"}"]));
                 call_stmt
             | Some x -> call_stmt
         end
@@ -986,5 +992,6 @@ let codegen fht cht clojure_calls func_binds t_func_binds =
     let (class_fw, class_def) = build_class_from_ht cht in
     let dispatch_code = gen_dispatch_code()
     in
-    let buffer = code_header @ build_in_code @ build_in_class_code @ clojure_class_forwards @ class_fw @ forward_codelist @ clojure_class_refers @ clojure_class_defs @ class_def @ dispatch_code @func_codelist in
+    let buffer = code_header @ build_in_code @ build_in_class_code @ clojure_class_forwards @ class_fw @ forward_codelist
+    @ clojure_class_refers @ clojure_class_defs @ class_def @dispatch_code @func_codelist in
     List.fold_left (fun ret ele -> ret ^ ele ^ "\n") "" buffer

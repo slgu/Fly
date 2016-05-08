@@ -1,18 +1,11 @@
-/*************************************************************************
-    > File Name: exec.cpp
-    > Author: Gu Shenlong
-    > Mail: blackhero98@gmail.com
-    > Created Time: Sat 07 May 2016 03:26:58 PM EDT
- ************************************************************************/
-
+const char split_var = '\x02';
+const char split_type = '\x01';
 #include<iostream>
 #include<vector>
 #include<string>
 #include<fstream>
 #include<cstdlib>
 using namespace std;
-const char split_var = '\x02';
-const char split_type = '\x01';
 vector <string> split(string str, char split_c) {
     int l = int(str.length());
     int last = -1;
@@ -78,12 +71,4 @@ string exec(string str, string filename) {
     in >> res;
     in.close();
     return res;
-}
-int main() {
-    string test =
-        "\x02gao\x01int gao(int a,int b){return (a+b) ;}\x02int\x01";
-    test += "1\x02int\x01";
-    test += "2";
-    string res = exec(test, "haha");
-    cout << res << endl;
 }
