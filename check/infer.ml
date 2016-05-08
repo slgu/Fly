@@ -454,6 +454,7 @@ let rec infer_func fdecl hash_key type_list level_env =
             let new_lambda_func =
                 {
                     fname=new_lambda_name;
+                    (*lambda function __begin not to shadow*)
                     formals=(List.append inner_param_name_binds param_list);
                     body=[Return epr]
                 }

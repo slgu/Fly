@@ -3,6 +3,7 @@
 5.need to fix overloading by name problem() (slgu) may not do it
 6.s = dispatch f(a, b) ip port (slgu)
 7.easy optimization, const and if(true) if(false) optimization. (slgu)
+8.debug for lambda class
 
 
 build-in functions:

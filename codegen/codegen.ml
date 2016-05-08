@@ -63,7 +63,7 @@ let gen_clojure_classes clojure_calls func_binds t_func_binds =
         in let init_tcdecl fname type_list = begin match fdecl with
             | {formals=param_list;_} ->
                 let _ = List.length type_list
-                in let modify_param_list = List.map (fun item -> "_" ^ item) param_list
+                in let modify_param_list = List.map (fun item -> "__" ^ item) param_list
                 in let binds = zip modify_param_list type_list
                 in let clojure_name = gen_clojure_class_name fname type_list
                 in {tcname=clojure_name;member_binds=binds;t_func_decls=[]}
@@ -100,7 +100,7 @@ let gen_clojure_classes clojure_calls func_binds t_func_binds =
                         let tfdecl = Hashtbl.find t_func_binds tfkey
                         in let rtype = get_func_result tfdecl
                         in
-                        let ftexprs = List.map (fun (varname, thistype) -> TId("_" ^ varname, thistype)) f_binds
+                        let ftexprs = List.map (fun (varname, thistype) -> TId("__" ^ varname, thistype)) f_binds
                         in let stexprs = List.map (fun (varname, thistype) -> TId(varname, thistype)) s_binds
                         in let ttexprs = List.concat [ftexprs;stexprs]
                         in let body = [TReturn (TCall ((fname, ttexprs), rtype))]
@@ -115,9 +115,9 @@ let gen_clojure_classes clojure_calls func_binds t_func_binds =
                     let res_class_name = gen_clojure_class_name fname (List.concat [f_type_list;s_type_list])
                     in let new_obj_stmt = TExpr (TAssign (("tmp", TObjGen(Class res_class_name, Class res_class_name)), Class res_class_name))
                     in let f_assign_stmts =
-                        List.map (fun (varname, thistype) -> TExpr (TMAssign(("tmp", "_" ^ varname, TId (varname, thistype)), thistype))) f_binds
+                        List.map (fun (varname, thistype) -> TExpr (TMAssign(("tmp", "__" ^ varname, TId (varname, thistype)), thistype))) f_binds
                     in let s_assign_stmts =
-                        List.map (fun (varname, thistype) -> TExpr (TMAssign(("tmp", "_" ^ varname, TId (varname, thistype)), thistype))) s_binds
+                        List.map (fun (varname, thistype) -> TExpr (TMAssign(("tmp", "__" ^ varname, TId (varname, thistype)), thistype))) s_binds
                     in let return_stmt =
                         TReturn (TId ("tmp", Class res_class_name))
                     in {
