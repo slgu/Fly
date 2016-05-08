@@ -2,13 +2,11 @@ func gao(f, a, b) {
     l = a.size();
     res = @Array<#Int#>;
     for (i = 0; i < l; i=i+1) {
-        if (i == 4) {
-            continue;
-        }
         res.push_back(f(a.get_at(i), b.get_at(i)));
     }
     return res;
 }
+
 func main() {
     a1 = @Array<#Int#>;
     a2 = @Array<#Int#>;

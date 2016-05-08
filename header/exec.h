@@ -38,7 +38,10 @@ string exec(string str, string filename) {
             tmp += ";";
             assigns.push_back(tmp);
         }
+        else if (type_and_content[0] == "shared_ptr < flyvector <int> >"){
+        }
         else {
+
         }
     }
     ofstream ofs;

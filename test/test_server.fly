@@ -1,5 +1,6 @@
 func process(msg) {
     filename = "p1";
+    print(msg);
     res = exec(msg, filename);
     print(res);
     print(res);
