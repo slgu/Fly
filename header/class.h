@@ -285,3 +285,25 @@ public:
         return shared_ptr<connection> (new connection(sockfd, true));
     }
 };
+vector <string> split(string str, char split_c) {
+    int l = int(str.length());
+    int last = -1;
+    vector <string> res;
+    for (int i = 0; i <= l; ++i) {
+        if (i == l || str[i] == split_c) {
+            if(i - last -1 > 0) {
+                res.push_back(str.substr(last+1, i - last - 1));
+            }
+            last = i;
+        }
+    }
+    return res;
+}
+shared_ptr < flyvector <int> > _vector_int(string msg) {
+    vector <string> vector_str =  split(msg, ',');
+    shared_ptr < flyvector <int> > res(new flyvector <int>());
+    for (int i = 0; i < vector_str.size(); ++i) {
+        res->push_back(_int(vector_str[i]));
+    }
+    return res;
+}

@@ -7,16 +7,18 @@ const char split_type = '\x01';
 #include<string>
 #include<cstdlib>
 using namespace std;
-vector <string> split(string str, char split_c) {
-    int l = int(str.length());
-    int last = -1;
-    vector <string> res;
-    for (int i = 0; i <= l; ++i) {
-        if (i == l || str[i] == split_c) {
-            if(i - last -1 > 0) {
-                res.push_back(str.substr(last+1, i - last - 1));
-            }
-            last = i;
+
+
+string join(vector <string> v, string split) {
+    string res = "";
+    int l = v.size();
+    for (int i = 0; i < l; ++i) {
+        if (i == 0) {
+            res += v[i];
+        }
+        else {
+            res += split;
+            res += v[i];
         }
     }
     return res;
@@ -24,12 +26,16 @@ vector <string> split(string str, char split_c) {
 string exec(string str, string filename) {
     vector <string> func_and_param = split(str, split_var);
     vector <string> func = split(func_and_param[0], split_type);
-    string header = "#include <iostream>";
+    vector <string> headers = {"#include \"header/util.h\"","#include\"header/func.h\"", "#include\"header/class.h\"","#include\"header/fly.h\"", "using namespace std;"};
+
+    string header = join(headers, "\n");
+
     string main_func = "int main(){";
     int l = func_and_param.size();
     vector <string> assigns;
     for (int i = 1; i < l; ++i) {
         vector <string> type_and_content = split(func_and_param[i], split_type);
+        std::cout << type_and_content[0] << std::endl;
         if(type_and_content[0] == "int") {
             string tmp = "int ";
             tmp += i + 'a';
@@ -39,6 +45,12 @@ string exec(string str, string filename) {
             assigns.push_back(tmp);
         }
         else if (type_and_content[0] == "shared_ptr < flyvector <int> >"){
+            string tmp = "shared_ptr < flyvector <int> > ";
+            tmp += i + 'a';
+            tmp += " = ";
+            tmp += "_vector_int(\"" + type_and_content[1] + "\")";
+            tmp += ";";
+            assigns.push_back(tmp);
         }
         else {
 
@@ -52,7 +64,7 @@ string exec(string str, string filename) {
     for (int i = 0; i < assigns.size(); ++i)
         ofs << "\t" << assigns[i] << endl;
     //exec
-    ofs << "std::cout << " << func[0] << "(";
+    ofs << "std::cout << _string(" << func[0] << "(";
     for (int i = 1; i < l; ++i) {
         if(i == 1) {
             ofs << char(i + 'a');
@@ -61,27 +73,18 @@ string exec(string str, string filename) {
             ofs << "," << char(i + 'a');
         }
     }
-    ofs << ");" << endl;
+    ofs << "));" << endl;
     ofs << "}" << endl;
     ofs.close();
     //execute
     string input_file = filename + "_in.cpp";
     string output_file = filename + "_out";
-    system(("g++ -o " + filename + " " + input_file).c_str());
+    system(("g++ -std=c++11 -pthread -o " + filename + " " + input_file).c_str());
     system(("./" + filename + " > " + output_file).c_str());
     ifstream in;
     in.open(output_file.c_str(), ios::in);
     string res;
     in >> res;
     in.close();
-    return res;
-}
-
-shared_ptr < flyvector <int> > _vector_int(string msg) {
-    vector <string> vector_str =  split(msg, ',');
-    shared_ptr < flyvector <int> > res(new flyvector <int>());
-    for (int i = 0; i < vector_str.size(); ++i) {
-        res->push_back(_int(vector_str[i]));
-    }
     return res;
 }

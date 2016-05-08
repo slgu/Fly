@@ -2,17 +2,10 @@ func process(msg) {
     filename = "p1";
     print(msg);
     res = exec(msg, filename);
-    print(res);
-    print(res);
-    print(res);
-    print(res);
-    print(res);
-    print(res);
     return res;
 }
 
 func send_back(con, msg) {
-    print(msg);
     con.send(msg);
 }
 

@@ -18,5 +18,6 @@ func main() {
         a2.push_back(i);
     }
     a3 = dispatch gao2(a1, a2, "127.0.0.1", 5567);
+    print(_string(a3));
     return 0;
 }

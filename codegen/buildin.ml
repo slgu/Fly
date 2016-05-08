@@ -115,6 +115,14 @@ let exit_func = {
 	tret = Void;
 }
 
+let vect_int_to_string = {
+    ttkey = "";
+    tfname = "_string";
+    tformals = [("vint", Array (Int))];
+    tbody = [];
+    tret = String;
+}
+
 let sleep_func = {
 	ttkey = "";
 	tfname = "sleep";
@@ -151,7 +159,9 @@ let build_in_func =
     str_split;
     str_is_int;
     len;
-    exec_func]
+    exec_func;
+    string_vint_func;
+    vect_int_to_string]
 
 
 
@@ -371,5 +381,6 @@ let get_map_call_ret (thistype:typ) fname expr_types = match thistype with
 
 let build_in_class_code = ["
 #include \"header/class.h\"
+#include \"header/fly.h\"
 #include \"header/exec.h\"
 "]

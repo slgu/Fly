@@ -2,13 +2,10 @@ class intwrapper {
     age:Int;
 }
 
+func g(a, b) {
+    return a + b;
+}
 
 func main () {
-    a = @intwrapper;
-    a.age = 4;
-    print(a.age);
-    b = (x -> x.age=3);
-    b(a);
-    print(a.age);
-    return 0;
+    g = 3;
 }
