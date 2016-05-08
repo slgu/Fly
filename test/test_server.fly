@@ -18,13 +18,11 @@ func send_back(con, msg) {
 func handle_req(con) {
     while(true) {
         msg = con.recv();
-        if (con.is_alive()) {
-            s = fly process(msg);
-            register s send_back(con);
-        }
-        else {
+        if (!con.is_alive()) {
             break;
         }
+        s = fly process(msg);
+        register s send_back(con);
     }
 }
 
