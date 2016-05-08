@@ -556,7 +556,7 @@ and handle_texpr expr refenv =
                 in
                 let return_stmt = begin match rtype with
                 | Int -> "return _int(_msg);"
-                | Array (Int) -> "return atov(_msg);"
+                | Array (Int) -> "return _vector_int(_msg);"
                 | _ -> "just support int vector <int> now"
                 end
                 in

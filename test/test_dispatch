@@ -1,10 +1,22 @@
 func gao(a, b) {
     return a  * a * a + b * b * b;
 }
+func gao2(a, b) {
+    l = a.size();
+    c = @Array<#Int#>;
+    for (i=0;i<l;i=i+1) {
+        c.push_back(a.get_at(i) * b.get_at(i));
+    }
+    return c;
+}
 func main() {
-    a1 = 1;
-    a2 = 2;
-    c = dispatch gao(a1, a2, "127.0.0.1", 5567);
-    print(c);
+    a1 = @Array<#Int#>;
+    a2 = @Array<#Int#>;
+    total = 10;
+    for (i = 0; i < total; i = i + 1) {
+        a1.push_back(i);
+        a2.push_back(i);
+    }
+    a3 = dispatch gao2(a1, a2, "127.0.0.1", 5567);
     return 0;
 }

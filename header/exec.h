@@ -4,6 +4,7 @@ const char split_type = '\x01';
 #include<vector>
 #include<string>
 #include<fstream>
+#include<string>
 #include<cstdlib>
 using namespace std;
 vector <string> split(string str, char split_c) {
@@ -70,5 +71,14 @@ string exec(string str, string filename) {
     string res;
     in >> res;
     in.close();
+    return res;
+}
+
+shared_ptr < flyvector <int> > _vector_int(string msg) {
+    vector <string> vector_str =  split(msg, ',');
+    shared_ptr < flyvector <int> > res(new flyvector <int>());
+    for (int i = 0; i < vector_str.size(); ++i) {
+        res->push_back(_int(vector_str[i]));
+    }
     return res;
 }

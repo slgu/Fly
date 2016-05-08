@@ -71,7 +71,6 @@ string _string(float a ){
 string _string(string a) {
     return a;
 }
-
 void _sleep(int seconds){
 	std::chrono::seconds duration(seconds);
 	std::this_thread::sleep_for(duration);
@@ -80,7 +79,6 @@ void _sleep(int seconds){
 void _exit(int exit_code){
 	exit(exit_code);
 }
-#include \"header/exec.h\"
 "
 ]
 
@@ -202,6 +200,13 @@ let exec_func = {
     tformals = [("string", String);("string", String)];
     tbody = [];
     tret = String;
+}
+let string_vint_func = {
+    ttkey = "";
+    tfname = "_vector_int";
+    tformals = [("string", String)];
+    tbody = [];
+    tret = Array (Int);
 }
 let build_in_func =
     [int_to_string;
@@ -508,6 +513,8 @@ public:
     }
 };
 
+#include \"header/fly.h\"
+
 template<class K, class V>
 class flymap
 {
@@ -710,6 +717,6 @@ public:
         return shared_ptr<connection> (new connection(sockfd, true));
     }
 };
-
+#include \"header/exec.h\"
 
 "]
