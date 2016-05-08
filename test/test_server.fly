@@ -7,9 +7,11 @@ func send_back(con, msg) {
 }
 
 func handle_req(con) {
-    while(con.is_alive()) {
+    while(true) {
         msg = con.recv();
-	print(msg);
+        if (!con.is_alive()) {
+            break;
+        }
         s = fly process(msg);
         register s send_back(con);
     }
