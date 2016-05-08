@@ -56,7 +56,6 @@ rule token = parse
 | "fly" {FLY}
 | "register" {REGISTER}
 | "dispatch" {DISPATCH}
-| "exec" {EXEC}
 | ['0'-'9']+ as lxm { LITERAL(int_of_string lxm) }
 (* float scan TODO *)
 | ['0'-'9']+ '.' ['0'-'9']+ as lxm {FLOAT(float_of_string lxm)}

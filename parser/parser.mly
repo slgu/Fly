@@ -10,7 +10,7 @@ open Ast
 %token MOD
 %token LJINHAO RJINHAO
 %token NULL SCOPE
-%token CHAN FLY REGISTER DISPATCH EXEC
+%token CHAN FLY REGISTER DISPATCH
 %token RETURN IF ELSE FOR WHILE
 %token BREAK CONTINUE
 %token LARROW RARROW VERTICAL LMBRACE RMBRACE FUNC
@@ -206,8 +206,6 @@ dispatch:
         | x::y::z -> Dispatch($2, List.rev z, y, x)
         | _ -> failwith ("dispatch param error")
         }
-exec:
-    EXEC LPAREN ID RPAREN {Exec($3)}
 
 id_list:
     ID {[$1]}
@@ -282,7 +280,6 @@ expr:
     | fly {$1}
     | register {$1}
     | dispatch {$1}
-    | exec {$1}
 
 chan_decls:
     CHAN LPAREN typedef RPAREN {Changen($3)}

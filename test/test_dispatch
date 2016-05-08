@@ -1,9 +1,10 @@
 func gao(a, b) {
-    return a + b;
+    return a  * a * a + b * b * b;
 }
 func main() {
     a1 = 1;
     a2 = 2;
-    dispatch gao(a1, a2, "127.0.0.1", 5566);
+    c = dispatch gao(a1, a2, "127.0.0.1", 5567);
+    print(c);
     return 0;
 }

@@ -80,8 +80,10 @@ void _sleep(int seconds){
 void _exit(int exit_code){
 	exit(exit_code);
 }
+#include \"header/exec.h\"
 "
 ]
+
 
 let str_is_int = {
     ttkey = "";
@@ -194,7 +196,13 @@ let sleep_func = {
 	tbody = [];
 	tret = Void;
 }
-
+let exec_func = {
+    ttkey = "";
+    tfname = "exec";
+    tformals = [("string", String);("string", String)];
+    tbody = [];
+    tret = String;
+}
 let build_in_func =
     [int_to_string;
     float_to_string;
@@ -209,7 +217,8 @@ let build_in_func =
 	print_bool;
     str_split;
     str_is_int;
-    len]
+    len;
+    exec_func]
 
 
 

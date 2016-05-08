@@ -1,5 +1,13 @@
 func process(msg) {
-    return "Done: " + msg;
+    filename = "p1";
+    res = exec(msg, filename);
+    print(res);
+    print(res);
+    print(res);
+    print(res);
+    print(res);
+    print(res);
+    return res;
 }
 
 func send_back(con, msg) {
@@ -19,7 +27,7 @@ func handle_req(con) {
 
 func main() {
     a = @server;
-    a.listen(5566);
+    a.listen(5567);
     while(true) {
         con = a.accept();
         fly handle_req(con);
