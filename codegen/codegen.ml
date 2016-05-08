@@ -708,7 +708,7 @@ and handle_fdecl fkey fd refenv =
             [ cat_string_list_with_space [(type_to_code_string rt);name;fmstr]] @ bodystr
 
 let code_header = ["
-    #include\"header/util.h\"
+    #include<fly/util.h>
 "]
 
 (* take a texp and return function key list *)

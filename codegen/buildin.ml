@@ -6,7 +6,7 @@ open Sast
 let build_in_code =
 [
 "
-#include \"header/func.h\"
+#include<fly/func.h>
 "
 ]
 
@@ -380,7 +380,7 @@ let get_map_call_ret (thistype:typ) fname expr_types = match thistype with
     | _ -> failwith ("not array error")
 
 let build_in_class_code = ["
-#include \"header/class.h\"
-#include \"header/fly.h\"
-#include \"header/exec.h\"
+#include<fly/class.h>
+#include<fly/fly.h>
+#include<fly/exec.h>
 "]

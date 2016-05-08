@@ -20,6 +20,10 @@ all:
 	ocamlc -I $(ast_dir) -I $(check_dir) -I $(gen_dir) -c $(gen_dir)/codegen.ml
 	ocamlc -I $(parser_dir) -I $(check_dir) -I $(gen_dir) -c fly_gen.ml
 	ocamlc -o fly $(parser_dir)/scanner.cmo $(parser_dir)/parser.cmo $(ast_dir)/ast.cmo $(ast_dir)/sast.cmo $(debug_dir)/debug.cmo $(check_dir)/util.cmo  $(check_dir)/checkstruct.cmo $(gen_dir)/buildin.cmo $(check_dir)/env.cmo $(check_dir)/infer.cmo  $(gen_dir)/codegen.cmo fly_gen.cmo
+
+install:
+	cp -r header /usr/local/include/fly
+
 buildin:
 	ocamlc -c $(ast_dir)/ast.ml
 	ocamlc -I $(ast_dir) -c $(ast_dir)/sast.ml
