@@ -1,0 +1,12 @@
+
+func main () {
+    str = "a b c d e f g aa bb cc dd ee aaa bbb ccc ddd     hello     world ";
+    arr = str_split(str);
+
+    arr.sync();
+    for(i = 0; i < arr.size(); i = i + 1) {
+        print(arr.get_at(i));
+    }
+
+    return 0;
+}

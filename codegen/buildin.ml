@@ -16,13 +16,6 @@ bool str_is_int(const string & s)
    return (*p == 0) ;
 }
 
-shared_ptr<vector<string>> str_split(string s) {
-    stringstream ss(s);
-    istream_iterator<string> begin(ss);
-    istream_iterator<string> end;
-    return shared_ptr<vector<string>>( new vector<string>(begin, end));
-}
-
 int len(string a) {
     return a.length();
 }
@@ -492,6 +485,13 @@ class flyvector
 public:
     std::recursive_mutex v_mutex;
 
+    flyvector () {
+    }
+
+    flyvector (istream_iterator<T> first, istream_iterator<T> last) {
+        v.assign(first, last);
+    }
+
     int size() {
         std::unique_lock<std::recursive_mutex> lk(v_mutex);
         return v.size();
@@ -512,6 +512,13 @@ public:
         v.push_back(val);
     }
 };
+
+shared_ptr<flyvector<string>> str_split(string s) {
+    stringstream ss(s);
+    istream_iterator<string> begin(ss);
+    istream_iterator<string> end;
+    return shared_ptr<flyvector<string>>( new flyvector<string>(begin, end));
+}
 
 #include \"header/fly.h\"
 
@@ -717,6 +724,7 @@ public:
         return shared_ptr<connection> (new connection(sockfd, true));
     }
 };
+
 #include \"header/exec.h\"
 
 "]
