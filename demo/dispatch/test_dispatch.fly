@@ -1,0 +1,35 @@
+func mul(a, b) {
+    l = a.size();
+    c = @Array<#Int#>;
+    for (i=0;i<l;i=i+1) {
+        c.push_back(a.get_at(i) * b.get_at(i));
+    }
+    return c;
+}
+func send_task(a, b, c) {
+    res = dispatch mul(a, b, "127.0.0.1", c);
+    return res;
+}
+func main() {
+    a1 = @Array<#Int#>;
+    b1 = @Array<#Int#>;
+    a2 = @Array<#Int#>;
+    b2 = @Array<#Int#>;
+    res = @Array<#Int#>;
+    p1 = _int(get_argv(1));
+    p2 = _int(get_argv(2));
+    for (i = 0; i < 30; i = i + 1) {
+        a1.push_back(i);
+        b1.push_back(i);
+    }
+    for (i = 30; i < 60; i = i + 1) {
+        a2.push_back(i);
+        b2.push_back(i);
+    }
+    tmp1 = fly send_task(a1, b1, p1);
+    tmp2 = fly send_task(a2, b2, p2);
+    res.push_vec(tmp1.wait());
+    res.push_vec(tmp2.wait());
+    print(_string(res));
+    return 0;
+}

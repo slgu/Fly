@@ -26,7 +26,7 @@ string join(vector <string> v, string split) {
 string exec(string str, string filename) {
     vector <string> func_and_param = split(str, split_var);
     vector <string> func = split(func_and_param[0], split_type);
-    vector <string> headers = {"#include \"header/util.h\"","#include\"header/func.h\"", "#include\"header/class.h\"","#include\"header/fly.h\"", "using namespace std;"};
+    vector <string> headers = {"#include <fly/util.h>","#include <fly/func.h>", "#include <fly/class.h>","#include <fly/fly.h>", "using namespace std;"};
 
     string header = join(headers, "\n");
 
