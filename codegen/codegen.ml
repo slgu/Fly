@@ -692,6 +692,9 @@ and handle_tstmt fkey tstmt_ refenv =
 and handle_body fkey body refenv =
     let refnewenv = ref (append_new_level !refenv) in
     let body_code = List.fold_left (fun ret tstmt_ -> ret @ (handle_tstmt fkey tstmt_ refnewenv)) [] body in
+    if fkey = "main"
+    then ["{\n___argc=argc;___argv=argv;\n"] @ body_code @ ["}"]
+    else
     ["{"] @ body_code @ ["}"]
 
 (* return string list *)
@@ -703,12 +706,19 @@ and handle_fdecl fkey fd refenv =
         if name = ""
         then []
         else
-            let fmstr = (handle_fm fm refnewenv) in
+            let fmstr = handle_fm fm refnewenv in
             let bodystr = (handle_body fkey body refnewenv) in
-            [ cat_string_list_with_space [(type_to_code_string rt);name;fmstr]] @ bodystr
+            if name = "main" then
+                (*tricy replacement for main func*)
+                let new_fmstr = "(int argc, char **argv)"
+                in [ cat_string_list_with_space [(type_to_code_string rt);name;new_fmstr]] @ bodystr
+            else
+                [ cat_string_list_with_space [(type_to_code_string rt);name;fmstr]] @ bodystr
+
 
 let code_header = ["
     #include<fly/util.h>
+    #include<fly/cli.h>
 "]
 
 (* take a texp and return function key list *)
@@ -870,7 +880,12 @@ let handle_func_forward fd refenv =
         if name = ""
         then []
         else
-            let fmstr = (handle_fm fm refnewenv) in
+            let fmstr =
+                if name = "main" then
+                    "(int argc, char **argv)"
+                else
+                (handle_fm fm refnewenv)
+            in
             [ cat_string_list_with_space [(type_to_code_string rt);name;fmstr;] ^ ";"]
 
 let gen_forward ht refenv =

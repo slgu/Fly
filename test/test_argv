@@ -8,5 +8,7 @@ func g(a, b) {
 
 func main () {
     a = 3;
+    c = get_argv(1);
+    print(c);
     return 0;
 }

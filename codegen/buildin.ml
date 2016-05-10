@@ -144,6 +144,13 @@ let string_vint_func = {
     tbody = [];
     tret = Array (Int);
 }
+let get_argv = {
+    ttkey = "";
+    tfname = "get_argv";
+    tformals = [("int", Int)];
+    tbody = [];
+    tret = String;
+}
 let build_in_func =
     [int_to_string;
     float_to_string;
@@ -161,7 +168,7 @@ let build_in_func =
     len;
     exec_func;
     string_vint_func;
-    vect_int_to_string]
+    vect_int_to_string;get_argv]
 
 
 

@@ -35,3 +35,6 @@ int main() {
     Chan < vector <int> > c;
     return 0;
 }
+int main(int argc, char *argv[]) {
+    return 0;
+}
