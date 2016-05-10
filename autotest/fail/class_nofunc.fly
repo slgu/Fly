@@ -1,0 +1,9 @@
+class cat {
+    name:String;
+}
+
+func main() {
+    c = @cat;
+    c.bark();
+    return 0;
+}
