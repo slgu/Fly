@@ -1,14 +1,14 @@
-func crazy_push(num, a) {
+func crazy_push(num, arr) {
     for (i = 0; i < num; i = i + 1) {
-        a.push_back(1);
+        arr.push_back(1);
     }
     return 0;
 }
 
-func crazy_inc(num, a) {
+func crazy_inc(num, arr) {
     for (i = 0; i < num; i = i + 1) {
-        a.sync();
-        a.set_at(0, a.get_at(0) + 1);
+        arr.sync();
+        arr.set_at(0, arr.get_at(0) + 1);
     }
     return 0;
 }
