@@ -22,6 +22,8 @@ all:
 	ocamlc -o fly $(parser_dir)/scanner.cmo $(parser_dir)/parser.cmo $(ast_dir)/ast.cmo $(ast_dir)/sast.cmo $(debug_dir)/debug.cmo $(check_dir)/util.cmo  $(check_dir)/checkstruct.cmo $(gen_dir)/buildin.cmo $(check_dir)/env.cmo $(check_dir)/infer.cmo  $(gen_dir)/codegen.cmo fly_gen.cmo
 
 install:
+	make
+	cp fly /usr/local/bin
 	rm -rf /usr/local/include/fly
 	cp -r header /usr/local/include/fly
 
