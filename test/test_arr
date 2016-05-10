@@ -15,11 +15,8 @@ func main() {
         a2.push_back(i);
     }
     c = (x, y -> x * y);
-    /*
-    s = fly gao(c, a1, a2);
-    res = s.wait();
-    */
     res = gao(c, a1,a2);
+    res.push_vec(a1);
     l = res.size();
     for (i = 0; i < l; i=i+1) {
         print(res.get_at(i));

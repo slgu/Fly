@@ -314,6 +314,16 @@ let get_arr_call_ret (thistype:typ) fname expr_types = match thistype with
                 else failwith ("type not consistent: get_arr_call_ret")
             else
                 failwith ("push_back not 1 element: get_arr_call_ret")
+        | "push_vec" ->
+            if expr_len = 1 then
+                let y = List.hd expr_types
+                in
+                match y with
+                | Array z -> if x = z then Void
+                    else failwith ("type not consistent: get_arr_call_ret")
+                | _ -> failwith ("type not consistent: get_arr_call_ret")
+            else
+                failwith ("push_vec not 1 element: get_arr_call_ret")
         | "get_at" ->
             if expr_len = 1 then
                 if [Int] = expr_types then x

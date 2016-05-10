@@ -58,12 +58,10 @@ public:
         std::unique_lock<std::recursive_mutex> lk(v_mutex);
         return v.size();
     }
-
     T& get_at (const int& n) {
         std::unique_lock<std::recursive_mutex> lk(v_mutex);
         return v[n];
     }
-
     void set_at (const int& n, const T& val) {
         std::unique_lock<std::recursive_mutex> lk(v_mutex);
         v[n] = val;
@@ -72,6 +70,12 @@ public:
     void push_back (const T& val) {
         std::unique_lock<std::recursive_mutex> lk(v_mutex);
         v.push_back(val);
+    }
+    void push_vec (shared_ptr < flyvector <T> > another) {
+        int l = another->size();
+        for (int i = 0; i < l; ++i) {
+            push_back(another->get_at(i));
+        }
     }
 };
 
