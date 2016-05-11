@@ -59,7 +59,7 @@ debug:
 	ocamlc -o debug $(ast_dir)/ast.cmo $(ast_dir)/sast.cmo $(debug_dir)/debug.cmo
 	rm */*.cm*
 bin:
-	./fly < $(src)
+	fly < $(src)
 	g++ -pthread -o $(bin) -std=c++11 tmp.cc
 debug_clean:
 	rm debug
